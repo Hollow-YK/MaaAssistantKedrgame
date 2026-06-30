@@ -155,11 +155,6 @@ jobs:
         run: |
           python tools/ci/setup_embed_python.py
 
-      - name: Install json-with-comments for install_mxu.py
-        shell: bash
-        run: |
-          ./install/python/python.exe -m pip install json-with-comments
-
       - name: Download Python dependencies
         shell: bash
         run: |
