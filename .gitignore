@@ -452,3 +452,9 @@ tools/ImageCropper/**/*.png
 
 config
 debug
+
+# Python
+.venv/
+python/
+Lib/
+pyvenv.cfg
