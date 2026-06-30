@@ -15,7 +15,7 @@ print(os.getcwd())
 PYTHON_VERSION_TARGET = "3.12.10"
 PYTHON_BUILD_STANDALONE_RELEASE_TAG = "20250409"
 
-DEST_DIR = os.path.join("install-mxu", "python")
+DEST_DIR = os.path.join("install", "python")
 
 
 # --- 辅助函数 ---
