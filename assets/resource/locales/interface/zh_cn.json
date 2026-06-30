@@ -1,5 +1,6 @@
 {
     "interface.description": "基于 MaaFramework 的《雪松》小助手。",
+    "interface.welcome.file": "resource/locales/interface/WELCOME/WELCOME_zh_cn.md",
     "interface.contact": "QQ群: 253843401",
     "controller.ADB.label": "ADB控制器",
     "task.StartGame.label": "启动游戏",
