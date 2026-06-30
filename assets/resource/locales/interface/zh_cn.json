@@ -1,0 +1,8 @@
+{
+    "interface.description": "基于 MaaFramework 的《雪松》小助手。",
+    "interface.contact": "QQ群: 253843401",
+    "controller.ADB.label": "ADB控制器",
+    "task.StartGame.label": "启动游戏",
+    "task.StartGame.desc": "打开雪松",
+    "group.Daily.label": "日常"
+}
