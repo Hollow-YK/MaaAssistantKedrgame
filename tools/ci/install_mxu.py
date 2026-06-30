@@ -2,22 +2,35 @@ from pathlib import Path
 
 import shutil
 import sys
+import json
 import os
-
-try:
-    import jsonc
-except ModuleNotFoundError as e:
-    raise ImportError(
-        "Missing dependency 'json-with-comments' (imported as 'jsonc').\n"
-        f"Install it with:\n  {sys.executable} -m pip install json-with-comments\n"
-        "Or add it to your project's requirements."
-    ) from e
+import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 tools_dir = os.path.dirname(script_dir)
 sys.path.append(tools_dir)
 
 from configure import configure_ocr_model
+
+
+def load_json_with_comments(path):
+    with open(path, "r", encoding="utf-8") as f:
+        text = f.read()
+    # 去掉整行注释
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE)
+    # 去掉行内注释（不在字符串内的 // 之后的内容）
+    lines = []
+    for line in text.split("\n"):
+        in_string = False
+        for i, ch in enumerate(line):
+            if ch == '"' and (i == 0 or line[i - 1] != '\\'):
+                in_string = not in_string
+            elif ch == '/' and i + 1 < len(line) and line[i + 1] == '/' and not in_string:
+                line = line[:i].rstrip()
+                break
+        lines.append(line)
+    text = "\n".join(lines)
+    return json.loads(text)
 
 
 working_dir = Path(__file__).parent.parent.parent
@@ -67,14 +80,13 @@ def install_resource():
         install_path,
     )
 
-    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
-        interface = jsonc.load(f)
+    interface = load_json_with_comments(install_path / "interface.json")
 
     interface["version"] = version.lstrip("v")
     interface["title"] = f"MAK {version} | 雪松小助手"
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
-        jsonc.dump(interface, f, ensure_ascii=False, indent=4)
+        json.dump(interface, f, ensure_ascii=False, indent=4)
 
 
 def install_chores():
@@ -91,8 +103,7 @@ def install_agent():
         dirs_exist_ok=True,
     )
 
-    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
-        interface = jsonc.load(f)
+    interface = load_json_with_comments(install_path / "interface.json")
 
     if sys.platform.startswith("win"):
         interface["agent"]["child_exec"] = r"./python/python.exe"
@@ -104,7 +115,7 @@ def install_agent():
     interface["agent"]["child_args"] = ["-u", r"./agent/main.py"]
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
-        jsonc.dump(interface, f, ensure_ascii=False, indent=4)
+        json.dump(interface, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
