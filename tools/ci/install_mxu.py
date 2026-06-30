@@ -1,0 +1,116 @@
+from pathlib import Path
+
+import shutil
+import sys
+import os
+
+try:
+    import jsonc
+except ModuleNotFoundError as e:
+    raise ImportError(
+        "Missing dependency 'json-with-comments' (imported as 'jsonc').\n"
+        f"Install it with:\n  {sys.executable} -m pip install json-with-comments\n"
+        "Or add it to your project's requirements."
+    ) from e
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+tools_dir = os.path.dirname(script_dir)
+sys.path.append(tools_dir)
+
+from configure import configure_ocr_model
+
+
+working_dir = Path(__file__).parent.parent.parent
+install_path = working_dir / Path("install-mxu")
+version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
+
+
+def install_deps():
+    """安装 MaaFramework 依赖到 maafw 目录（MXU 要求的目录结构）
+
+    MXU 要求将 MaaFramework 的 bin 文件夹内容解压到 maafw 文件夹中。
+    参考: https://github.com/MistEO/MXU#依赖文件
+    """
+
+    # MaaFramework 运行库 → maafw/
+    shutil.copytree(
+        working_dir / "deps" / "bin",
+        install_path / "maafw",
+        ignore=shutil.ignore_patterns(
+            "*MaaDbgControlUnit*",
+            "*MaaThriftControlUnit*",
+            "*MaaRpc*",
+            "*MaaHttp*",
+            "*.node",
+            "*MaaPiCli*",
+        ),
+        dirs_exist_ok=True,
+    )
+    shutil.copytree(
+        working_dir / "deps" / "share" / "MaaAgentBinary",
+        install_path / "maafw" / "MaaAgentBinary",
+        dirs_exist_ok=True,
+    )
+
+
+def install_resource():
+
+    configure_ocr_model()
+
+    shutil.copytree(
+        working_dir / "assets" / "resource",
+        install_path / "resource",
+        dirs_exist_ok=True,
+    )
+    shutil.copy2(
+        working_dir / "assets" / "interface.json",
+        install_path,
+    )
+
+    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
+        interface = jsonc.load(f)
+
+    interface["version"] = version.lstrip("v")
+    interface["title"] = f"MAK {version} | 雪松小助手"
+
+    with open(install_path / "interface.json", "w", encoding="utf-8") as f:
+        jsonc.dump(interface, f, ensure_ascii=False, indent=4)
+
+
+def install_chores():
+    for file in ["README.md", "LICENSE", "requirements.txt"]:
+        src = working_dir / file
+        if src.exists():
+            shutil.copy2(src, install_path)
+
+
+def install_agent():
+    shutil.copytree(
+        working_dir / "agent",
+        install_path / "agent",
+        dirs_exist_ok=True,
+    )
+
+    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
+        interface = jsonc.load(f)
+
+    if sys.platform.startswith("win"):
+        interface["agent"]["child_exec"] = r"./python/python.exe"
+    elif sys.platform.startswith("darwin"):
+        interface["agent"]["child_exec"] = r"./python/bin/python3"
+    elif sys.platform.startswith("linux"):
+        interface["agent"]["child_exec"] = r"python3"
+
+    interface["agent"]["child_args"] = ["-u", r"./agent/main.py"]
+
+    with open(install_path / "interface.json", "w", encoding="utf-8") as f:
+        jsonc.dump(interface, f, ensure_ascii=False, indent=4)
+
+
+if __name__ == "__main__":
+    install_deps()
+    install_resource()
+    install_chores()
+    install_agent()
+
+    print(f"Install MXU to {install_path} successfully.")

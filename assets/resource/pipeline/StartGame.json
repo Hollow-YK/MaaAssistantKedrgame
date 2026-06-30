@@ -1,0 +1,262 @@
+{
+    "StartGameMain": {
+        "desc": "启动游戏入口",
+        "next": [
+            "StartGameApp"
+        ]
+    },
+    "StartGameApp": {
+        "desc": "启动游戏",
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.phxh.official.nld"
+            }
+        },
+        "next": [
+            "[JumpBack]StartGame_icon",
+            "[JumpBack]GameResources_update_OCR",
+            "[JumpBack]StartGame_wait",
+            "StartGame_ClickStart"
+        ]
+    },
+    "StartGame_icon": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "StartGame/8.png"
+            }
+        }
+    },
+    "GameResources_update_OCR": {
+        "desc": "游戏资源更新下载OCR",
+        "recognition": "And",
+        "all_of": [
+            {
+                "recognition": {
+                    "type": "OCR",
+                    "param": {
+                        "expected": [
+                            "资源更新"
+                        ],
+                        "roi": [
+                            340,
+                            245,
+                            595,
+                            160
+                        ]
+                    }
+                }
+            },
+            {
+                "recognition": {
+                    "type": "OCR",
+                    "param": {
+                        "expected": [
+                            "是否下载"
+                        ],
+                        "roi": [
+                            340,
+                            245,
+                            595,
+                            160
+                        ]
+                    }
+                }
+            }
+        ],
+        "next": [
+            "[JumpBack]GameResources_update_confirm",
+            "[JumpBack]GameResources_update_wait"
+        ]
+    },
+    "GameResources_update_confirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "确定"
+                ],
+                "roi": [
+                    425,
+                    468,
+                    190,
+                    35
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]GameResources_update_wait"
+        ]
+    },
+    "GameResources_update_wait": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "正在下载更新包"
+                ],
+                "roi": [
+                    454,
+                    655,
+                    390,
+                    60
+                ]
+            }
+        }
+    },
+    "StartGame_wait": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "请求APPConfig",
+                    "APPConfig",
+                    "初始化游戏",
+                    "服务器版本信息"
+                ],
+                "roi": [
+                    454,
+                    655,
+                    390,
+                    60
+                ]
+            }
+        }
+    },
+    "StartGame_ClickStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "点击任意处开始"
+                ],
+                "roi": [
+                    450,
+                    555,
+                    390,
+                    40
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "StartGame_Login",
+            "[JumpBack]StartGame_Login_wait",
+            "StartGame_Scene_Check_Homepage"
+        ]
+    },
+    "StartGame_Login": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "验证码登录"
+                ],
+                "roi": [
+                    540,
+                    140,
+                    200,
+                    45
+                ]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "请先手动验证码登录",
+                "display": [
+                    "log",
+                    "modal"
+                ]
+            }
+        }
+    },
+    "StartGame_Login_wait": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "StartGame/Loading.png",
+                "green_mask": true
+            }
+        }
+    },
+    "StartGame_Scene_Check_Homepage": {
+        "recognition": "And",
+        "all_of": [
+            {
+                "recognition": {
+                    "type": "TemplateMatch",
+                    "param": {
+                        "template": "UI/homepage/combatants.png",
+                        "roi": [
+                            270,
+                            575,
+                            155,
+                            60
+                        ],
+                        "green_mask": true
+                    }
+                }
+            },
+            {
+                "recognition": {
+                    "type": "TemplateMatch",
+                    "param": {
+                        "template": "UI/homepage/team.png",
+                        "roi": [
+                            430,
+                            575,
+                            155,
+                            60
+                        ],
+                        "green_mask": true
+                    }
+                }
+            },
+            {
+                "recognition": {
+                    "type": "TemplateMatch",
+                    "param": {
+                        "template": "UI/homepage/vehicle.png",
+                        "roi": [
+                            700,
+                            575,
+                            155,
+                            60
+                        ],
+                        "green_mask": true
+                    }
+                }
+            },
+            {
+                "recognition": {
+                    "type": "TemplateMatch",
+                    "param": {
+                        "template": "UI/homepage/base_withredpoint.png",
+                        "roi": [
+                            855,
+                            575,
+                            155,
+                            60
+                        ],
+                        "green_mask": true
+                    }
+                }
+            }
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "登录成功",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    }
+}

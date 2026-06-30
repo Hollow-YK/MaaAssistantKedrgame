@@ -1,0 +1,18 @@
+{
+    "task": [
+        {
+            "name": "StartGame",
+            "label": "$task.StartGame.label",
+            "entry": "StartGameMain",
+            "description": "$task.StartGame.desc",
+            "option": [],
+            "group": [
+                "Daily"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ],
+    "option": {}
+}
