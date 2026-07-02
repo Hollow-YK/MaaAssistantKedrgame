@@ -210,66 +210,7 @@
     "StartGame_Scene_Check_Homepage": {
         "recognition": "And",
         "all_of": [
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/combatants.png",
-                        "roi": [
-                            270,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/team.png",
-                        "roi": [
-                            430,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/vehicle.png",
-                        "roi": [
-                            700,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/base_withredpoint.png",
-                        "roi": [
-                            855,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            }
+            "Status_In_MainMenu"
         ],
         "focus": {
             "Node.Recognition.Succeeded": {

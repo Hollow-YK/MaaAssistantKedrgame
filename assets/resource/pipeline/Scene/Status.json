@@ -1,0 +1,22 @@
+{
+    "Status_In_MainMenu": {
+        "desc": "处于主界面",
+        "recognition": "And",
+        "all_of": [
+            "UI_MainMenu_combatants",
+            "UI_MainMenu_team",
+            "UI_MainMenu_vehicle",
+            "UI_MainMenu_base"
+        ]
+    },
+    "Status_Loading_Screen": {
+        "desc": "处于加载界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Loading/1.png",
+                "green_mask": true
+            }
+        }
+    }
+}
