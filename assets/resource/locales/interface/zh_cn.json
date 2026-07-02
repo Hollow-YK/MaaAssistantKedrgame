@@ -3,7 +3,9 @@
     "interface.welcome.file": "resource/locales/interface/WELCOME/WELCOME_zh_cn.md",
     "interface.contact": "QQ群: 253843401",
     "controller.ADB.label": "ADB控制器",
+    "group.Daily.label": "日常",
     "task.StartGame.label": "启动游戏",
     "task.StartGame.desc": "打开雪松",
-    "group.Daily.label": "日常"
+    "task.Award.label": "每日奖励",
+    "task.Award.desc": "领取每日奖励"
 }

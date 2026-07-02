@@ -28,5 +28,67 @@
                 ]
             }
         }
+    },
+    "UI_Common_GetItem": {
+        "desc": "通用UI-获得物品",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "获得物品"
+                ],
+                "roi": [
+                    540,
+                    0,
+                    200,
+                    280
+                ]
+            }
+        }
+    },
+    "UI_Common_Alert_Signal": {
+        "desc": "通用UI-对话框-左上角信号标志",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/alert_signal.png",
+                "roi": [
+                    305,
+                    165,
+                    60,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Common_Alert_Close": {
+        "desc": "通用UI-对话框-关闭按钮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/alert_close.png",
+                "roi": [
+                    915,
+                    165,
+                    60,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Common_Alert_Confirm": {
+        "desc": "通用UI-对话框-确认按钮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/alert_confirm.png",
+                "roi": [
+                    300,
+                    160,
+                    680,
+                    400
+                ]
+            }
+        }
     }
 }

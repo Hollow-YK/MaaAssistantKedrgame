@@ -1,0 +1,50 @@
+{
+    "SceneDo_PauseHomeButton": {
+        "desc": "点击HOME按钮",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_HomeButton"
+        ],
+        "action": "Click",
+        "post_delay": 1000
+    },
+    "SceneDo_GetItem": {
+        "desc": "获得物品",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Common_GetItem"
+        ],
+        "action": "Click",
+        "post_delay": 1000
+    },
+    "SceneDo_Alert_Close": {
+        "desc": "对话框-关闭",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "UI_Common_Alert_Close"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Close"
+            }
+        },
+        "post_delay": 1000
+    },
+    "SceneDo_Alert_Confirm": {
+        "desc": "对话框-确认",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "UI_Common_Alert_Confirm"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Confirm"
+            }
+        },
+        "post_delay": 1000
+    }
+}

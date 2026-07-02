@@ -1,0 +1,84 @@
+{
+    "task": [
+        {
+            "name": "Award",
+            "label": "$task.Award.label",
+            "entry": "AwardMain",
+            "description": "$task.Award.desc",
+            "option": [
+                "Award_MaintenanceArea"
+            ],
+            "group": [
+                "Daily"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ],
+    "option": {
+        "Award_MaintenanceArea": {
+            "label": "资源派遣",
+            "description": "领取资源派遣奖励",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": false
+                        }
+                    },
+                    "option": [
+                        "Award_MaintenanceArea_Again"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "Award_MaintenanceArea_Again": {
+            "label": "再次派遣",
+            "description": "领取资源派遣奖励后选择再次派遣<br>否则直接关闭对话框",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": false
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,82 @@
+{
+    "Award_MaintenanceArea": {
+        "desc": "奖励领取-资源派遣",
+        "next": [
+            "Award_MaintenanceArea_Enter:MainMenu_list_maintenancearea",
+            "[JumpBack]AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_MaintenanceArea_Enter:MainMenu_list_maintenancearea": {
+        "recognition": "And",
+        "all_of": [
+            "UI_MainMenu_list_maintenancearea"
+        ],
+        "action": "Click",
+        "next": [
+            "Award_MaintenanceArea_Click:GetAll"
+        ],
+        "post_delay": 1000
+    },
+    "Award_MaintenanceArea_Click:GetAll": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "一键领取"
+                ],
+                "roi": [
+                    840,
+                    625,
+                    430,
+                    70
+                ]
+            }
+        },
+        "action": "Click",
+        "next": [
+            "[JumpBack]SceneDo_GetItem",
+            "Award_MaintenanceArea_Click:Again",
+            "Award_MaintenanceArea_Click:NotAgain"
+        ],
+        "post_delay": 1000
+    },
+    "Award_MaintenanceArea_Click:Again": {
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "Award_MaintenanceArea_OCR:Alert_Again",
+            "UI_Common_Alert_Confirm"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Confirm"
+            }
+        }
+    },
+    "Award_MaintenanceArea_Click:NotAgain": {
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "Award_MaintenanceArea_OCR:Alert_Again",
+            "UI_Common_Alert_Close"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Close"
+            }
+        }
+    },
+    "Award_MaintenanceArea_OCR:Alert_Again": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "再次派遣",
+                    "是否再次派遣编队"
+                ]
+            }
+        }
+    }
+}
