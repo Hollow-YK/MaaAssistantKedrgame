@@ -18,8 +18,8 @@
     ],
     "option": {
         "Award_MaintenanceArea": {
-            "label": "资源派遣",
-            "description": "领取资源派遣奖励",
+            "label": "$option.Award_MaintenanceArea.label",
+            "description": "$option.Award_MaintenanceArea.description",
             "type": "switch",
             "default_case": "Yes",
             "cases": [
@@ -51,8 +51,8 @@
             ]
         },
         "Award_MaintenanceArea_Again": {
-            "label": "再次派遣",
-            "description": "领取资源派遣奖励后选择再次派遣<br>否则直接关闭对话框",
+            "label": "$option.Award_MaintenanceArea_Again.label",
+            "description": "$option.Award_MaintenanceArea_Again.description",
             "type": "switch",
             "default_case": "Yes",
             "cases": [

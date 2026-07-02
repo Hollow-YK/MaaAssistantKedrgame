@@ -7,5 +7,9 @@
     "task.StartGame.label": "启动游戏",
     "task.StartGame.desc": "打开雪松",
     "task.Award.label": "每日奖励",
-    "task.Award.desc": "领取每日奖励"
+    "task.Award.desc": "领取每日奖励",
+    "option.Award_MaintenanceArea.label": "资源派遣",
+    "option.Award_MaintenanceArea.description": "领取资源派遣奖励",
+    "option.Award_MaintenanceArea_Again.label": "再次派遣",
+    "option.Award_MaintenanceArea_Again.description": "领取资源派遣奖励后选择再次派遣<br>否则直接关闭对话框"
 }
