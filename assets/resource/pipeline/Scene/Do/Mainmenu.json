@@ -1,0 +1,18 @@
+{
+    "AnySceneEnter_MainMenu": {
+        "desc": "任意场景进入首页",
+        "next": [
+            "[JumpBack]AnySceneEnter_MainMenu_PauseHomeButton",
+            "[JumpBack]Status_Loading_Screen",
+            "Status_In_MainMenu"
+        ]
+    },
+    "AnySceneEnter_MainMenu_PauseHomeButton": {
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_HomeButton"
+        ],
+        "action": "Click",
+        "post_delay": 1000
+    }
+}

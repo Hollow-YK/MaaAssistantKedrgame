@@ -1,0 +1,332 @@
+{
+    "UI_MainMenu_repo": {
+        "desc": "主界面-仓库",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/repo.png",
+                "roi": [
+                    1140,
+                    25,
+                    65,
+                    45
+                ]
+            }
+        }
+    },
+    "UI_MainMenu_event": {
+        "desc": "主界面-活动",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_event_withredpoint"
+        ]
+    },
+    "UI_MainMenu_event_withredpoint": {
+        "desc": "主界面-活动(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/event_withredpoint.png",
+                "roi": [
+                    1080,
+                    20,
+                    60,
+                    50
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_mail": {
+        "desc": "主界面-邮件",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_mail_withoutmessage",
+            "UI_MainMenu_mail_withmessage"
+        ]
+    },
+    "UI_MainMenu_mail_withoutmessage": {
+        "desc": "主界面-邮件(无新消息)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/mail.png",
+                "roi": [
+                    1140,
+                    25,
+                    65,
+                    45
+                ]
+            }
+        }
+    },
+    "UI_MainMenu_mail_withmessage": {
+        "desc": "主界面-邮件(新消息)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/mail_withmessage.png",
+                "roi": [
+                    1140,
+                    25,
+                    65,
+                    45
+                ]
+            }
+        }
+    },
+    "UI_MainMenu_setting": {
+        "desc": "主界面-设置",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/setting.png",
+                "roi": [
+                    1210,
+                    25,
+                    55,
+                    45
+                ]
+            }
+        }
+    },
+    "UI_MainMenu_list_task": {
+        "desc": "主界面-任务",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_list_task_withoutredpoint"
+        ]
+    },
+    "UI_MainMenu_list_task_withoutredpoint": {
+        "desc": "主界面-任务(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/list_task.png",
+                //[910,197,178,44]
+                "roi": [
+                    890,
+                    190,
+                    340,
+                    240
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_list_protocol": {
+        "desc": "主界面-通行证",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_list_protocol_withredpoint"
+        ]
+    },
+    "UI_MainMenu_list_protocol_withredpoint": {
+        "desc": "主界面-通行证(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/list_protocol_withredpoint.png",
+                "roi": [
+                    890,
+                    190,
+                    340,
+                    240
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_list_maintenancearea": {
+        "desc": "主界面-资源派遣",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_list_maintenancearea_withoutredpoint",
+            "UI_MainMenu_list_maintenancearea_withredpoint"
+        ]
+    },
+    "UI_MainMenu_list_maintenancearea_withoutredpoint": {
+        "desc": "主界面-资源派遣(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/list_maintenancearea.png",
+                "roi": [
+                    890,
+                    190,
+                    340,
+                    240
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_list_maintenancearea_withredpoint": {
+        "desc": "主界面-资源派遣(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/list_maintenancearea_withredpoint.png",
+                "roi": [
+                    890,
+                    190,
+                    340,
+                    240
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_recruit": {
+        "desc": "主界面-动员",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/recruit.png",
+                "roi": [
+                    45,
+                    490,
+                    115,
+                    110
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_shop": {
+        "desc": "主界面-商店",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/shop.png",
+                "roi": [
+                    135,
+                    580,
+                    100,
+                    95
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_combatants": {
+        "desc": "主界面-战斗员",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/combatants.png",
+                "roi": [
+                    270,
+                    575,
+                    155,
+                    60
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_team": {
+        "desc": "主界面-编队",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/team.png",
+                "roi": [
+                    430,
+                    575,
+                    155,
+                    60
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_vehicle": {
+        "desc": "主界面-载具",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/vehicle.png",
+                "roi": [
+                    700,
+                    575,
+                    155,
+                    60
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_base": {
+        "desc": "主界面-营地",
+        "recognition": "Or",
+        "any_of": [
+            "UI_MainMenu_base_withoutredpoint",
+            "UI_MainMenu_base_withredpoint"
+        ]
+    },
+    "UI_MainMenu_base_withoutredpoint": {
+        "desc": "主界面-营地(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/base.png",
+                "roi": [
+                    855,
+                    575,
+                    155,
+                    60
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_base_withredpoint": {
+        "desc": "主界面-营地(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/base_withredpoint.png",
+                "roi": [
+                    855,
+                    575,
+                    155,
+                    60
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_combat": {
+        "desc": "主界面-出击",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/combat.png",
+                "roi": [
+                    1040,
+                    570,
+                    110,
+                    110
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_exercise": {
+        "desc": "主界面-对战",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/exercise.png",
+                "roi": [
+                    1150,
+                    590,
+                    120,
+                    120
+                ],
+                "green_mask": true
+            }
+        }
+    }
+}

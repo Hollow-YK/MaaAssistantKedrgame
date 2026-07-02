@@ -1,0 +1,32 @@
+{
+    "UI_Common_HomeButton": {
+        "desc": "通用UI-主页按钮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/home.png",
+                "roi": [
+                    170,
+                    20,
+                    140,
+                    65
+                ]
+            }
+        }
+    },
+    "UI_Common_BackButton": {
+        "desc": "通用UI-返回按钮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/back.png",
+                "roi": [
+                    5,
+                    20,
+                    190,
+                    65
+                ]
+            }
+        }
+    }
+}

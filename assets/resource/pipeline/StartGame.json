@@ -128,6 +128,7 @@
         }
     },
     "StartGame_ClickStart": {
+        "pre_wait_freezes": 500,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -146,10 +147,31 @@
             "type": "Click"
         },
         "next": [
+            "[JumpBack]StartGame_ClickStart_again",
             "StartGame_Login",
             "[JumpBack]StartGame_Login_wait",
             "StartGame_Scene_Check_Homepage"
         ]
+    },
+    "StartGame_ClickStart_again": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "点击任意处开始"
+                ],
+                "roi": [
+                    450,
+                    555,
+                    390,
+                    40
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000
     },
     "StartGame_Login": {
         "recognition": {
@@ -188,66 +210,7 @@
     "StartGame_Scene_Check_Homepage": {
         "recognition": "And",
         "all_of": [
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/combatants.png",
-                        "roi": [
-                            270,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/team.png",
-                        "roi": [
-                            430,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/vehicle.png",
-                        "roi": [
-                            700,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            },
-            {
-                "recognition": {
-                    "type": "TemplateMatch",
-                    "param": {
-                        "template": "UI/homepage/base_withredpoint.png",
-                        "roi": [
-                            855,
-                            575,
-                            155,
-                            60
-                        ],
-                        "green_mask": true
-                    }
-                }
-            }
+            "Status_In_MainMenu"
         ],
         "focus": {
             "Node.Recognition.Succeeded": {
