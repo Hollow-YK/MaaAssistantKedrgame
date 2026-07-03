@@ -1,0 +1,117 @@
+{
+    "SceneDo_Alert_Close_safe": {
+        "desc": "对话框-关闭(安全)",
+        // 对可能的情况进行了穷举，以确保只会关闭可以随意关闭的对话框。
+        //     _    _     ______________
+        //    / ,"", \    |            |
+        //   /_/O  O\_\   /     ?      |
+        //     |>~~~|    /_____________|
+        //     \____/
+        //    _ || || _
+        //   / /     \ \
+        //  / /       \ \
+        // | |         | |
+        //    \        /
+        //   /\\      //\
+        // _/  \      /  \_
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal"
+        ],
+        "next": [
+            "[JumpBack]SceneDo_Alert_Close_safe_ReconnectFailed",
+            "[JumpBack]SceneDo_Alert_Close_safe_MaintenanceArea_Again"
+        ]
+    },
+    "SceneDo_Alert_Close_safe_ReconnectFailed": {
+        "desc": "对话框-关闭(安全)-重连失败",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            {
+                "type": "OCR",
+                "param": {
+                    "expected": [
+                        "重连失败，请返回登录界面",
+                        "重连失败",
+                        "请返回登录界面"
+                    ],
+                    "roi": [
+                        305,
+                        225,
+                        665,
+                        255
+                    ]
+                }
+            },
+            "UI_Common_Alert_Confirm"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Confirm"
+            }
+        },
+        "post_delay": 1000
+    },
+    "SceneDo_Alert_Close_safe_MaintenanceArea_Again": {
+        "desc": "对话框-关闭(安全)-资源派遣-再次派遣",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            {
+                "type": "OCR",
+                "param": {
+                    "expected": [
+                        "再次派遣",
+                        "是否再次派遣编队"
+                    ],
+                    "roi": [
+                        305,
+                        225,
+                        665,
+                        255
+                    ]
+                }
+            },
+            "UI_Common_Alert_Close"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Close"
+            }
+        },
+        "post_delay": 1000
+    },
+    "SceneDo_Alert_Close": {
+        "desc": "对话框-关闭",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "UI_Common_Alert_Close"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Close"
+            }
+        },
+        "post_delay": 1000
+    },
+    "SceneDo_Alert_Confirm": {
+        "desc": "对话框-确认",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_Alert_Signal",
+            "UI_Common_Alert_Confirm"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Common_Alert_Confirm"
+            }
+        },
+        "post_delay": 1000
+    }
+}

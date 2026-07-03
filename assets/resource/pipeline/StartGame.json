@@ -16,6 +16,7 @@
         "next": [
             "[JumpBack]StartGame_icon",
             "[JumpBack]GameResources_update_OCR",
+            "[JumpBack]GameResources_update_wait",
             "[JumpBack]StartGame_wait",
             "StartGame_ClickStart"
         ]
@@ -66,8 +67,7 @@
             }
         ],
         "next": [
-            "[JumpBack]GameResources_update_confirm",
-            "[JumpBack]GameResources_update_wait"
+            "GameResources_update_confirm"
         ]
     },
     "GameResources_update_confirm": {

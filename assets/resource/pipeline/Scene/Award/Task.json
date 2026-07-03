@@ -1,0 +1,21 @@
+{
+    "Award_Task": {
+        "desc": "奖励领取-任务",
+        "next": [
+            "Award_Task_Enter:MainMenu_list_task",
+            "[JumpBack]AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Enter:MainMenu_list_task": {
+        "recognition": "And",
+        "all_of": [
+            "UI_MainMenu_list_task"
+        ],
+        "action": "Click",
+        "next": [
+            "Award_Task_Click:GetAll"
+        ],
+        "post_delay": 1000
+    },
+    "Award_Task_Click:GetAll": {}
+}

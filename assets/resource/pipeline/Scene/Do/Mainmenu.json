@@ -5,6 +5,9 @@
             "[JumpBack]SceneDo_PauseHomeButton",
             "[JumpBack]SceneDo_GetItem",
             "[JumpBack]Status_Loading_Screen",
+            "[JumpBack]SceneDo_Alert_Close_safe",
+            "[JumpBack]StartGame_wait",
+            "[JumpBack]StartGame_ClickStart",
             "Status_In_MainMenu"
         ]
     }
