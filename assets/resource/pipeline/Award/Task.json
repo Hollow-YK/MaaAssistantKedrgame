@@ -1,0 +1,165 @@
+{
+    "Award_Task": {
+        "desc": "奖励领取-任务",
+        "next": [
+            "Award_Task_Enter:MainMenu_list_task",
+            "[JumpBack]AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Enter:MainMenu_list_task": {
+        "recognition": "And",
+        "all_of": [
+            "UI_MainMenu_list_task"
+        ],
+        "action": "Click",
+        "next": [
+            "Award_Task_Verify:EnterTaskPage",
+            "Award_Task_Enter:MainMenu_list_task"
+        ],
+        "post_delay": 1000
+    },
+    "Award_Task_Verify:EnterTaskPage": {
+        "desc": "确认进入任务页面",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_DailyTask_selected"
+        ],
+        "next": [
+            "Award_Task_Daily",
+            "Award_Task_Weekly",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Daily": {
+        "desc": "每日任务-入口",
+        "next": [
+            "Award_Task_Do:DailyTask_ClaimAll",
+            "Award_Task_Weekly",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Do:DailyTask_ClaimAll": {
+        "desc": "每日任务-尝试领取全部",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_DailyTask_selected",
+            "UI_Task_ClaimAll"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Task_ClaimAll"
+            }
+        },
+        "next": [
+            "[JumpBack]SceneDo_GetItem",
+            "Award_Task_Weekly",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ],
+        "post_delay": 1000
+    },
+    "Award_Task_Weekly": {
+        "desc": "每周任务-入口",
+        "next": [
+            "Award_Task_Click:WeeklyTask_Into",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Click:WeeklyTask_Into": {
+        "desc": "每周任务-进入标签页",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_WeeklyTask"
+        ],
+        "action": "Click",
+        "next": [
+            "Award_Task_Verify:WeeklyTab",
+            "Award_Task_Click:WeeklyTask_Into"
+        ]
+    },
+    "Award_Task_Verify:WeeklyTab": {
+        "desc": "确认进入每周任务",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_WeeklyTask_selected"
+        ],
+        "next": [
+            "Award_Task_Do:WeeklyTask_ClaimAll",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Do:WeeklyTask_ClaimAll": {
+        "desc": "每周任务-尝试领取全部",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_WeeklyTask_selected",
+            "UI_Task_ClaimAll"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Task_ClaimAll"
+            }
+        },
+        "next": [
+            "[JumpBack]SceneDo_GetItem",
+            "Award_Task_Achievement",
+            "AnySceneEnter_MainMenu"
+        ],
+        "post_delay": 1000
+    },
+    "Award_Task_Achievement": {
+        "desc": "成就任务-入口",
+        "next": [
+            "Award_Task_Click:AchievementTask_Into",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Click:AchievementTask_Into": {
+        "desc": "成就任务-进入标签页",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_AchievementTask"
+        ],
+        "action": "Click",
+        "next": [
+            "Award_Task_Verify:AchievementTab",
+            "Award_Task_Click:AchievementTask_Into"
+        ]
+    },
+    "Award_Task_Verify:AchievementTab": {
+        "desc": "确认进入成就任务",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_AchievementTask_selected"
+        ],
+        "next": [
+            "Award_Task_Do:AchievementTask_ClaimAll",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_Task_Do:AchievementTask_ClaimAll": {
+        "desc": "成就任务-尝试领取全部",
+        "recognition": "And",
+        "all_of": [
+            "UI_Task_AchievementTask_selected",
+            "UI_Task_ClaimAll"
+        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Task_ClaimAll"
+            }
+        },
+        "next": [
+            "[JumpBack]SceneDo_GetItem",
+            "AnySceneEnter_MainMenu"
+        ],
+        "post_delay": 1000
+    }
+}
