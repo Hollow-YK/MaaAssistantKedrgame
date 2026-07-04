@@ -3,7 +3,21 @@
     "interface.welcome.file": "resource/locales/interface/WELCOME/WELCOME_zh_cn.md",
     "interface.contact": "QQ群: 253843401",
     "controller.ADB.label": "ADB控制器",
+    "group.Daily.label": "日常",
     "task.StartGame.label": "启动游戏",
     "task.StartGame.desc": "打开雪松",
-    "group.Daily.label": "日常"
+    "task.Award.label": "每日奖励",
+    "task.Award.desc": "领取每日奖励",
+    "option.Award_MaintenanceArea.label": "资源派遣",
+    "option.Award_MaintenanceArea.description": "领取资源派遣奖励",
+    "option.Award_MaintenanceArea_Again.label": "再次派遣",
+    "option.Award_MaintenanceArea_Again.description": "领取资源派遣奖励后选择再次派遣<br>否则直接关闭对话框",
+    "option.Award_Task.label": "领取任务奖励",
+    "option.Award_Task.description": "领取每日/每周/成就任务奖励",
+    "option.Award_Task_Daily.label": "每日任务",
+    "option.Award_Task_Daily.description": "领取每日任务奖励",
+    "option.Award_Task_Weekly.label": "每周任务",
+    "option.Award_Task_Weekly.description": "领取每周任务奖励",
+    "option.Award_Task_Achievement.label": "成就任务",
+    "option.Award_Task_Achievement.description": "领取成就任务奖励"
 }

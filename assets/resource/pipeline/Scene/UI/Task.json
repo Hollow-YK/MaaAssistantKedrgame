@@ -1,0 +1,254 @@
+{
+    "UI_Task_DailyTask": {
+        "desc": "任务-每日任务(页面确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_DailyTask_withredpoint",
+            "UI_Task_DailyTask_withoutredpoint",
+            "UI_Task_DailyTask_selected_withredpoint",
+            "UI_Task_DailyTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_DailyTask_selected": {
+        "desc": "任务-每日任务(选中状态确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_DailyTask_selected_withredpoint",
+            "UI_Task_DailyTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_DailyTask_withoutredpoint": {
+        "desc": "任务-每日任务(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/dailytask.png",
+                // [398,108,136,42]
+                "roi": [
+                    1040,
+                    640,
+                    230,
+                    70
+                ]
+            }
+        }
+    },
+    "UI_Task_DailyTask_withredpoint": {
+        "desc": "任务-每日任务(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/dailytask_withredpoint.png",
+                "roi": [
+                    390,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_DailyTask_selected_withoutredpoint": {
+        "desc": "任务-每日任务(选中-无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/dailytask_selected.png",
+                "roi": [
+                    390,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_DailyTask_selected_withredpoint": {
+        "desc": "任务-每日任务(选中-红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/dailytask_selected_withredpoint.png",
+                "roi": [
+                    390,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_WeeklyTask": {
+        "desc": "任务-每周任务(页面确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_WeeklyTask_withredpoint",
+            "UI_Task_WeeklyTask_withoutredpoint",
+            "UI_Task_WeeklyTask_selected_withredpoint",
+            "UI_Task_WeeklyTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_WeeklyTask_selected": {
+        "desc": "任务-每周任务(选中状态确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_WeeklyTask_selected_withredpoint",
+            "UI_Task_WeeklyTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_WeeklyTask_withoutredpoint": {
+        "desc": "任务-每周任务(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/weeklytask.png",
+                // [738,108,136,43]
+                "roi": [
+                    730,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_WeeklyTask_withredpoint": {
+        "desc": "任务-每周任务(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/weeklytask_withredpoint.png",
+                "roi": [
+                    730,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_WeeklyTask_selected_withoutredpoint": {
+        "desc": "任务-每周任务(选中-无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/weeklytask_selected.png",
+                "roi": [
+                    730,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_WeeklyTask_selected_withredpoint": {
+        "desc": "任务-每周任务(选中-红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/weeklytask_selected_withredpoint.png",
+                "roi": [
+                    730,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_AchievementTask": {
+        "desc": "任务-成就任务(页面确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_AchievementTask_withredpoint",
+            "UI_Task_AchievementTask_withoutredpoint",
+            "UI_Task_AchievementTask_selected_withredpoint",
+            "UI_Task_AchievementTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_AchievementTask_selected": {
+        "desc": "任务-成就任务(选中状态确认)",
+        "recognition": "Or",
+        "any_of": [
+            "UI_Task_AchievementTask_selected_withredpoint",
+            "UI_Task_AchievementTask_selected_withoutredpoint"
+        ]
+    },
+    "UI_Task_AchievementTask_withoutredpoint": {
+        "desc": "任务-成就任务(无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/achievementtask.png",
+                // [1076,108,136,44]
+                "roi": [
+                    1060,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_AchievementTask_withredpoint": {
+        "desc": "任务-成就任务(红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/achievementtask_withredpoint.png",
+                "roi": [
+                    1060,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_AchievementTask_selected_withoutredpoint": {
+        "desc": "任务-成就任务(选中-无红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/achievementtask_selected.png",
+                "roi": [
+                    1060,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_AchievementTask_selected_withredpoint": {
+        "desc": "任务-成就任务(选中-红点)",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/achievementtask_selected_withredpoint.png",
+                "roi": [
+                    1060,
+                    100,
+                    160,
+                    55
+                ]
+            }
+        }
+    },
+    "UI_Task_ClaimAll": {
+        "desc": "任务-领取全部",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/task/ClaimAll.png",
+                "roi": [
+                    1050,
+                    640,
+                    220,
+                    65
+                ]
+            }
+        }
+    }
+}

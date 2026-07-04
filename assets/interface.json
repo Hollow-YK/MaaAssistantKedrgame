@@ -64,7 +64,8 @@
     ],
     "task": [],
     "import": [
-        "resource/tasks/StartGame.json"
+        "resource/tasks/StartGame.json",
+        "resource/tasks/Award.json"
     ],
     "option": {},
     "title": "MAK v325.799 | 雪松小助手"
