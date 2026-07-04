@@ -2,8 +2,8 @@
     "AwardMain": {
         "desc": "奖励领取入口",
         "next": [
-            "Award_MaintenanceArea",
-            "Award_Task"
+            "Award_Task",
+            "Award_MaintenanceArea"
         ]
     }
 }

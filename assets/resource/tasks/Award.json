@@ -6,8 +6,8 @@
             "entry": "AwardMain",
             "description": "$task.Award.desc",
             "option": [
-                "Award_MaintenanceArea",
-                "Award_Task"
+                "Award_Task",
+                "Award_MaintenanceArea"
             ],
             "group": [
                 "Daily"
@@ -18,69 +18,6 @@
         }
     ],
     "option": {
-        "Award_MaintenanceArea": {
-            "label": "$option.Award_MaintenanceArea.label",
-            "description": "$option.Award_MaintenanceArea.description",
-            "type": "switch",
-            "default_case": "Yes",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "Award_MaintenanceArea": {
-                            "enabled": true
-                        },
-                        "Award_MaintenanceArea_Click:Again": {
-                            "enabled": true
-                        },
-                        "Award_MaintenanceArea_Click:NotAgain": {
-                            "enabled": false
-                        }
-                    },
-                    "option": [
-                        "Award_MaintenanceArea_Again"
-                    ]
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "Award_MaintenanceArea": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "Award_MaintenanceArea_Again": {
-            "label": "$option.Award_MaintenanceArea_Again.label",
-            "description": "$option.Award_MaintenanceArea_Again.description",
-            "type": "switch",
-            "default_case": "Yes",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "Award_MaintenanceArea_Click:Again": {
-                            "enabled": true
-                        },
-                        "Award_MaintenanceArea_Click:NotAgain": {
-                            "enabled": false
-                        }
-                    }
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "Award_MaintenanceArea_Click:Again": {
-                            "enabled": false
-                        },
-                        "Award_MaintenanceArea_Click:NotAgain": {
-                            "enabled": true
-                        }
-                    }
-                }
-            ]
-        },
         "Award_Task": {
             "label": "$option.Award_Task.label",
             "description": "$option.Award_Task.description",
@@ -177,6 +114,69 @@
                     "pipeline_override": {
                         "Award_Task_Achievement": {
                             "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "Award_MaintenanceArea": {
+            "label": "$option.Award_MaintenanceArea.label",
+            "description": "$option.Award_MaintenanceArea.description",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": false
+                        }
+                    },
+                    "option": [
+                        "Award_MaintenanceArea_Again"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "Award_MaintenanceArea_Again": {
+            "label": "$option.Award_MaintenanceArea_Again.label",
+            "description": "$option.Award_MaintenanceArea_Again.description",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": true
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Award_MaintenanceArea_Click:Again": {
+                            "enabled": false
+                        },
+                        "Award_MaintenanceArea_Click:NotAgain": {
+                            "enabled": true
                         }
                     }
                 }
