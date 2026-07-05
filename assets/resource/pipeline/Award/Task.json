@@ -1,12 +1,14 @@
 {
     "Award_Task": {
+        "max_hit": 1,
         "desc": "奖励领取-任务",
         "next": [
             "Award_Task_Enter:MainMenu_list_task",
-            "[JumpBack]AnySceneEnter_MainMenu"
+            "AnySceneEnter_MainMenu"
         ]
     },
     "Award_Task_Enter:MainMenu_list_task": {
+        "max_hit": 1,
         "recognition": "And",
         "all_of": [
             "UI_MainMenu_list_task"
@@ -16,7 +18,7 @@
             "Award_Task_Verify:EnterTaskPage",
             "Award_Task_Enter:MainMenu_list_task"
         ],
-        "post_delay": 1000
+        "post_delay": 2000
     },
     "Award_Task_Verify:EnterTaskPage": {
         "desc": "确认进入任务页面",
@@ -59,7 +61,7 @@
             "Award_Task_Achievement",
             "AnySceneEnter_MainMenu"
         ],
-        "post_delay": 1000
+        "post_delay": 2000
     },
     "Award_Task_Weekly": {
         "desc": "每周任务-入口",
@@ -79,7 +81,8 @@
         "next": [
             "Award_Task_Verify:WeeklyTab",
             "Award_Task_Click:WeeklyTask_Into"
-        ]
+        ],
+        "post_delay": 2000
     },
     "Award_Task_Verify:WeeklyTab": {
         "desc": "确认进入每周任务",
@@ -111,7 +114,7 @@
             "Award_Task_Achievement",
             "AnySceneEnter_MainMenu"
         ],
-        "post_delay": 1000
+        "post_delay": 2000
     },
     "Award_Task_Achievement": {
         "desc": "成就任务-入口",
@@ -130,7 +133,8 @@
         "next": [
             "Award_Task_Verify:AchievementTab",
             "Award_Task_Click:AchievementTask_Into"
-        ]
+        ],
+        "post_delay": 2000
     },
     "Award_Task_Verify:AchievementTab": {
         "desc": "确认进入成就任务",
@@ -160,6 +164,6 @@
             "[JumpBack]SceneDo_GetItem",
             "AnySceneEnter_MainMenu"
         ],
-        "post_delay": 1000
+        "post_delay": 2000
     }
 }
