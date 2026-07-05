@@ -2,8 +2,22 @@
     "AwardMain": {
         "desc": "奖励领取入口",
         "next": [
-            "Award_Task",
+            "[JumpBack]AwardSub_MaintenanceArea",
+            "[JumpBack]AwardSub_Task",
+            "AwardEnd"
+        ]
+    },
+    "AwardSub_MaintenanceArea": {
+        "max_hit": 1,
+        "next": [
             "Award_MaintenanceArea"
         ]
-    }
+    },
+    "AwardSub_Task": {
+        "max_hit": 1,
+        "next": [
+            "Award_Task"
+        ]
+    },
+    "AwardEnd": {}
 }

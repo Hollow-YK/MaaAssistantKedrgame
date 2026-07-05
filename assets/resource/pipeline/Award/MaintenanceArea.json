@@ -3,19 +3,39 @@
         "desc": "奖励领取-资源派遣",
         "next": [
             "Award_MaintenanceArea_Enter:MainMenu_list_maintenancearea",
-            "[JumpBack]AnySceneEnter_MainMenu"
+            "AnySceneEnter_MainMenu"
         ]
     },
     "Award_MaintenanceArea_Enter:MainMenu_list_maintenancearea": {
+        "max_hit": 1,
         "recognition": "And",
         "all_of": [
             "UI_MainMenu_list_maintenancearea"
         ],
         "action": "Click",
         "next": [
-            "Award_MaintenanceArea_Click:GetAll"
+            "Award_MaintenanceArea_Click:GetAll",
+            "Award_MaintenanceArea_Click:Close"
         ],
         "post_delay": 1000
+    },
+    "Award_MaintenanceArea_Click:Close": {
+        "desc": "资源派遣-关闭页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "关闭"
+                ],
+                "roi": [
+                    840,
+                    625,
+                    430,
+                    70
+                ]
+            }
+        },
+        "action": "Click"
     },
     "Award_MaintenanceArea_Click:GetAll": {
         "recognition": {
@@ -36,9 +56,10 @@
         "next": [
             "[JumpBack]SceneDo_GetItem",
             "Award_MaintenanceArea_Click:Again",
-            "Award_MaintenanceArea_Click:NotAgain"
+            "Award_MaintenanceArea_Click:NotAgain",
+            "Award_MaintenanceArea_Click:Close"
         ],
-        "post_delay": 1000
+        "post_delay": 2000
     },
     "Award_MaintenanceArea_Click:Again": {
         "recognition": "And",
@@ -52,7 +73,10 @@
             "param": {
                 "target": "UI_Common_Alert_Confirm"
             }
-        }
+        },
+        "next": [
+            "Award_MaintenanceArea_Click:Close"
+        ]
     },
     "Award_MaintenanceArea_Click:NotAgain": {
         "recognition": "And",
@@ -66,7 +90,10 @@
             "param": {
                 "target": "UI_Common_Alert_Close"
             }
-        }
+        },
+        "next": [
+            "Award_MaintenanceArea_Click:Close"
+        ]
     },
     "Award_MaintenanceArea_OCR:Alert_Again": {
         "recognition": {
