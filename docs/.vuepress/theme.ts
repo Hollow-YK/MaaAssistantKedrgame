@@ -20,15 +20,15 @@ export default hopeTheme({
           ],
         },
         {
-          text: "开发文档",
+          text: "开发文档", link: "/dev/" 
+        },
+        { text: "MAAFW",
           children: [
             { text: "如何开发", link: "/develop/how-to-develop" },
             { text: "自定义配置", link: "/develop/custom-configure" },
             { text: "PR 规范", link: "/develop/pull-request-guidelines" },
             { text: "FAQ", link: "/develop/faq" },
-          ],
-        },
-        { text: "MAAFW", link: "https://maafw.com/" },
+          ],},
       ],
 
       sidebar: {
@@ -61,6 +61,9 @@ export default hopeTheme({
           "custom-configure.md",
           "pull-request-guidelines.md",
           "faq.md",
+        ],
+        "/dev/": [
+          "",
         ],
       },
     },
@@ -119,6 +122,9 @@ export default hopeTheme({
           "custom-configure.md",
           "pull-request-guidelines.md",
           "faq.md",
+        ],
+        "/en/dev/": [
+          "",
         ],
       },
     },
