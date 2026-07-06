@@ -14,7 +14,6 @@ except ModuleNotFoundError as e:
 
 from configure import configure_ocr_model
 
-
 working_dir = Path(__file__).parent.parent.resolve()
 install_path = working_dir / Path("install")
 version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
@@ -98,7 +97,6 @@ def install_deps():
         )
 
 
-
 def install_resource():
 
     configure_ocr_model()
@@ -108,6 +106,16 @@ def install_resource():
         install_path / "resource",
         dirs_exist_ok=True,
     )
+
+    resource_bilibili_src = working_dir / "assets" / "resource_bilibili"
+    resource_bilibili_dst = install_path / "resource_bilibili"
+    if resource_bilibili_src.exists():
+        shutil.copytree(
+            resource_bilibili_src,
+            resource_bilibili_dst,
+            dirs_exist_ok=True,
+        )
+
     shutil.copy2(
         working_dir / "assets" / "interface.json",
         install_path,
