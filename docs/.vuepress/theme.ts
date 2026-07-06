@@ -16,6 +16,7 @@ export default hopeTheme({
           children: [
             { text: "快速开始", link: "/guide/quickstart" },
             { text: "FAQ", link: "/guide/faq" },
+            { text: "问题排查手册", link: "/guide/trouble-shooting" },
             { text: "功能介绍", link: "/guide/features" },
           ],
         },
@@ -40,6 +41,10 @@ export default hopeTheme({
           {
             text: "FAQ（常见问题）",
             link: "faq.md",
+          },
+          {
+            text: "问题排查手册",
+            link: "trouble-shooting.md",
           },
           {
             text: "功能介绍",
@@ -83,6 +88,7 @@ export default hopeTheme({
           children: [
             { text: "Quick Start", link: "/en/guide/quickstart" },
             { text: "FAQ", link: "/en/guide/faq" },
+            { text: "Trouble Shooting", link: "/en/guide/trouble-shooting" },
             { text: "Features", link: "/en/guide/features" },
           ],
         },
@@ -107,6 +113,10 @@ export default hopeTheme({
           {
             text: "FAQ",
             link: "faq.md",
+          },
+          {
+            text: "Trouble Shooting",
+            link: "trouble-shooting.md",
           },
           {
             text: "Features",
