@@ -46,6 +46,14 @@ export default hopeTheme({
             prefix: "features/",
             link: "features/",
           },
+          {
+            text: "高级",
+            prefix: "advanced/",
+            collapsible: true,
+            children: [
+              "adb-device.md",
+            ],
+          },
         ],
         "/guide/features/": [
           {
@@ -107,6 +115,12 @@ export default hopeTheme({
             collapsible: true,
             children: ["start-game.md", "award.md"],
           },
+          {
+            text: "Advanced",
+            prefix: "advanced/",
+            collapsible: true,
+            children: ["adb-device.md"],
+          },
         ],
         "/en/guide/features/": [
           {
@@ -131,6 +145,9 @@ export default hopeTheme({
   },
 
   plugins: {
+    mdEnhance: {
+      tabs: true,
+    },
     search: {
       locales: {
         "/": {

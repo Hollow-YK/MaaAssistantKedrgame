@@ -28,5 +28,6 @@ MAK 目前提供以下功能，每项功能都可以独立使用。
 - **拖拽排序**：按住任务左侧的六个点拖拽，调整执行顺序
 - **展开设置**：点击任务右侧的 **>**，可以对该任务做更详细的设置
 
-> [!tip] 提示
-> 本项目处于早期开发阶段，更多功能正在开发中，敬请关注 [GitHub Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases) 获取更新！
+::: tip 提示
+本项目处于早期开发阶段，更多功能正在开发中，敬请关注 [GitHub Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases) 获取更新！
+:::
