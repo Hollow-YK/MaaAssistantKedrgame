@@ -144,6 +144,10 @@ export default hopeTheme({
     },
   },
 
+  markdown: {
+    mermaid: true,
+  },
+
   plugins: {
     mdEnhance: {
       tabs: true,
