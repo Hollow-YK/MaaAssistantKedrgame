@@ -6,6 +6,8 @@
     "group.Daily.label": "日常",
     "task.StartGame.label": "启动游戏",
     "task.StartGame.desc": "打开雪松",
+    "option.StartGame_DailyAward.label": "强制领取每日登录奖励",
+    "option.StartGame_DailyAward.description": "启动游戏并进入主界面后，自动领取每日登录奖励<br>如果不开启此选项，那么只会在它出现得快的情况下领取。<br>建议开启。",
     "task.Award.label": "领取奖励",
     "task.Award.desc": "领取各种奖励",
     "option.Award_Task.label": "领取任务奖励",
