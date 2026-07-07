@@ -21,14 +21,21 @@ export default hopeTheme({
           ],
         },
         {
-          text: "开发文档", link: "/dev/" 
+          text: "开发文档", link: "/dev/" ,
+          children: [
+            { text: "快速开始", link: "/dev/quick-start" },
+            { text: "新手入门", link: "/dev/beginner-guide/" },
+            { text: "任务与节点", link: "/dev/tasks-and-nodes/" },
+            { text: "项目规范", link: "/dev/project-conventions/" },
+            { text: "文档站开发", link: "/dev/docs-site" },
+          ],
         },
         { text: "MAAFW",
           children: [
-            { text: "如何开发", link: "/develop/how-to-develop" },
-            { text: "自定义配置", link: "/develop/custom-configure" },
-            { text: "PR 规范", link: "/develop/pull-request-guidelines" },
-            { text: "FAQ", link: "/develop/faq" },
+            { text: "如何开发", link: "/maafw/how-to-develop" },
+            { text: "自定义配置", link: "/maafw/custom-configure" },
+            { text: "PR 规范", link: "/maafw/pull-request-guidelines" },
+            { text: "FAQ", link: "/maafw/faq" },
           ],},
       ],
 
@@ -52,6 +59,10 @@ export default hopeTheme({
             link: "features/",
           },
           {
+            text: "",
+            children: [],
+          },
+          {
             text: "高级",
             prefix: "advanced/",
             collapsible: true,
@@ -65,18 +76,70 @@ export default hopeTheme({
             text: "功能介绍",
             link: "",
           },
+          {
+            text: "",
+            children: [],
+          },
           "start-game.md",
           "award.md",
         ],
-        "/develop/": [
+        "/dev/": [
+          "quick-start.md",
+          {
+            text: "新手入门",
+            prefix: "beginner-guide/",
+            link: "beginner-guide/",
+            collapsible: true,
+            children: [
+              "pipeline-basics.md",
+              "new-feature.md",
+              "common-nodes.md",
+              "start-game.md",
+            ],
+          },
+          {
+            text: "任务与节点",
+            prefix: "tasks-and-nodes/",
+            link: "tasks-and-nodes/",
+            collapsible: true,
+            children: [
+              "any-scene-main-menu.md",
+              "start-game.md",
+              "award.md",
+              "common-nodes.md",
+            ],
+          },
+          {
+            text: "",
+            children: [],
+          },
+          {
+            text: "项目规范",
+            prefix: "project-conventions/",
+            link: "project-conventions/",
+            collapsible: true,
+            children: [
+              "ProjectInterface.md",
+              "pipeline.md",
+              "pull-request.md",
+              "ai-usage.md",
+            ],
+          },
+          {
+            text: "",
+            children: [],
+          },
+          {
+            text: "文档站开发",
+            link: "docs-site.md",
+          },
+        ],
+        "/maafw/": [
           "",
           "how-to-develop.md",
           "custom-configure.md",
           "pull-request-guidelines.md",
           "faq.md",
-        ],
-        "/dev/": [
-          "",
         ],
       },
     },
@@ -156,12 +219,10 @@ export default hopeTheme({
 
   markdown: {
     mermaid: true,
-  },
-
-  plugins: {
-    mdEnhance: {
       tabs: true,
     },
+
+  plugins: {
     search: {
       locales: {
         "/": {

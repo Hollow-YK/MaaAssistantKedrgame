@@ -62,7 +62,7 @@ title: 如何开发
     git push origin HEAD -u
     ```
 
-    如果您准备通过 PR 与他人协作，建议参考 [PR 规范](./pull-request-guidelines.md) 补充变更摘要、验证记录和必要的日志或截图。
+    如果您准备通过 PR 与他人协作，建议参考 [PR 规范](./pull-request-guidelines) 补充变更摘要、验证记录和必要的日志或截图。
 
 5. 发布您的版本
 
@@ -83,8 +83,8 @@ title: 如何开发
 
 ## 常见问题
 
-请参考 [FAQ](./faq.md)。
+请参考 [FAQ](./faq)。
 
 ## 更多操作
 
-请参考 [个性化配置](./custom-configure.md)（可选）。
+请参考 [个性化配置](./custom-configure)（可选）。
