@@ -5,10 +5,11 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -37,8 +38,10 @@ jobs:
 
       - run: pnpm docs:build
 
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/.vuepress/dist
-          publish_branch: gh-pages
+          path: docs/.vuepress/dist
+
+      - uses: actions/deploy-pages@v4
