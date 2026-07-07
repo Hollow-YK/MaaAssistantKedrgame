@@ -1,3 +1,7 @@
+---
+title: 如何开发
+---
+
 # 如何开发
 
 在开始开发前请先阅读 MaaFramework 开发文档的 [快速开始](https://maafw.com/docs/1.1-QuickStarted) 章节，以便你对 MaaFramework 有一个基本的了解。
@@ -8,17 +12,17 @@
 
 使用本教程进行开发则默认你遵守 MaaFramework 衍生项目的相关开发规范以及共识，所有的讨论也将基于以下前提。
 
-0. 拥有一个 GitHub 账号并且已经登录  
-1. 使用基于 git 作为版本控制工具  
-  如果你还不会用，可以先在 [菜鸟教程](https://www.runoob.com/git/git-tutorial.html) 进行学习。  
+0. 拥有一个 GitHub 账号并且已经登录
+1. 使用基于 git 作为版本控制工具
+   如果你还不会用，可以先在 [菜鸟教程](https://www.runoob.com/git/git-tutorial.html) 进行学习。
 2. 使用 GitHub 托管代码并使用相关 [CI/CD 工作流](https://docs.github.com/zh/actions)。
-  项目中附带了一些基于 [GitHub Actions](https://docs.github.com/zh/actions) 的 CI/CD 工作流配置，你可以通过他们来自动进行测试以及将项目打包和发布。  
-3. 了解本框架中一些常见的术语  
-  MaaFramework 手册中的 [术语解释](https://maafw.com/docs/1.2-ExplanationOfTerms) 章节介绍了一些基本的专有术语。  
+   项目中附带了一些基于 [GitHub Actions](https://docs.github.com/zh/actions) 的 CI/CD 工作流配置，你可以通过他们来自动进行测试以及将项目打包和发布。
+3. 了解本框架中一些常见的术语
+   MaaFramework 手册中的 [术语解释](https://maafw.com/docs/1.2-ExplanationOfTerms) 章节介绍了一些基本的专有术语。
 
 ## 开发步骤
 
-0. 使用 [本项目主页](https://github.com/MaaXYZ/MaaPracticeBoilerplate) 右上角 `Use this template` - `Create a new repository` 来基于本模板创建您自己的项目。  
+0. 使用 [本项目主页](https://github.com/MaaXYZ/MaaPracticeBoilerplate) 右上角 `Use this template` - `Create a new repository` 来基于本模板创建您自己的项目。
     _（如果你找不到这个按钮，说明你没有登录 GitHub 账号）_
 
 1. 克隆你的项目（地址请修改为您基于本模板创建的新项目地址）。
@@ -36,7 +40,7 @@
     └── rec.onnx
     ```
 
-    > [!WARNING]
+    > [!warning]
     > 请注意，您不需要将 OCR 资源文件上传到您的代码仓库中。`.gitignore` 已经忽略了 `assets/resource/model/ocr/` 目录，且 GitHub workflow 在发布版本时会自动配置这些资源文件。
 
     _如果希望使用其他版本的模型，可以参考 [这个说明](https://github.com/MaaXYZ/MaaCommonAssets/tree/main/OCR)。_
@@ -51,20 +55,20 @@
     # 配置 git 信息（仅第一次需要，后续不用再配置）
     git config user.name "您的 GitHub 昵称"
     git config user.email "您的 GitHub 邮箱"
-    
+
     # 提交修改
     git add .
     git commit -m "XX 新功能"
     git push origin HEAD -u
     ```
 
-    如果您准备通过 PR 与他人协作，建议参考 [PR 规范](./pull_request_guidelines.md) 补充变更摘要、验证记录和必要的日志或截图。
+    如果您准备通过 PR 与他人协作，建议参考 [PR 规范](./pull-request-guidelines) 补充变更摘要、验证记录和必要的日志或截图。
 
 5. 发布您的版本
 
     本模板附带 GitHub Actions 工作流的 [配置文件](/.github/workflows/install.yml)，CI 检测到 tag 会自动进行打包和发布。默认的配置文件会将 [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) 与你的项目一同打包和发版。
 
-    > [!NOTE]
+    > [!note]
     > 第一次操作前，需要**先**修改 GitHub 仓库设置 `Settings` - `Actions` - `General` - `Read and write permissions` - `Save`
 
     ```bash
@@ -79,8 +83,8 @@
 
 ## 常见问题
 
-请参考 [FAQ](./faq.md)。
+请参考 [FAQ](./faq)。
 
 ## 更多操作
 
-请参考 [个性化配置](./custom_configure.md)（可选）。
+请参考 [个性化配置](./custom-configure)（可选）。

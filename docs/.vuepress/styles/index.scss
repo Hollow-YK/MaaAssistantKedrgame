@@ -1,0 +1,10 @@
+.vp-sidebar-links > li > .vp-sidebar-group:has(> .vp-sidebar-header .vp-sidebar-title:empty) {
+  width: calc(100% - 1rem);
+  margin: 0.5rem;
+  border-top: 1px solid var(--vp-c-divider);
+
+  > .vp-sidebar-header,
+  > .vp-sidebar-links {
+    display: none;
+  }
+}

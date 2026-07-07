@@ -68,7 +68,7 @@
 
 ## 开发指南
 
-参考 MaaFramework 官方文档即可。
+本项目的开发入口见 [开发文档](./docs/dev/README.md)。第一次参与时建议先读项目结构、资源与任务开发、校验与发布，再按需参考 [MaaFramework 官方文档](https://maafw.com/docs/1.1-QuickStarted)。
 
 欢迎各路大佬贡献代码，一起让 MAK 变得更好！
 
