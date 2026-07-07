@@ -42,9 +42,10 @@
             ]
         },
         {
-            "name": "其它",
+            "name": "TapTap",
             "path": [
-                "./resource"
+                "./resource",
+                "./resource_taptap"
             ]
         }
     ],

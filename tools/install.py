@@ -116,6 +116,15 @@ def install_resource():
             dirs_exist_ok=True,
         )
 
+    resource_taptap_src = working_dir / "assets" / "resource_taptap"
+    resource_taptap_dst = install_path / "resource_taptap"
+    if resource_taptap_src.exists():
+        shutil.copytree(
+            resource_taptap_src,
+            resource_taptap_dst,
+            dirs_exist_ok=True,
+        )
+
     shutil.copy2(
         working_dir / "assets" / "interface.json",
         install_path,
