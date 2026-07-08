@@ -22,15 +22,19 @@ highlights:
     description: <b>任何人</b>均能提交代码，为 MAK 添加新的功能。<br>我们拥有数项正在测试的功能，覆盖多个方面。
     features:
       - title: 启动游戏
+        icon: fa7-solid:play-circle
         details: 自动打开《雪松》并登录游戏
         link: /guide/features/start-game
       - title: 领取奖励
+        icon: fa7-solid:gift
         details: 自动领取日常、周常、成就、派遣等奖励
         link: /guide/features/award
       - title: 全部功能
+        icon: fa7-solid:list-squares
         details: 点此查看全部功能
         link: /guide/features/
       - title: 更多功能
+        icon: mdi:progress-wrench
         details: 正在开发中，敬请期待
 
 footer: '<a href="https://github.com/MaaXYZ/MaaFramework">MaaFramework</a> 强力驱动 | <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> | Copyright © 2026 MaaAssistantKedrgame'

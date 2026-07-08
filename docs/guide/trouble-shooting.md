@@ -1,6 +1,7 @@
 ---
 title: 问题排查手册
 order: 6
+icon: fa-solid:info
 ---
 
 # 问题排查手册

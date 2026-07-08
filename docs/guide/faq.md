@@ -1,6 +1,7 @@
 ---
 title: 常见问题（FAQ）
 order: 5
+icon: fa-solid:question
 ---
 
 # 常见问题（FAQ）
