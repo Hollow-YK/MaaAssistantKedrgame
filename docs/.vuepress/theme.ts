@@ -47,14 +47,17 @@ export default hopeTheme({
           },
           {
             text: "FAQ（常见问题）",
+            icon: "fa-solid:question",
             link: "faq.md",
           },
           {
             text: "问题排查手册",
+            icon: "fa-solid:info",
             link: "trouble-shooting.md",
           },
           {
             text: "功能介绍",
+            icon: "fa7-solid:list-squares",
             prefix: "features/",
             link: "features/",
           },
@@ -74,14 +77,21 @@ export default hopeTheme({
         "/guide/features/": [
           {
             text: "功能介绍",
+            icon: "fa7-solid:list-squares",
             link: "",
           },
           {
             text: "",
             children: [],
           },
-          "start-game.md",
-          "award.md",
+          {
+            text: "日常",
+            collapsible: true,
+            children: [
+              "start-game.md",
+              "award.md",
+            ],
+          },
         ],
         "/dev/": [
           "quick-start.md",
