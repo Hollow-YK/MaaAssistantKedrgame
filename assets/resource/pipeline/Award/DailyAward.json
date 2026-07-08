@@ -16,7 +16,11 @@
         "box_index": 1,
         "action": {
             "type": "Click"
-        }
+        },
+        "next": [
+            "[JumpBack]Award_DailyAward_MonthlyPlan",
+            "AnySceneEnter_MainMenu"
+        ]
     },
     "Award_DailyAward_OCR": {
         "desc": "",
@@ -54,5 +58,27 @@
                 "green_mask": true
             }
         }
+    },
+    "Award_DailyAward_MonthlyPlan": {
+        "desc": "月卡",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/DailyAward/MonthlyPlan.png"
+                ],
+                "roi": [
+                    420,
+                    200,
+                    450,
+                    450
+                ],
+                "green_mask": true
+            }
+        },
+        "action": "Click",
+        "next": [
+            "SceneDo_GetItem"
+        ]
     }
 }
