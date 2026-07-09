@@ -37,14 +37,15 @@
         {
             "name": "B 服",
             "path": [
-                "./resource"
-                // "./resource_bilibili"
+                "./resource",
+                "./resource_bilibili"
             ]
         },
         {
-            "name": "其它",
+            "name": "TapTap",
             "path": [
-                "./resource"
+                "./resource",
+                "./resource_taptap"
             ]
         }
     ],

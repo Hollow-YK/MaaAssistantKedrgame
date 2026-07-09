@@ -1,0 +1,11 @@
+{
+    "StartGameApp": {
+        "desc": "启动游戏 (B服)",
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.phxh.nlddev.bilibili"
+            }
+        }
+    }
+}

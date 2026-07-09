@@ -63,6 +63,8 @@ Section "核心文件" SecCore
     RMDir /r "$INSTDIR\agent"
     RMDir /r "$INSTDIR\cache"
     RMDir /r "$INSTDIR\resource"
+    RMDir /r "$INSTDIR\resource_bilibili"
+    RMDir /r "$INSTDIR\resource_taptap"
     RMDir /r "$INSTDIR\maafw"
     RMDir /r "$INSTDIR\python"
 

@@ -5,7 +5,9 @@
             "label": "$task.StartGame.label",
             "entry": "StartGameMain",
             "description": "$task.StartGame.desc",
-            "option": [],
+            "option": [
+                "StartGame_DailyAward"
+            ],
             "group": [
                 "Daily"
             ],
@@ -14,5 +16,27 @@
             ]
         }
     ],
-    "option": {}
+    "option": {
+        "StartGame_DailyAward": {
+            "label": "$option.StartGame_DailyAward.label",
+            "description": "$option.StartGame_DailyAward.description",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "StartGame_Scene_Check_Homepage": {
+                            "next": [
+                                "Award_DailyAward"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "No"
+                }
+            ]
+        }
+    }
 }
