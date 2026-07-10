@@ -1,0 +1,36 @@
+{
+    "UI_Combat_InStage_active": {
+        "desc": "战斗中-作战进行中",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/InStage/active.png"
+                ],
+                "roi": [
+                    240,
+                    20,
+                    125,
+                    70
+                ]
+            }
+        }
+    },
+    "UI_Combat_InStage_pause": {
+        "desc": "战斗中-暂停键",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/InStage/pause.png"
+                ],
+                "roi": [
+                    765,
+                    25,
+                    100,
+                    60
+                ]
+            }
+        }
+    }
+}

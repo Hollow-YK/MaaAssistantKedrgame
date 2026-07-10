@@ -1,0 +1,149 @@
+{
+    "UI_Combat_MaterialQuests_1": {
+        "desc": "出击界面-资源收集-特别军费行动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/1.png"
+                    // [47,170,260,340]
+                ],
+                "roi": [
+                    0,
+                    160,
+                    1280,
+                    380
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_2": {
+        "desc": "出击界面-资源收集-作战体能训练",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/2.png"
+                    // [400,170,260,340]
+                ],
+                "roi": [
+                    0,
+                    160,
+                    1280,
+                    380
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_3": {
+        "desc": "出击界面-资源收集-兵种能力评级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/3.png"
+                    // [753,170,260,340]
+                ],
+                "roi": [
+                    0,
+                    160,
+                    1280,
+                    380
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_4": {
+        "desc": "出击界面-资源收集-载具对抗演练",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/4.png"
+                ],
+                "roi": [
+                    0,
+                    160,
+                    1280,
+                    380
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_Field_1": {
+        "desc": "出击界面-资源收集-特别军费行动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/Field1.png"
+                    // [603,623,102,91]
+                ],
+                "roi": [
+                    580,
+                    615,
+                    130,
+                    105
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_Field_2": {
+        "desc": "出击界面-资源收集-作战体能训练",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/Field2.png"
+                    // [590,623,95,91]
+                ],
+                "roi": [
+                    580,
+                    615,
+                    130,
+                    105
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_Field_3": {
+        "desc": "出击界面-资源收集-兵种能力评级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/Field3.png"
+                    // [603,623,90,91]
+                ],
+                "roi": [
+                    580,
+                    615,
+                    130,
+                    105
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_Field_4": {
+        "desc": "出击界面-资源收集-载具对抗演练",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/MaterialQuests/Field4.png"
+                    // [584,623,118,91]
+                ],
+                "roi": [
+                    580,
+                    615,
+                    130,
+                    105
+                ],
+                "green_mask": true
+            }
+        }
+    }
+}
