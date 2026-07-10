@@ -172,19 +172,43 @@
             "cases": [
                 {
                     "name": "2-1",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-1"
+                            ]
+                        }
+                    }
                 },
                 {
                     "name": "2-2",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-2"
+                            ]
+                        }
+                    }
                 },
                 {
                     "name": "2-3",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-3"
+                            ]
+                        }
+                    }
                 },
                 {
                     "name": "2-4",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-4"
+                            ]
+                        }
+                    }
                 }
             ]
         }

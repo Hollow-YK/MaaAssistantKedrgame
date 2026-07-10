@@ -3,7 +3,8 @@
         "desc": "出击-资源收集-作战体能训练",
         "next": [
             "[JumpBack]AutoBattle_Stage_MaterialQuests_Swipe2begin",
-            "AutoBattle_Stage_MaterialQuests_Click"
+            "AutoBattle_Stage_MaterialQuests_Click",
+            "[JumpBack]AutoBattle_Stage_MaterialQuests_Swipe2next"
         ]
     },
     "AutoBattle_Stage_MaterialQuests_Click": {
@@ -100,7 +101,6 @@
         },
         "action": "Click"
     },
-    "AutoBattle_MaterialQuests_Click:": {},
     "AutoBattle_Stage_MaterialQuests_Swipe2begin": {
         "action": {
             "type": "Swipe",
