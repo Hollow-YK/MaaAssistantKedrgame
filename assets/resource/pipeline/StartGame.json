@@ -89,7 +89,8 @@
             "type": "Click"
         },
         "next": [
-            "[JumpBack]GameResources_update_wait"
+            "[JumpBack]GameResources_update_wait",
+            "StartGame_ClickStart"
         ]
     },
     "GameResources_update_wait": {
@@ -150,6 +151,8 @@
             "[JumpBack]StartGame_ClickStart_again",
             "StartGame_Login",
             "[JumpBack]StartGame_Login_wait",
+            "[JumpBack]Award_DailyAward_Click:Get",
+            "[JumpBack]Award_DailyAward_MonthlyPlan",
             "StartGame_Scene_Check_Homepage"
         ]
     },

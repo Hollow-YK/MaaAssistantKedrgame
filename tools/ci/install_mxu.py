@@ -23,9 +23,11 @@ def load_json_with_comments(path):
     for line in text.split("\n"):
         in_string = False
         for i, ch in enumerate(line):
-            if ch == '"' and (i == 0 or line[i - 1] != '\\'):
+            if ch == '"' and (i == 0 or line[i - 1] != "\\"):
                 in_string = not in_string
-            elif ch == '/' and i + 1 < len(line) and line[i + 1] == '/' and not in_string:
+            elif (
+                ch == "/" and i + 1 < len(line) and line[i + 1] == "/" and not in_string
+            ):
                 line = line[:i].rstrip()
                 break
         lines.append(line)
@@ -75,6 +77,25 @@ def install_resource():
         install_path / "resource",
         dirs_exist_ok=True,
     )
+
+    resource_bilibili_src = working_dir / "assets" / "resource_bilibili"
+    resource_bilibili_dst = install_path / "resource_bilibili"
+    if resource_bilibili_src.exists():
+        shutil.copytree(
+            resource_bilibili_src,
+            resource_bilibili_dst,
+            dirs_exist_ok=True,
+        )
+
+    resource_taptap_src = working_dir / "assets" / "resource_taptap"
+    resource_taptap_dst = install_path / "resource_taptap"
+    if resource_taptap_src.exists():
+        shutil.copytree(
+            resource_taptap_src,
+            resource_taptap_dst,
+            dirs_exist_ok=True,
+        )
+
     shutil.copy2(
         working_dir / "assets" / "interface.json",
         install_path,

@@ -1,0 +1,84 @@
+{
+    "Award_DailyAward": {
+        "desc": "奖励领取-每日登录奖励",
+        "next": [
+            "[JumpBack]Award_DailyAward_Click:Get",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_DailyAward_Click:Get": {
+        "desc": "",
+        "recognition": "And",
+        "all_of": [
+            "Award_DailyAward_OCR",
+            "Award_DailyAward_Check"
+        ],
+        "box_index": 1,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Award_DailyAward_MonthlyPlan",
+            "AnySceneEnter_MainMenu"
+        ]
+    },
+    "Award_DailyAward_OCR": {
+        "desc": "",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "每日登录奖励",
+                    "每日登录"
+                ],
+                "roi": [
+                    490,
+                    130,
+                    350,
+                    60
+                ]
+            }
+        }
+    },
+    "Award_DailyAward_Check": {
+        "desc": "",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/DailyAward/D7.png"
+                ],
+                // [570,410,155,190]
+                "roi": [
+                    560,
+                    400,
+                    170,
+                    205
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "Award_DailyAward_MonthlyPlan": {
+        "desc": "月卡",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/DailyAward/MonthlyPlan.png"
+                ],
+                "roi": [
+                    420,
+                    200,
+                    450,
+                    450
+                ],
+                "green_mask": true
+            }
+        },
+        "action": "Click",
+        "next": [
+            "SceneDo_GetItem"
+        ]
+    }
+}

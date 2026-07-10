@@ -1,0 +1,11 @@
+{
+    "StartGameApp": {
+        "desc": "启动游戏 (TapTap)",
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.phxh.taptap.nld"
+            }
+        }
+    }
+}
