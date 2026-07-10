@@ -6,7 +6,8 @@
             "entry": "AutoBattleMain",
             "description": "$task.AutoBattle.desc",
             "option": [
-                "AutoBattle_Category"
+                "AutoBattle_Category",
+                "AutoBattle_Looptimes"
             ],
             "group": [
                 "Daily"
@@ -48,6 +49,26 @@
                     ]
                 }
             ]
+        },
+        "AutoBattle_Looptimes": {
+            "label": "$option.AutoBattle_Looptimes.label",
+            "description": "$option.AutoBattle_Looptimes.description",
+            "type": "input",
+            "inputs": [
+                {
+                    "name": "Looptimes",
+                    "label": "$option.AutoBattle_Looptimes_input.label",
+                    "default": "1",
+                    "pipeline_type": "int",
+                    "verify": "^[1-9]\\d*$",
+                    "pattern_msg": "$option.AutoBattle_Looptimes_input.pattern_msg"
+                }
+            ],
+            "pipeline_override": {
+                "AutoBattleLoop": {
+                    "max_hit": "{Looptimes}"
+                }
+            }
         },
         "AutoBattle_Field_MainStory": {
             "label": "$option.AutoBattle_Field.label",
