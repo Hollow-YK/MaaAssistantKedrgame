@@ -54,6 +54,42 @@
             }
         }
     },
+    "UI_Combat_Stage_1-4": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/Stage/1-4.png"
+                ],
+                "roi": [
+                    0,
+                    250,
+                    1280,
+                    350
+                ],
+                "green_mask": true,
+                "threshold": 0.96
+            }
+        }
+    },
+    "UI_Combat_Stage_1-5": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/Stage/1-5.png"
+                ],
+                "roi": [
+                    0,
+                    250,
+                    1280,
+                    350
+                ],
+                "green_mask": true,
+                "threshold": 0.96
+            }
+        }
+    },
     "UI_Combat_Stage_2-1": {
         "recognition": {
             "type": "TemplateMatch",
