@@ -10,8 +10,7 @@
             "[JumpBack]StartGame_wait",
             "[JumpBack]StartGame_ClickStart",
             "[JumpBack]Award_DailyAward_Click:Get",
-            "[JumpBack]Award_DailyAward_MonthlyPlan",
-            "Status_In_MainMenu"
+            "[JumpBack]Award_DailyAward_MonthlyPlan"
         ]
     }
 }
