@@ -197,6 +197,9 @@
                             "all_of": [
                                 "UI_Combat_Stage_2-3"
                             ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 1
                         }
                     }
                 },
@@ -207,6 +210,9 @@
                             "all_of": [
                                 "UI_Combat_Stage_2-4"
                             ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 2
                         }
                     }
                 }
