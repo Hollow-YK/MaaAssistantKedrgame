@@ -1,6 +1,6 @@
 {
     "AutoBattle_Stage_MaterialQuests": {
-        "desc": "出击-资源收集-作战体能训练",
+        "desc": "出击-资源收集",
         "next": [
             "[JumpBack]AutoBattle_Stage_MaterialQuests_Swipe2begin",
             "AutoBattle_Stage_MaterialQuests_Click",
@@ -8,7 +8,7 @@
         ]
     },
     "AutoBattle_Stage_MaterialQuests_Click": {
-        "desc": "出击-资源收集-作战体能训练-点击",
+        "desc": "出击-资源收集-点击",
         "recognition": "And",
         "all_of": [
             "UI_Combat_Stage_2-2"
@@ -19,6 +19,7 @@
         ]
     },
     "AutoBattle_MaterialQuests_Click:Start": {
+        "desc": "出击-资源收集-点击：准备战斗",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -39,6 +40,7 @@
         ]
     },
     "AutoBattle_MaterialQuests_Click:Start2": {
+        "desc": "出击-资源收集-点击：开始战斗（编队界面）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -61,6 +63,7 @@
         ]
     },
     "AutoBattle_MaterialQuests_Click:Start3": {
+        "desc": "出击-资源收集-点击：作战开始（地图内）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -102,6 +105,7 @@
         "action": "Click"
     },
     "AutoBattle_Stage_MaterialQuests_Swipe2begin": {
+        "desc": "选关-滑动到最左侧",
         "action": {
             "type": "Swipe",
             "param": {
@@ -123,6 +127,7 @@
         "max_hit": 3
     },
     "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+        "desc": "选关-向右滑动",
         "action": {
             "type": "Swipe",
             "param": {
