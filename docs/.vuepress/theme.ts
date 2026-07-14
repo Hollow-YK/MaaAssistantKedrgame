@@ -115,9 +115,10 @@ export default hopeTheme({
             collapsible: true,
             children: [
               "common-nodes.md",
-              "any-scene-main-menu.md",
+              "any-scene.md",
               {
                 text: "任务",
+            prefix: "tasks/",
                 collapsible: true,
                 children: [
                   "start-game.md",

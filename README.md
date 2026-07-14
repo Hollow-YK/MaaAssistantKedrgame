@@ -16,6 +16,7 @@
     <br>
     <a href="https://maafw.com/" target="_blank"><img alt="website" src="https://raw.githubusercontent.com/MaaXYZ/MaaFramework/refs/heads/main/docs/static/maafw.svg"></a>
     <a href="https://space.bilibili.com/1572457623" target="_blank"><img alt="Bilibili" src="https://img.shields.io/badge/Bilibili-域空Hollow-00A1D6?logo=bilibili"></a>
+    <a href="https://hollow-yk.github.io/MaaAssistantKedrgame/" target="_blank"><img alt="Bilibili" src="https://img.shields.io/badge/文档站（GitHub Pages）-%234285F4"></a>
     <br/>
     <img alt="commit" src="https://img.shields.io/github/commit-activity/m/Hollow-YK/MaaAssistantKedrgame?style=flat-square&color=darkgreen">
     <img src="https://img.shields.io/github/stars/Hollow-YK/MaaAssistantKedrgame?style=flat-square&logo=github&color=darkgreen" alt="Stars" />
@@ -53,22 +54,24 @@
 
 ## 开源许可
 
-本软件使用 [GNU Affero General Public License v3.0 only](https://www.gnu.org/licenses/agpl-3.0.en.html) 开源。
+本软件使用 [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) 开源。
 
 ## 功能一览
 
 - 登录游戏
-- 正在开发，敬请期待
+- 领取奖励
+- 自动战斗（仅限部分关卡）
+- 更多功能正在开发，敬请期待
 
 ## 常见问题
 
 ### 如何开始使用？
 
-- 普通用户请下载 [Release 版本](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases)，有开发需求再 clone 仓库
+请前往 [Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases) 选择合适的版本下载。更多内容见文档 [快速开始](https://hollow-yk.github.io/MaaAssistantKedrgame/guide/quickstart.html) 部分。
 
 ## 开发指南
 
-本项目的开发入口见 [开发文档](./docs/dev/README.md)。第一次参与时建议先读项目结构、资源与任务开发、校验与发布，再按需参考 [MaaFramework 官方文档](https://maafw.com/docs/1.1-QuickStarted)。
+请参考 [开发文档](https://hollow-yk.github.io/MaaAssistantKedrgame/dev/quick-start.html) ，并保证你提交的内容符合 [项目规范](https://hollow-yk.github.io/MaaAssistantKedrgame/dev/project-conventions/) 。除此之外，你可以参考参考 [MaaFramework 官方文档](https://maafw.com/docs/1.1-QuickStarted) 及其它优秀项目。
 
 欢迎各路大佬贡献代码，一起让 MAK 变得更好！
 
@@ -77,17 +80,18 @@
 ### 开源项目
 
 - [MaaFramework](https://github.com/MaaXYZ/MaaFramework)
-  基于图像识别的自动化黑盒测试框架
-- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) *UI*
-  基于 Avalonia UI 构建的 MaaFramework 通用 GUI 解决方案
-- [MXU](https://github.com/MistEO/MXU) *UI*
-  MaaFramework Next UI
-- [MaaAssistantArknights](https://github.com/MaaAssistantArknights/MaaAssistantArknights) *参考*
-  《明日方舟》小助手，全日常一键长草！
-- [M9A](https://github.com/MAA1999/M9A) *参考*
-  重返未来：1999 小助手
-- [MaaNTE](https://github.com/1bananachicken/MaaNTE) *参考*
-  MAA异环小助手
+  ![Static Badge](https://img.shields.io/badge/框架-blue?style=flat-square) ![license](https://img.shields.io/github/license/MaaXYZ/MaaFramework?style=flat-square) 基于图像识别的自动化黑盒测试框架
+- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia)
+  ![Static Badge](https://img.shields.io/badge/UI-blue?style=flat-square)
+![license](https://img.shields.io/github/license/SweetSmellFox/MFAAvalonia?style=flat-square) 基于 Avalonia UI 构建的 MaaFramework 通用 GUI 解决方案
+- [MXU](https://github.com/MistEO/MXU)
+  ![Static Badge](https://img.shields.io/badge/UI-blue?style=flat-square) ![license](https://img.shields.io/github/license/MistEO/MXU?style=flat-square) MaaFramework Next UI
+- [MaaAssistantArknights](https://github.com/MaaAssistantArknights/MaaAssistantArknights)
+  ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/MaaAssistantArknights/MaaAssistantArknights?style=flat-square) 《明日方舟》小助手，全日常一键长草！
+- [M9A](https://github.com/MAA1999/M9A)
+ ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/MaaXYZ/M9A?style=flat-square) 重返未来：1999 小助手
+- [MaaNTE](https://github.com/1bananachicken/MaaNTE)
+ ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/1bananachicken/MaaNTE?style=flat-square) MAA异环小助手
 
 ### 贡献/参与者
 
@@ -98,10 +102,11 @@
 ## ⭐Star History
 
 如果觉得软件对你有帮助，帮忙点个 Star 吧！~（网页最上方右上角的小星星），这就是对我们最大的支持了！
-<a href="https://www.star-history.com/?repos=1bananachicken%2FMaaNTE&type=date&legend=top-left">
+
+<a href="https://www.star-history.com/?repos=Hollow-YK%2FMaaAssistantKedrgame&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&theme=dark&legend=top-left&sealed_token=UFq_DJTzmI8FXQevxAgxIaUYCX2YVNY2l6jPfrpu1U1HYXEveXal1ydXsW5tpJJPAqqwMLc-a-ve0JyhXz8B0F2KU2DPG_3MvqiDBRHZW7RxulzlcQbxcKI-13COk_RaCnI7jtqrr_RjEjXmgo1bn-mYmh_6jIoJGIXyHEJT9ojZow8bsoLde1D69OFs" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&legend=top-left&sealed_token=UFq_DJTzmI8FXQevxAgxIaUYCX2YVNY2l6jPfrpu1U1HYXEveXal1ydXsW5tpJJPAqqwMLc-a-ve0JyhXz8B0F2KU2DPG_3MvqiDBRHZW7RxulzlcQbxcKI-13COk_RaCnI7jtqrr_RjEjXmgo1bn-mYmh_6jIoJGIXyHEJT9ojZow8bsoLde1D69OFs" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Hollow-YK/MaaAssistantKedrgame&type=date&legend=top-left&sealed_token=UFq_DJTzmI8FXQevxAgxIaUYCX2YVNY2l6jPfrpu1U1HYXEveXal1ydXsW5tpJJPAqqwMLc-a-ve0JyhXz8B0F2KU2DPG_3MvqiDBRHZW7RxulzlcQbxcKI-13COk_RaCnI7jtqrr_RjEjXmgo1bn-mYmh_6jIoJGIXyHEJT9ojZow8bsoLde1D69OFs" />
  </picture>
 </a>

@@ -68,6 +68,12 @@ icon: fa-solid:info
 
 :::
 
+::: details UI 闪退
+
+这可能是 MXU 的问题，我们会在未来的版本添加更多的 UI 选择。
+
+:::
+
 ### 无法开始任务
 
 ::: details 点击"开始"后什么都没发生
@@ -100,11 +106,11 @@ icon: fa-solid:info
 
     ::: tabs#install-type
 
-    @tab 安装包版
+    @tab MXU 安装包版
 
     在「设置」→「应用」→「安装的应用」中找到 MAK，选择「卸载」，然后重新安装。
 
-    @tab 压缩包版
+    @tab MXU 压缩包版
 
     删除 MAK 所在目录下全部内容（可以保留 `config` 文件夹），然后重新解压。
 
