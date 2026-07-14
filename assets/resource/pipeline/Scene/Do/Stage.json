@@ -1,0 +1,15 @@
+{
+    "SceneDo_Click_Stage_finish": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/InStage/Finish.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.9
+            }
+        },
+        "action": "Click"
+    }
+}

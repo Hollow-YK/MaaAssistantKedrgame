@@ -1,0 +1,43 @@
+{
+    "AutoBattleMain": {
+        "desc": "自动战斗入口",
+        "next": [
+            "AutoBattleStage",
+            "[JumpBack]AnySceneEnter_Combat_MaterialQuests_2"
+        ],
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "正在规划路线……",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "AutoBattleStage": {
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_Field_2"
+        ],
+        "next": [
+            "AutoBattleLoop",
+            "AutoBattleFinish"
+        ]
+    },
+    "AutoBattleLoop": {
+        "next": [
+            "AutoBattle_Stage_MaterialQuests"
+        ],
+        "max_hit": 1
+    },
+    "AutoBattleFinish": {
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "任务完成！",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    }
+}

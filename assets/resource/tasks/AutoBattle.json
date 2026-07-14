@@ -1,0 +1,291 @@
+{
+    "task": [
+        {
+            "name": "AutoBattle",
+            "label": "$task.AutoBattle.label",
+            "entry": "AutoBattleMain",
+            "description": "$task.AutoBattle.desc",
+            "option": [
+                "AutoBattle_Category",
+                "AutoBattle_Looptimes"
+            ],
+            "group": [
+                "Daily"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ],
+    "option": {
+        "AutoBattle_Category": {
+            "label": "$option.AutoBattle_Category.label",
+            "description": "$option.AutoBattle_Category.description",
+            "type": "select",
+            "default_case": "MaterialQuests",
+            "cases": [
+                {
+                    "name": "MainStory",
+                    "label": "$text.combat.MainStory",
+                    "pipeline_override": {},
+                    "option": [
+                        "AutoBattle_Field_MainStory"
+                    ]
+                },
+                {
+                    "name": "MaterialQuests",
+                    "label": "$text.combat.MaterialQuests",
+                    "pipeline_override": {},
+                    "option": [
+                        "AutoBattle_Field_MaterialQuests"
+                    ]
+                },
+                {
+                    "name": "SkillMaterial",
+                    "label": "$text.combat.SkillMaterial",
+                    "pipeline_override": {},
+                    "option": [
+                        "AutoBattle_Field_SkillMaterial"
+                    ]
+                }
+            ]
+        },
+        "AutoBattle_Looptimes": {
+            "label": "$option.AutoBattle_Looptimes.label",
+            "description": "$option.AutoBattle_Looptimes.description",
+            "type": "input",
+            "inputs": [
+                {
+                    "name": "Looptimes",
+                    "label": "$option.AutoBattle_Looptimes_input.label",
+                    "default": "1",
+                    "pipeline_type": "int",
+                    "verify": "^[1-9]\\d*$",
+                    "pattern_msg": "$option.AutoBattle_Looptimes_input.pattern_msg"
+                }
+            ],
+            "pipeline_override": {
+                "AutoBattleLoop": {
+                    "max_hit": "{Looptimes}"
+                }
+            }
+        },
+        "AutoBattle_Field_MainStory": {
+            "label": "$option.AutoBattle_Field.label",
+            "description": "$option.AutoBattle_Field.description",
+            "type": "select",
+            "cases": []
+        },
+        "AutoBattle_Field_MaterialQuests": {
+            "label": "$option.AutoBattle_Field.label",
+            "description": "$option.AutoBattle_Field.description",
+            "type": "select",
+            "default_case": "MaterialQuests_2",
+            "cases": [
+                {
+                    "name": "MaterialQuests_1",
+                    "label": "$text.combat.MaterialQuests_1",
+                    "pipeline_override": {
+                        "AutoBattleMain": {
+                            "next": [
+                                "AutoBattleStage",
+                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_1"
+                            ]
+                        },
+                        "AutoBattleStage": {
+                            "all_of": [
+                                "UI_Combat_MaterialQuests_Field_1"
+                            ]
+                        }
+                    },
+                    "option": [
+                        "AutoBattle_Stage_MaterialQuests_1"
+                    ]
+                },
+                {
+                    "name": "MaterialQuests_2",
+                    "label": "$text.combat.MaterialQuests_2",
+                    "pipeline_override": {
+                        "AutoBattleMain": {
+                            "next": [
+                                "AutoBattleStage",
+                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_2"
+                            ]
+                        },
+                        "AutoBattleStage": {
+                            "all_of": [
+                                "UI_Combat_MaterialQuests_Field_2"
+                            ]
+                        }
+                    },
+                    "option": [
+                        "AutoBattle_Stage_MaterialQuests_2"
+                    ]
+                },
+                {
+                    "name": "MaterialQuests_3",
+                    "label": "$text.combat.MaterialQuests_3",
+                    "pipeline_override": {
+                        "AutoBattleMain": {
+                            "next": [
+                                "AutoBattleStage",
+                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_3"
+                            ]
+                        },
+                        "AutoBattleStage": {
+                            "all_of": [
+                                "UI_Combat_MaterialQuests_Field_3"
+                            ]
+                        }
+                    },
+                    "option": []
+                },
+                {
+                    "name": "MaterialQuests_4",
+                    "label": "$text.combat.MaterialQuests_4",
+                    "pipeline_override": {
+                        "AutoBattleMain": {
+                            "next": [
+                                "AutoBattleStage",
+                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_4"
+                            ]
+                        },
+                        "AutoBattleStage": {
+                            "all_of": [
+                                "UI_Combat_MaterialQuests_Field_4"
+                            ]
+                        }
+                    },
+                    "option": []
+                }
+            ]
+        },
+        "AutoBattle_Field_SkillMaterial": {
+            "label": "$option.AutoBattle_Field.label",
+            "description": "$option.AutoBattle_Field.description",
+            "type": "select",
+            "cases": []
+        },
+        "AutoBattle_Stage_MaterialQuests_1": {
+            "label": "$option.AutoBattle_Stage.label",
+            "description": "$option.AutoBattle_Stage.description",
+            "type": "select",
+            "default_case": "1-1",
+            "cases": [
+                {
+                    "name": "1-1",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_1-1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1-2",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_1-2"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1-3",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_1-3"
+                            ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 1
+                        }
+                    }
+                },
+                {
+                    "name": "1-4",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_1-4"
+                            ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 2
+                        }
+                    }
+                },
+                {
+                    "name": "1-5",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_1-5"
+                            ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 3
+                        }
+                    }
+                }
+            ]
+        },
+        "AutoBattle_Stage_MaterialQuests_2": {
+            "label": "$option.AutoBattle_Stage.label",
+            "description": "$option.AutoBattle_Stage.description",
+            "type": "select",
+            "default_case": "2-2",
+            "cases": [
+                {
+                    "name": "2-1",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2-2",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-2"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2-3",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-3"
+                            ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 1
+                        }
+                    }
+                },
+                {
+                    "name": "2-4",
+                    "pipeline_override": {
+                        "AutoBattle_Stage_MaterialQuests_Click": {
+                            "all_of": [
+                                "UI_Combat_Stage_2-4"
+                            ]
+                        },
+                        "AutoBattle_Stage_MaterialQuests_Swipe2next": {
+                            "max_hit": 2
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

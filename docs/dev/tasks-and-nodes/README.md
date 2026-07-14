@@ -8,7 +8,8 @@ title: 任务与节点
 
 当前内容：
 
-1. [万能跳转](./any-scene-main-menu)
-2. [开始游戏](./start-game)
-3. [领取奖励](./award)
-4. [通用节点](./common-nodes)
+1. [通用节点](./common-nodes)
+2. [万能跳转](./any-scene-main-menu)
+3. [开始游戏](./start-game)
+4. [领取奖励](./award)
+5. [自动战斗](./auto-battle)

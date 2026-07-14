@@ -1,0 +1,180 @@
+{
+    "AnySceneEnter_Combat": {
+        "desc": "任意场景进入出击页面",
+        "next": [
+            "SceneDo_Click_Combat",
+            "[JumpBack]AnySceneEnter_MainMenu"
+        ]
+    },
+    "AnySceneEnter_Combat_MainStory": {
+        "desc": "任意场景进入出击-主线任务页面",
+        "next": [
+            "UI_Combat_MaterialQuests_selected",
+            "[JumpBack]SceneDo_Click_Combat_MainStory",
+            "[JumpBack]AnySceneEnter_Combat"
+        ]
+    },
+    "AnySceneEnter_Combat_MaterialQuests": {
+        "desc": "任意场景进入出击-资源收集页面",
+        "next": [
+            "UI_Combat_MaterialQuests_selected",
+            "[JumpBack]SceneDo_Click_Combat_MaterialQuests",
+            "[JumpBack]AnySceneEnter_Combat"
+        ]
+    },
+    "AnySceneEnter_Combat_SkillMaterial": {
+        "desc": "任意场景进入出击-技能演练页面",
+        "next": [
+            "UI_Combat_SkillMaterial_selected",
+            "[JumpBack]SceneDo_Click_Combat_SkillMaterial",
+            "[JumpBack]AnySceneEnter_Combat"
+        ]
+    },
+    "AnySceneEnter_Combat_MaterialQuests_1": {
+        "desc": "任意场景进入出击-资源收集-特别军费行动页面",
+        "next": [
+            "[JumpBack]SceneDo_Combat_MaterialQuests_Swipe2begin",
+            "SceneDo_Click_Combat_MaterialQuests_1",
+            "[JumpBack]AnySceneEnter_Combat_MaterialQuests"
+        ]
+    },
+    "AnySceneEnter_Combat_MaterialQuests_2": {
+        "desc": "任意场景进入出击-资源收集-作战体能训练页面",
+        "next": [
+            "[JumpBack]SceneDo_Combat_MaterialQuests_Swipe2begin",
+            "SceneDo_Click_Combat_MaterialQuests_2",
+            "[JumpBack]AnySceneEnter_Combat_MaterialQuests"
+        ]
+    },
+    "AnySceneEnter_Combat_MaterialQuests_3": {
+        "desc": "任意场景进入出击-资源收集-兵种能力评级页面",
+        "next": [
+            "[JumpBack]SceneDo_Combat_MaterialQuests_Swipe2begin",
+            "SceneDo_Click_Combat_MaterialQuests_3",
+            "[JumpBack]AnySceneEnter_Combat_MaterialQuests"
+        ]
+    },
+    "AnySceneEnter_Combat_MaterialQuests_4": {
+        "desc": "任意场景进入出击-资源收集-载具对抗演练页面",
+        "next": [
+            "[JumpBack]SceneDo_Combat_MaterialQuests_Swipe2begin",
+            "[JumpBack]SceneDo_Combat_MaterialQuests_Swipe2next",
+            "SceneDo_Click_Combat_MaterialQuests_4",
+            "[JumpBack]AnySceneEnter_Combat_MaterialQuests"
+        ]
+    },
+    "SceneDo_Click_Combat": {
+        "desc": "点击出击",
+        "recognition": "And",
+        "all_of": [
+            "Status_In_MainMenu",
+            "UI_MainMenu_combat"
+        ],
+        "box_index": 1,
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MainStory": {
+        "desc": "点击出击-主线任务页面",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MainStory_unselected",
+            "UI_Combat_MainStory"
+        ],
+        "box_index": 1,
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MaterialQuests": {
+        "desc": "点击出击-资源收集页面",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_unselected",
+            "UI_Combat_MaterialQuests"
+        ],
+        "box_index": 1,
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_SkillMaterial": {
+        "desc": "点击出击-技能演练页面",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_SkillMaterial_unselected",
+            "UI_Combat_SkillMaterial"
+        ],
+        "box_index": 1,
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MaterialQuests_1": {
+        "desc": "点击出击-资源收集-特别军费行动",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_1"
+        ],
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MaterialQuests_2": {
+        "desc": "点击出击-资源收集-作战体能训练",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_2"
+        ],
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MaterialQuests_3": {
+        "desc": "点击出击-资源收集-兵种能力评级",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_3"
+        ],
+        "action": "Click"
+    },
+    "SceneDo_Click_Combat_MaterialQuests_4": {
+        "desc": "点击出击-资源收集-载具对抗演练",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests_4"
+        ],
+        "action": "Click"
+    },
+    "SceneDo_Combat_MaterialQuests_Swipe2begin": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    300,
+                    150,
+                    1,
+                    500
+                ],
+                "end": [
+                    900,
+                    150,
+                    1,
+                    500
+                ],
+                "end_hold": 500
+            }
+        },
+        "max_hit": 3
+    },
+    "SceneDo_Combat_MaterialQuests_Swipe2next": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    150,
+                    1,
+                    500
+                ],
+                "end": [
+                    300,
+                    150,
+                    1,
+                    500
+                ],
+                "end_hold": 500
+            }
+        },
+        "max_hit": 0
+    }
+}

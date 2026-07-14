@@ -18,5 +18,21 @@
                 "green_mask": true
             }
         }
+    },
+    "Status_In_Combat": {
+        "desc": "处于出击界面",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MainStory",
+            "UI_Combat_MaterialQuests",
+            "UI_Combat_SkillMaterial"
+        ]
+    },
+    "Status_In_Stage": {
+        "desc": "处于战斗中",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_InStage_active"
+        ]
     }
 }

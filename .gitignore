@@ -459,3 +459,7 @@ debug
 python/
 Lib/
 pyvenv.cfg
+
+# GitHub Copilot Skill
+
+.github/skills

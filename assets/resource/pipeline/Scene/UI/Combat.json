@@ -1,0 +1,338 @@
+{
+    "UI_Combat_MainStory": {
+        "desc": "出击界面-主线任务",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "主线任务",
+                    "主线"
+                ],
+                "roi": [
+                    370,
+                    640,
+                    135,
+                    70
+                ]
+            }
+        }
+    },
+    "UI_Combat_MainStory_selected": {
+        "desc": "出击界面-主线任务(选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MainStory",
+            "UI_Combat_MainStory_selected_check"
+        ]
+    },
+    "UI_Combat_MainStory_unselected": {
+        "desc": "出击界面-主线任务(未选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MainStory",
+            "UI_Combat_MainStory_unselected_check"
+        ]
+    },
+    "UI_Combat_MainStory_redpoint": {
+        "desc": "出击界面-主线任务(红点)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    211,
+                    73,
+                    31
+                ],
+                "upper": [
+                    255,
+                    112,
+                    63
+                ],
+                "count": 50,
+                "connected": true,
+                "roi": [
+                    470,
+                    640,
+                    30,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Combat_MainStory_selected_check": {
+        "desc": "出击界面-主线任务(选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    231,
+                    232,
+                    0
+                ],
+                "upper": [
+                    255,
+                    255,
+                    24
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    400,
+                    685,
+                    75,
+                    20
+                ]
+            }
+        }
+    },
+    "UI_Combat_MainStory_unselected_check": {
+        "desc": "出击界面-主线任务(未选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    56,
+                    56,
+                    57
+                ],
+                "upper": [
+                    81,
+                    82,
+                    83
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    400,
+                    690,
+                    75,
+                    5
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests": {
+        "desc": "出击界面-资源收集",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "资源收集",
+                    "资源"
+                ],
+                "roi": [
+                    565,
+                    640,
+                    135,
+                    70
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_selected": {
+        "desc": "出击界面-资源收集(选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests",
+            "UI_Combat_MaterialQuests_selected_check"
+        ]
+    },
+    "UI_Combat_MaterialQuests_unselected": {
+        "desc": "出击界面-资源收集(未选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_MaterialQuests",
+            "UI_Combat_MaterialQuests_unselected_check"
+        ]
+    },
+    "UI_Combat_MaterialQuests_redpoint": {
+        "desc": "出击界面-资源收集(红点)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    211,
+                    73,
+                    31
+                ],
+                "upper": [
+                    255,
+                    112,
+                    63
+                ],
+                "count": 50,
+                "connected": true,
+                "roi": [
+                    665,
+                    640,
+                    30,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_selected_check": {
+        "desc": "出击界面-资源收集(选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    231,
+                    232,
+                    0
+                ],
+                "upper": [
+                    255,
+                    255,
+                    24
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    595,
+                    685,
+                    75,
+                    20
+                ]
+            }
+        }
+    },
+    "UI_Combat_MaterialQuests_unselected_check": {
+        "desc": "出击界面-资源收集(未选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    56,
+                    56,
+                    57
+                ],
+                "upper": [
+                    81,
+                    82,
+                    83
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    595,
+                    690,
+                    75,
+                    5
+                ]
+            }
+        }
+    },
+    "UI_Combat_SkillMaterial": {
+        "desc": "出击界面-技能演练",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "技能演练",
+                    "技能"
+                ],
+                "roi": [
+                    760,
+                    640,
+                    135,
+                    70
+                ]
+            }
+        }
+    },
+    "UI_Combat_SkillMaterial_selected": {
+        "desc": "出击界面-技能演练(选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_SkillMaterial",
+            "UI_Combat_SkillMaterial_selected_check"
+        ]
+    },
+    "UI_Combat_SkillMaterial_unselected": {
+        "desc": "出击界面-技能演练(未选中)",
+        "recognition": "And",
+        "all_of": [
+            "UI_Combat_SkillMaterial",
+            "UI_Combat_SkillMaterial_unselected_check"
+        ]
+    },
+    "UI_Combat_SkillMaterial_redpoint": {
+        "desc": "出击界面-技能演练(红点)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    211,
+                    73,
+                    31
+                ],
+                "upper": [
+                    255,
+                    112,
+                    63
+                ],
+                "count": 50,
+                "connected": true,
+                "roi": [
+                    860,
+                    640,
+                    30,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Combat_SkillMaterial_selected_check": {
+        "desc": "出击界面-技能演练(选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    231,
+                    232,
+                    0
+                ],
+                "upper": [
+                    255,
+                    255,
+                    24
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    790,
+                    685,
+                    75,
+                    20
+                ]
+            }
+        }
+    },
+    "UI_Combat_SkillMaterial_unselected_check": {
+        "desc": "出击界面-技能演练(未选中)",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    56,
+                    56,
+                    57
+                ],
+                "upper": [
+                    81,
+                    82,
+                    83
+                ],
+                "count": 200,
+                "connected": true,
+                "roi": [
+                    790,
+                    690,
+                    75,
+                    5
+                ]
+            }
+        }
+    }
+}
