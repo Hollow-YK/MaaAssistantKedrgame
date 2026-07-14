@@ -17,7 +17,7 @@ export default hopeTheme({
             { text: "快速开始", link: "/guide/quickstart" },
             { text: "FAQ", link: "/guide/faq" },
             { text: "问题排查手册", link: "/guide/trouble-shooting" },
-            { text: "功能介绍", link: "/guide/features" },
+            { text: "功能介绍", link: "/guide/features/" },
           ],
         },
         {
@@ -90,6 +90,7 @@ export default hopeTheme({
             children: [
               "start-game.md",
               "award.md",
+              "auto-battle.md",
             ],
           },
         ],
@@ -113,10 +114,17 @@ export default hopeTheme({
             link: "tasks-and-nodes/",
             collapsible: true,
             children: [
-              "any-scene-main-menu.md",
-              "start-game.md",
-              "award.md",
               "common-nodes.md",
+              "any-scene-main-menu.md",
+              {
+                text: "任务",
+                collapsible: true,
+                children: [
+                  "start-game.md",
+                  "award.md",
+                  "auto-battle.md",
+                ],
+              },
             ],
           },
           {
@@ -196,7 +204,7 @@ export default hopeTheme({
             prefix: "features/",
             link: "features/",
             collapsible: true,
-            children: ["start-game.md", "award.md"],
+            children: ["start-game.md", "award.md", "auto-battle.md"],
           },
           {
             text: "Advanced",
@@ -212,6 +220,7 @@ export default hopeTheme({
           },
           "start-game.md",
           "award.md",
+          "auto-battle.md",
         ],
         "/en/develop/": [
           "",
