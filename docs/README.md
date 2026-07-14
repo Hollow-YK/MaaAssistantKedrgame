@@ -23,12 +23,16 @@ highlights:
     features:
       - title: 启动游戏
         icon: fa7-solid:play-circle
-        details: 自动打开《雪松》并登录游戏
+        details: 自动打开《雪松》并登录游戏<br>支持官服、B 服、TapTap 服
         link: /guide/features/start-game
       - title: 领取奖励
         icon: fa7-solid:gift
-        details: 自动领取日常、周常、成就、派遣等奖励
+        details: 自动领取日常、周常、成就奖励<br>自动领取派遣奖励并重新派遣
         link: /guide/features/award
+      - title: 自动战斗
+        icon: mdi:sword-cross
+        details: 自动选关，自动打架<br>让没有三星通过的关卡也能轻松刷取
+        link: /guide/features/auto-battle
       - title: 全部功能
         icon: fa7-solid:list-squares
         details: 点此查看全部功能
