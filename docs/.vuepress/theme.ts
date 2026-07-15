@@ -115,9 +115,10 @@ export default hopeTheme({
             collapsible: true,
             children: [
               "common-nodes.md",
-              "any-scene-main-menu.md",
+              "any-scene.md",
               {
                 text: "任务",
+            prefix: "tasks/",
                 collapsible: true,
                 children: [
                   "start-game.md",
@@ -169,20 +170,23 @@ export default hopeTheme({
           children: [
             { text: "Quick Start", link: "/en/guide/quickstart" },
             { text: "FAQ", link: "/en/guide/faq" },
-            { text: "Trouble Shooting", link: "/en/guide/trouble-shooting" },
-            { text: "Features", link: "/en/guide/features" },
+            { text: "Troubleshooting", link: "/en/guide/trouble-shooting" },
+            { text: "Features", link: "/en/guide/features/" },
           ],
         },
         {
-          text: "Development",
+          text: "Development Docs", link: "/en/dev/" ,
           children: [
-            { text: "How to Develop", link: "/en/develop/how-to-develop" },
-            { text: "Custom Config", link: "/en/develop/custom-configure" },
-            { text: "PR Guidelines", link: "/en/develop/pull-request-guidelines" },
-            { text: "FAQ", link: "/en/develop/faq" },
+            { text: "Quick Start", link: "/en/dev/quick-start" },
+            { text: "Beginner Guide", link: "/en/dev/beginner-guide/" },
+            { text: "Tasks and Nodes", link: "/en/dev/tasks-and-nodes/" },
+            { text: "Project Conventions", link: "/en/dev/project-conventions/" },
+            { text: "Documentation Site Development", link: "/en/dev/docs-site" },
           ],
         },
-        { text: "MAAFW", link: "https://maafw.com/" },
+        { text: "MAAFW",
+          link: "https://maafw.com/en/docs/1.1-QuickStarted",
+        },
       ],
 
       sidebar: {
@@ -193,44 +197,118 @@ export default hopeTheme({
           },
           {
             text: "FAQ",
+            icon: "fa-solid:question",
             link: "faq.md",
           },
           {
-            text: "Trouble Shooting",
+            text: "Troubleshooting",
+            icon: "fa-solid:info",
             link: "trouble-shooting.md",
           },
           {
             text: "Features",
+            icon: "fa7-solid:list-squares",
             prefix: "features/",
             link: "features/",
-            collapsible: true,
-            children: ["start-game.md", "award.md", "auto-battle.md"],
+          },
+          {
+            text: "",
+            children: [],
           },
           {
             text: "Advanced",
             prefix: "advanced/",
             collapsible: true,
-            children: ["adb-device.md"],
+            children: [
+              "adb-device.md",
+            ],
           },
         ],
         "/en/guide/features/": [
           {
             text: "Features",
+            icon: "fa7-solid:list-squares",
             link: "",
           },
-          "start-game.md",
-          "award.md",
-          "auto-battle.md",
+          {
+            text: "",
+            children: [],
+          },
+          {
+            text: "Daily",
+            collapsible: true,
+            children: [
+              "start-game.md",
+              "award.md",
+              "auto-battle.md",
+            ],
+          },
         ],
-        "/en/develop/": [
+        "/en/dev/": [
+          "quick-start.md",
+          {
+            text: "Beginner Guide",
+            prefix: "beginner-guide/",
+            link: "beginner-guide/",
+            collapsible: true,
+            children: [
+              "pipeline-basics.md",
+              "new-feature.md",
+              "common-nodes.md",
+              "start-game.md",
+            ],
+          },
+          {
+            text: "Tasks and Nodes",
+            prefix: "tasks-and-nodes/",
+            link: "tasks-and-nodes/",
+            collapsible: true,
+            children: [
+              "common-nodes.md",
+              "any-scene.md",
+              {
+                text: "Tasks",
+            prefix: "tasks/",
+                collapsible: true,
+                children: [
+                  "start-game.md",
+                  "award.md",
+                  "auto-battle.md",
+                ],
+              },
+            ],
+          },
+          {
+            text: "",
+            children: [],
+          },
+          {
+            text: "Project Conventions",
+            prefix: "project-conventions/",
+            link: "project-conventions/",
+            collapsible: true,
+            children: [
+              "ProjectInterface.md",
+              "pipeline.md",
+              "pull-request.md",
+              "ai-usage.md",
+            ],
+          },
+          {
+            text: "",
+            children: [],
+          },
+          {
+            text: "Documentation Site Development",
+            link: "docs-site.md",
+          },
+        ],
+        "/en/maafw/": [
           "",
           "how-to-develop.md",
           "custom-configure.md",
           "pull-request-guidelines.md",
           "faq.md",
-        ],
-        "/en/dev/": [
-          "",
         ],
       },
     },

@@ -6,11 +6,17 @@ title: 通用节点
 
 通用节点是多个任务都能复用的识别、状态和动作。新增业务节点前，先查找是否已有通用节点可用。
 
+常用分类：
+
+- `assets/resource/pipeline/Scene/UI/`：界面 UI 元素识别相关节点。
+- `assets/resource/pipeline/Scene/Status.json`：状态判断节点，通过 `And` 识别多个UI元素以确定当前状态。
+- `assets/resource/pipeline/Scene/Do/`：通用操作节点。一般用于放置万能跳转及其它类似操作。
+
 ## 通用 UI 节点
 
 通用 UI 节点位于 `assets/resource/pipeline/Scene/UI/`。
 
-常用分类：
+一般按所处界面分类命名：
 
 - `UI_MainMenu_*`：主界面入口，例如任务、资源派遣、邮件、商店。
 - `UI_Task_*`：任务页标签、选中状态和领取按钮。
@@ -24,8 +30,10 @@ title: 通用节点
 
 当前状态：
 
-- `Status_In_MainMenu`：通过主界面多个元素确认处于主界面。
-- `Status_Loading_Screen`：识别加载界面。
+- `Status_In_MainMenu`：主界面。
+- `Status_Loading_Screen`：加载界面。
+- `Status_In_Combat`：出击界面。
+- `Status_In_Stage`：战斗场景内。
 
 状态节点只做判断，不直接执行业务动作。业务流程应通过状态节点确认当前环境，再进入下一步。
 

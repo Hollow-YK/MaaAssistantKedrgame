@@ -6,6 +6,7 @@ title: 项目规范
 
 这里集中整理项目协作和功能编写需要遵循的规范。提交代码前，请根据改动类型阅读对应页面，并保证你遵循了这些规范。
 
+- [PI 规范](./ProjectInterface)
 - [Pipeline 规范](./pipeline)
 - [PR 规范](./pull-request)
 - [AI 使用规范](./ai-usage)

@@ -9,7 +9,7 @@
     "AnySceneEnter_Combat_MainStory": {
         "desc": "任意场景进入出击-主线任务页面",
         "next": [
-            "UI_Combat_MaterialQuests_selected",
+            "UI_Combat_MainStory_selected",
             "[JumpBack]SceneDo_Click_Combat_MainStory",
             "[JumpBack]AnySceneEnter_Combat"
         ]

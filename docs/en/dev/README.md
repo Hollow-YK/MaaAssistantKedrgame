@@ -1,30 +1,26 @@
 ---
-title: Docs Site Development
+title: Development Documentation
 ---
 
-# Docs Site Development
+::: warning AI Translation Notice
+This document was translated using AI. Please refer to the Chinese documentation for the definitive version.
+:::
 
-> English documentation is under construction. 🚧
->
-> Please refer to the [Chinese version](/dev/) for now.
+# Development Documentation
 
-## Quick Start
+This is the development documentation hub for MAK, the assistant for 《雪松》. If this is your first time contributing, start with the quick start guide. If you already have experience with MaaFramework, you can go directly to the project conventions and task documentation.
 
-```bash
-cd docs
-pnpm docs:dev
-```
+## Start Developing
 
-Open `http://localhost:8080/MaaAssistantKedrgame/` in your browser.
+- [Quick Start](/en/dev/quick-start)
+- [Project Conventions](/en/dev/project-conventions/)
 
-```bash
-pnpm docs:build    # Build for production
-```
+## Build Features
 
-## Tech Stack
+- [Beginner Guide](/en/dev/beginner-guide/)
+- [Tasks and Nodes](/en/dev/tasks-and-nodes/)
 
-- **Framework**: [VuePress 2](https://vuejs.press/)
-- **Theme**: [VuePress Theme Hope](https://theme-hope.vuejs.press/)
-- **Bundler**: Vite
-- **Package Manager**: pnpm
-- **Deployment**: GitHub Pages + GitHub Actions
+## MaaFramework Resources
+
+- [MAAFW Documentation](/en/maafw/)
+- [Official MaaFramework Documentation](https://maafw.com/docs/1.1-QuickStarted)
