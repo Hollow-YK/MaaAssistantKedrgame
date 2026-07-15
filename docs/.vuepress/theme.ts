@@ -185,12 +185,8 @@ export default hopeTheme({
           ],
         },
         { text: "MAAFW",
-          children: [
-            { text: "How to Develop", link: "/en/maafw/how-to-develop" },
-            { text: "Custom Configuration", link: "/en/maafw/custom-configure" },
-            { text: "PR Guidelines", link: "/en/maafw/pull-request-guidelines" },
-            { text: "FAQ", link: "/en/maafw/faq" },
-          ],},
+          link: "https://maafw.com/en/docs/1.1-QuickStarted",
+        },
       ],
 
       sidebar: {
