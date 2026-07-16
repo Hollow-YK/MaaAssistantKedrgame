@@ -18,7 +18,7 @@
 ; ---------- 基本信息 ----------
 Name "MAK"
 !ifndef OUTFILE
-  !define OUTFILE "MAK_Setup.exe"
+  !define OUTFILE "MAK-MXU-Setup.exe"
 !endif
 OutFile "${OUTFILE}"
 InstallDir "D:\MAK"
@@ -60,13 +60,23 @@ Section "核心文件" SecCore
 
     ; 安装/更新前清理旧文件夹，避免残留文件干扰
     ClearErrors
+    ; 通用目录
     RMDir /r "$INSTDIR\agent"
-    RMDir /r "$INSTDIR\cache"
+    RMDir /r "$INSTDIR\debug"
+    RMDir /r "$INSTDIR\python"
     RMDir /r "$INSTDIR\resource"
     RMDir /r "$INSTDIR\resource_bilibili"
     RMDir /r "$INSTDIR\resource_taptap"
+    ; MXU 专用目录
+    RMDir /r "$INSTDIR\cache"
     RMDir /r "$INSTDIR\maafw"
-    RMDir /r "$INSTDIR\python"
+    ; MFAA 专用目录
+    RMDir /r "$INSTDIR\backup"
+    RMDir /r "$INSTDIR\libs"
+    RMDir /r "$INSTDIR\logs"
+    RMDir /r "$INSTDIR\plugins"
+    RMDir /r "$INSTDIR\runtimes"
+    RMDir /r "$INSTDIR\temp"
 
     ; 使用动态源文件目录
     File /r "${SOURCE_DIR}\*.*"

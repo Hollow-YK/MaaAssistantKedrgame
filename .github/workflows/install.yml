@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/install.yml"
       - "assets/**"
+      - "tools/ci/*.nsi"
       - "**.py"
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - ".github/workflows/install.yml"
       - "assets/**"
+      - "tools/ci/*.nsi"
       - "**.py"
   workflow_dispatch:
 
@@ -275,7 +277,7 @@ jobs:
         run: |
           choco install nsis --version=3.12.0 -y
 
-      - name: Build NSIS installer
+      - name: Build NSIS installers
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         shell: pwsh
         run: |
@@ -288,7 +290,15 @@ jobs:
             -DSOURCE_DIR="${{ github.workspace }}\install-mxu" `
             -DICON_FILE="${{ github.workspace }}\mak.ico" `
             -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-${{ matrix.arch }}-$tag-MXU-Setup.exe" `
-            tools/ci/installer.nsi
+            tools/ci/installer_mxu.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          makensis `
+            -DVERSION="$tag" `
+            -DARCH="$arch" `
+            -DSOURCE_DIR="${{ github.workspace }}\install-mfaa" `
+            -DICON_FILE="${{ github.workspace }}\mak.ico" `
+            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-${{ matrix.arch }}-$tag-MFAA-Setup.exe" `
+            tools/ci/installer_mfaa.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # ---- 上传构建产物 ----
@@ -302,12 +312,19 @@ jobs:
           name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU
           path: "install-mxu"
 
-      - name: Upload NSIS installer artifact
+      - name: Upload MXU NSIS installer artifact
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup
           path: "MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup.exe"
+
+      - name: Upload MFAA NSIS installer artifact
+        if: matrix.os == 'win' && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA-Setup
+          path: "MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA-Setup.exe"
 
   changelog:
     name: Generate changelog
