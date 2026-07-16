@@ -287,7 +287,7 @@ jobs:
             -DARCH="$arch" `
             -DSOURCE_DIR="${{ github.workspace }}\install-mxu" `
             -DICON_FILE="${{ github.workspace }}\mak.ico" `
-            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-$arch-$tag-Setup.exe" `
+            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-${{ matrix.arch }}-$tag-MXU-Setup.exe" `
             tools/ci/installer.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -306,8 +306,8 @@ jobs:
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v4
         with:
-          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Setup
-          path: "MAK-${{ matrix.os }}-${{ steps.platform.outputs.tag }}-${{ needs.meta.outputs.tag }}-Setup.exe"
+          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup
+          path: "MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup.exe"
 
   changelog:
     name: Generate changelog
