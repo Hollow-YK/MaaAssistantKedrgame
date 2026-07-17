@@ -197,17 +197,23 @@ In addition to command-based checks, you must perform an actual runtime validati
 
 ## 5. Build Locally
 
-To inspect the installation directory, run:
+To inspect an installation directory, run the script for the UI you want to test:
 
 ```bash
+# MXU
 python tools/ci/install_mxu.py v0.0.1
+
+# MFAA
+python tools/ci/install_mfaa.py v0.0.1 win x86_64
 ```
 
-Before running it, make sure `deps/bin` exists. The script assembles the `install-mxu/` directory and copies the MaaFramework runtime libraries, project resources, `interface.json`, `README.md`, `LICENSE`, and `agent/`.
+Before running either script, make sure MaaFramework has been extracted to `deps/`. MFAA also requires MFAAvalonia to be extracted to `MFAA/`, with exactly one `MFAAvalonia.exe` entry point under that directory.
 
-You can place MXU in the `install-mxu/` directory and test whether it runs correctly after the build.
+- `install_mxu.py` assembles `install-mxu/` and places the MaaFramework runtime under `maafw/` as required by MXU.
+- `install_mfaa.py` copies the MFAAvalonia runtime to the root of `install-mfaa/`, renames its entry point to `MAK.exe`, and assembles `runtimes/`, `plugins/`, and `libs/` as required by MFAA.
+- Both scripts copy the project resources, `interface.json`, `README.md`, `LICENSE`, `requirements.txt`, and `agent/`, but they do not prepare embedded Python.
 
-Official releases and MXU installation packages are handled by GitHub Actions. Regular PRs do not need to upload build artifacts manually. Do not commit `install/`, `install-mxu/`, cache directories, or local debugging screenshots.
+To test MXU, also place the MXU executable in `install-mxu/` and name it `MAK.exe`. For official releases, GitHub Actions prepares embedded Python, assembles MFAA and MXU archives, and generates a separate NSIS installer for each UI. Regular PRs do not need to upload build artifacts manually. Do not commit `install/`, `install-mfaa/`, `install-mxu/`, `MFAA/`, `MXU/`, cache directories, or local debugging screenshots.
 
 ## 6. Submit a PR
 

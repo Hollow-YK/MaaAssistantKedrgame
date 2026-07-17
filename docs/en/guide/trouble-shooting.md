@@ -20,11 +20,27 @@ Encountered a problem while using MAK? Follow the steps below first—you may be
 
 ### MAK Does Not Start
 
-::: details A dialog says `Could not find the WebView2 Runtime.`
+::: details **MXU** displays `Could not find the WebView2 Runtime.`
 
-WebView2 is missing.
+MXU is missing WebView2.
 
 Go to [Microsoft Edge WebView2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2), then download and install `Microsoft Edge WebView2`.
+
+:::
+
+::: details **MFAA** displays `To run this application, you must install .NET`
+
+Go to [Download .NET 10.0](https://dotnet.microsoft.com/zh-tw/download/dotnet/thank-you/sdk-10.0.300-windows-x64-installer), then download and install the `.NET 10.0 Desktop Runtime`.
+
+Double-click `DependencySetup_依赖库安装_win.bat` in the MAK directory, follow the prompts to install the dependencies required by MFAA, and then restart MAK.
+
+:::
+
+::: details **MFAA** does not start or reports missing dependencies
+
+Double-click `DependencySetup_依赖库安装_win.bat` in the MAK directory, follow the prompts to install the dependencies required by MFAA, and then restart MAK.
+
+Alternatively, download and install the required runtime according to the error message.
 
 :::
 
@@ -74,7 +90,9 @@ The archive version must be extracted to a path containing **ASCII/English chara
 
 ::: details The UI crashes
 
-This may be an MXU issue. More UI options will be added in future versions.
+We have currently observed this issue among some MXU users.
+
+This may be a UI issue. Try reinstalling first. If it still crashes, switch to the other UI.
 
 :::
 
@@ -93,7 +111,14 @@ Check the following:
 
 ::: details The current controller is not supported
 
-Select an appropriate controller under **连接设置** (“Connection Settings”) in the upper-right corner of MAK.
+	::: tabs#ui-type
+
+	@tab MXU Version
+	Select an appropriate controller under **连接设置** (“Connection Settings”) in the upper-right corner of MAK.
+
+	@tab MFAA Version
+	Select an appropriate controller under **控制器类型** (“Controller Type”) near the upper-left area of MAK.
+	:::
 
 :::
 
@@ -110,13 +135,17 @@ Retrieve the files again according to your installation method:
 
 	::: tabs#install-type
 
-	@tab MXU Installer
+	@tab Installer (MFAA / MXU)
 
 	Under **设置** (“Settings”) → **应用** (“Apps”) → **安装的应用** (“Installed apps”), find MAK, select **卸载** (“Uninstall”), and then reinstall it.
 
 	@tab MXU Archive
 
 	Delete everything in the MAK directory—you may keep the `config` folder—and then extract the archive again.
+
+	@tab MFAA Archive
+
+	Delete everything in the MAK directory—you may keep the `config` folder and `appsettings.json`—and then extract the archive again.
 
 	:::
 

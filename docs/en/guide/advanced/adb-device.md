@@ -47,7 +47,7 @@ Therefore, **MAK can control any device that MaaFramework can connect to through
 
 ## Connecting to an Emulator with ADB
 
-MAK automatically detects and lists currently running emulator devices. Simply select the target emulator from the device list to connect; **you do not need to enter an ADB address manually**.
+MAK automatically detects and lists currently running emulator devices. Select the target emulator from the device list in MXU or under Controller Type in MFAA to connect; **you do not need to enter an ADB address manually**.
 
 ### Finding an Emulator's ADB Port
 
@@ -70,14 +70,14 @@ The following information comes from the internet and may be inaccurate. Refer t
 ::: tip How do I confirm the port number?
 Open the emulator's **设置** (“Settings”) → **其他设置** (“Other Settings”) or **ADB 调试** (“ADB Debugging”). The ADB port is usually shown there. You can also run `adb devices` from the command line to view currently connected devices and their ports.
 
-Once you know the port number, find the device with the corresponding port in MAK's device list.
+Once you know the port number, find the device with the corresponding port in MAK's device or connection settings.
 :::
 
 ### Connection Steps
 
 1. **Start the emulator**: Make sure the emulator has opened normally.
 2. **Open MAK**: Go to the main interface.
-3. **Select the device**: Find your emulator in the device list and click it.
+3. **Select the device**: Find and select your emulator in the device list in MXU or under Controller Type in MFAA.
 4. **Start using MAK**: Once connected, add tasks and start running them.
 
 ### Common Issues
