@@ -44,12 +44,16 @@ To use MAK with a physical device, refer to [ADB Devices](/en/guide/advanced/adb
 	https://github.com/Hollow-YK/MaaAssistantKedrgame/releases
 	```
 
-3. On the downloads page, find the latest version—the one listed at the top. Two download options are available:
+3. On the downloads page, find the latest version—the one listed at the top. MAK provides two user interfaces, **MFAA** and **MXU**, and each is available as an installer and an archive:
 
-	| Package type | Example filename | Recommendation |
-	|--------------|------------------|----------------|
-	| **Installer** | `MAK-win-x64-xxx-Setup.exe` | ⭐ Recommended |
-	| **Archive** | `MAK-win-x86_64-xxx.zip` | For users who prefer not to install the application |
+	| UI | Package type | Example filename | Recommendation |
+	|----|--------------|------------------|----------------|
+	| **MXU** | Installer | `MAK-win-x86_64-xxx-MXU-Setup.exe` | ⭐ Recommended |
+	| **MXU** | Archive | `MAK-win-x86_64-xxx-MXU.zip` | For users who prefer not to install the application |
+	| **MFAA** | Installer | `MAK-win-x86_64-xxx-MFAA-Setup.exe` | Recommended |
+	| **MFAA** | Archive | `MAK-win-x86_64-xxx-MFAA.zip` | For users who prefer not to install the application |
+
+	MFAA and MXU differ only in their user interfaces; they provide the same MAK tasks. Choose either one according to your preference. You do not need to download both.
 
 ---
 
@@ -61,18 +65,48 @@ To use MAK with a physical device, refer to [ADB Devices](/en/guide/advanced/adb
 
 This method is recommended for beginners.
 
-1. Download `MAK-win-x64-xxx-Setup.exe`.
+1. Download `MAK-win-x86_64-xxx-MXU-Setup.exe`.
 2. When the download finishes, **double-click** the file (quickly press the left mouse button twice).
 3. If a blue warning dialog appears, click **仍要运行** (“Run anyway”), or click **更多信息** (“More info”) → **仍要运行** (“Run anyway”).
-4. Follow the installation wizard, clicking **下一步** (“Next”) at each step, and finally click **安装** (“Install”).
+4. Follow the installation wizard to complete the installation.
 5. Wait for the installation to finish.
 
 	 ::: tip Tip
 	 Some antivirus software may block the installer. This is a false positive and is safe to ignore. If it is blocked, select **允许** (“Allow”) or **信任** (“Trust”) in your antivirus software.
 	 :::
+
+@tab MFAA Installer
+
+This method is recommended for beginners.
+
+1. Download `MAK-win-x86_64-xxx-MFAA-Setup.exe`.
+2. When the download finishes, **double-click** the file (quickly press the left mouse button twice).
+3. If a blue warning dialog appears, click **仍要运行** (“Run anyway”), or click **更多信息** (“More info”) → **仍要运行** (“Run anyway”).
+4. Follow the installation wizard to complete the installation.
+5. Wait for the installation to finish.
+
+	 ::: tip Tip
+	 Some antivirus software may block the installer. This is a false positive and is safe to ignore. If it is blocked, select **允许** (“Allow”) or **信任** (“Trust”) in your antivirus software.
+	 :::
+
 @tab MXU Archive
 
-1. Download `MAK-win-x86_64-xxx.zip`.
+1. Download `MAK-win-x86_64-xxx-MXU.zip`.
+2. When the download finishes, extract it into a dedicated folder.
+
+	 ::: warning Warning
+	 Use a path containing **ASCII/English characters only**, unless you are able to resolve the problems caused by other paths yourself.
+
+	 For example, extracting to `D:\MAK` works, but extracting to `D:\我的软件\MAK` does not.
+
+	 If you use a non-recommended directory, MAK and its developers reserve the right to decline support for any resulting issues.
+	 :::
+
+3. After extraction, open the extracted folder, find `MAK.exe`, and **double-click** it to run MAK.
+
+@tab MFAA Archive
+
+1. Download `MAK-win-x86_64-xxx-MFAA.zip`.
 2. When the download finishes, extract it into a dedicated folder.
 
 	 ::: warning Warning
@@ -119,18 +153,24 @@ The resolution must be changed in the emulator's **system settings**, not in the
 1. **Launch MAK**:
 	::: tabs#install-type
 
-	@tab Installer
+	@tab MXU Installer
 	Find the `MAK` icon on the desktop and double-click it.
 
-	@tab Archive
+	@tab MFAA Installer
+	Find the `MAK` icon on the desktop and double-click it.
+
+	@tab MXU Archive
+	Open the extracted folder and double-click `MAK.exe`.
+
+	@tab MFAA Archive
 	Open the extracted folder and double-click `MAK.exe`.
 	:::
 
-2. **Add a task**: After opening MAK, click **添加任务** (“Add Task”) and choose what you want MAK to do.
+2. **Add a task**: Follow the instructions in the selected UI to add or select the tasks you want MAK to perform.
 
-3. **Connect to the emulator**: Follow the prompts in MAK and select your emulator. MAK will attempt to connect automatically.
+3. **Connect to the emulator**: Select your emulator in the device or connection settings. MAK will attempt to connect automatically.
 
-4. **Start running**: Click **开始** (“Start”), and MAK will begin working!
+4. **Start running**: Click the start button in the UI, and MAK will begin working!
 
 ---
 

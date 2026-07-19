@@ -193,17 +193,23 @@ pnpm docs:build
 
 ## 5. 本地构建
 
-需要检查安装目录时，可以运行：
+需要检查安装目录时，可以按要测试的界面运行对应脚本：
 
 ```bash
+# MXU
 python tools/ci/install_mxu.py v0.0.1
+
+# MFAA
+python tools/ci/install_mfaa.py v0.0.1 win x86_64
 ```
 
-执行前需要保证 `deps/bin` 已存在。该脚本会组装 `install-mxu/` 目录，复制 MaaFramework 运行库、项目资源、`interface.json`、`README.md`、`LICENSE` 和 `agent/`。
+执行前需要保证 MaaFramework 已解压到 `deps/`。MFAA 还需要将 MFAAvalonia 解压到 `MFAA/`，且该目录下应当只有一个 `MFAAvalonia.exe` 入口文件。
 
-可以将 MXU 放入 `install-mxu/` 目录并测试构建后是否能正常运行。
+- `install_mxu.py` 会组装 `install-mxu/`，并按 MXU 要求将 MaaFramework 运行库放入 `maafw/`。
+- `install_mfaa.py` 会将 MFAAvalonia 运行文件复制到 `install-mfaa/` 根目录、将入口重命名为 `MAK.exe`，并按 MFAA 要求组装 `runtimes/`、`plugins/` 和 `libs/`。
+- 两个脚本都会复制项目资源、`interface.json`、`README.md`、`LICENSE`、`requirements.txt` 和 `agent/`，但不会准备嵌入式 Python。
 
-正式发布和 MXU 安装包由 GitHub Actions 处理。普通 PR 不需要手动上传构建产物，也不要提交 `install/`、`install-mxu/`、缓存目录或本地调试截图。
+测试 MXU 时，还需要将 MXU 的可执行文件放入 `install-mxu/` 并命名为 `MAK.exe`。正式发布时，GitHub Actions 会准备嵌入式 Python、组装 MFAA 与 MXU 的压缩包，并分别生成两个 NSIS 安装包。普通 PR 不需要手动上传构建产物，也不要提交 `install/`、`install-mfaa/`、`install-mxu/`、`MFAA/`、`MXU/`、缓存目录或本地调试截图。
 
 ## 6. 提交 PR
 

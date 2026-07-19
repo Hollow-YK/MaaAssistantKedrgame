@@ -16,11 +16,27 @@ icon: fa-solid:info
 
 ### 无法启动
 
-::: details 弹窗提示 `Could not find the WebView2 Runtime.`
+::: details **MXU** 弹窗提示 `Could not find the WebView2 Runtime.`
 
-缺少 WebView2。
+MXU 缺少 WebView2。
 
 前往 [Microsoft Edge WebView2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2) 下载并安装 `Microsoft Edge WebView2`。
+
+:::
+
+::: details **MFAA** 弹窗提示 `To run this application, you must install .NET`
+
+前往[下载 .NET 10.0](https://dotnet.microsoft.com/zh-tw/download/dotnet/thank-you/sdk-10.0.300-windows-x64-installer) 下载并安装 `.NET 10.0 Desktop Runtime` （.NET 桌面运行时）。
+
+或者双击 MAK 目录中的 `DependencySetup_依赖库安装_win.bat`，按照提示安装 MFAA 所需的依赖库，然后重新启动 MAK。
+
+:::
+
+::: details **MFAA** 无法启动或提示缺少依赖库
+
+双击 MAK 目录中的 `DependencySetup_依赖库安装_win.bat`，按照提示安装 MFAA 所需的依赖库，然后重新启动 MAK。
+
+或根据提示下载并安装所需运行库。
 
 :::
 
@@ -70,7 +86,9 @@ icon: fa-solid:info
 
 ::: details UI 闪退
 
-这可能是 MXU 的问题，我们会在未来的版本添加更多的 UI 选择。
+目前，我们发现 MXU 的用户可能存在该类问题。
+
+这可能是 UI 的问题。请先尝试重新安装；如果仍然闪退，可以改用另一种 UI 。
 
 :::
 
@@ -89,7 +107,14 @@ icon: fa-solid:info
 
 ::: details 不支持当前控制器
 
-在 MAK 右上角的「连接设置」中选择合适的控制器。
+   ::: tabs#ui-type
+
+   @tab MXU 版
+   在 MAK 右上角的「连接设置」中选择合适的控制器。
+
+   @tab MFAA 版
+   在 MAK 上部偏左的「控制器类型」中选择合适的控制器。
+   :::
 
 :::
 
@@ -106,13 +131,17 @@ icon: fa-solid:info
 
     ::: tabs#install-type
 
-    @tab MXU 安装包版
+    @tab 安装包版（MFAA / MXU）
 
     在「设置」→「应用」→「安装的应用」中找到 MAK，选择「卸载」，然后重新安装。
 
     @tab MXU 压缩包版
 
     删除 MAK 所在目录下全部内容（可以保留 `config` 文件夹），然后重新解压。
+
+    @tab MFAA 压缩包版
+
+    删除 MAK 所在目录下全部内容（可以保留 `config` 文件夹和 `appsettings.json`），然后重新解压。
 
     :::
 

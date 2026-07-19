@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/install.yml"
       - "assets/**"
+      - "tools/ci/*.nsi"
       - "**.py"
   pull_request:
     branches:
@@ -14,11 +15,13 @@ on:
     paths:
       - ".github/workflows/install.yml"
       - "assets/**"
+      - "tools/ci/*.nsi"
       - "**.py"
   workflow_dispatch:
 
 env:
   MAA_FRAMEWORK_VERSION: "v5.11.0"
+  MFAA_VERSION: "v2.12.2"
   MXU_VERSION: "v2.1.3"
 
 permissions:
@@ -112,6 +115,23 @@ jobs:
           out-file-path: "deps"
           extract: true
 
+      - name: Download MFAAvalonia
+        id: download_mfaa
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MaaXYZ/MFAAvalonia
+          fileName: "MFAAvalonia-${{ env.MFAA_VERSION }}-${{ matrix.os }}-${{ steps.platform.outputs.tag }}*"
+          tag: ${{ env.MFAA_VERSION }}
+          out-file-path: "MFAA"
+          extract: true
+
+      - name: Clean up MFAAvalonia archive
+        shell: bash
+        run: |
+          ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mfaa.outputs.downloaded_files)[0] }}"
+          rm -f "${ARCHIVE_FILE_PATH}"
+          echo "Archive cleanup command executed for MFAAvalonia."
+
       - name: Download MXU
         id: download_mxu
         uses: robinraju/release-downloader@v1
@@ -149,7 +169,21 @@ jobs:
             echo "MXU exe not found, skipping icon update."
           fi
 
+          MFAA_EXE=$(find MFAA -type f -iname "MFAAvalonia.exe" -print -quit)
+          if [ -n "$MFAA_EXE" ]; then
+            ./rcedit.exe "$MFAA_EXE" --set-icon "mak.ico"
+            echo "MFAAvalonia icon modified successfully"
+          else
+            echo "MFAAvalonia exe not found, skipping icon update."
+          fi
+
       # ---- 嵌入式 Python ----
+      - name: Initialize package directories
+        shell: bash
+        run: |
+          rm -rf install install-mfaa install-mxu
+          mkdir -p install
+
       - name: Setup Embed Python
         shell: bash
         run: |
@@ -160,24 +194,28 @@ jobs:
         run: |
           ./install/python/python.exe tools/ci/download_deps.py --deps-dir install/deps
 
+      - name: Pre-install all dependencies
+        shell: bash
+        run: |
+          echo "Pre-installing all dependencies into embedded Python..."
+          ./install/python/python.exe -m pip install \
+            --no-index \
+            --find-links install/deps \
+            -r requirements.txt
+
+      # ---- 组装 MFAA 包 ----
+      - name: Create MFAA version
+        shell: bash
+        run: |
+          ./install/python/python.exe ./tools/ci/install_mfaa.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
+          cp -rpvn install/python/. install-mfaa/python/
+
       # ---- 组装 MXU 包 ----
       - name: Create MXU version
         shell: bash
         run: |
           ./install/python/python.exe ./tools/ci/install_mxu.py ${{ needs.meta.outputs.tag }}
           cp -rpvn install/python/. install-mxu/python/
-          if [ -d "install/deps" ]; then
-            cp -rpvn install/deps/. install-mxu/deps/
-          fi
-
-      - name: Pre-install all dependencies
-        shell: bash
-        run: |
-          echo "Pre-installing all dependencies into embedded Python..."
-          ./install-mxu/python/python.exe -m pip install \
-            --no-index \
-            --find-links install-mxu/deps \
-            -r requirements.txt
 
       - name: Copy MXU files
         shell: bash
@@ -199,6 +237,7 @@ jobs:
         shell: bash
         run: |
           if [ -f "mak.ico" ]; then
+            cp mak.ico install-mfaa/logo.ico
             cp mak.ico install-mxu/logo.ico
           fi
 
@@ -206,8 +245,30 @@ jobs:
         shell: bash
         run: |
           echo "Removing deps directory to reduce package size..."
-          rm -rf install-mxu/deps
+          rm -rf install/deps install-mfaa/deps install-mxu/deps
           echo "Deps directory removed."
+
+      - name: Verify MFAA package
+        shell: bash
+        run: |
+          required_paths=(
+            "install-mfaa/MAK.exe"
+            "install-mfaa/interface.json"
+            "install-mfaa/python/python.exe"
+            "install-mfaa/agent/main.py"
+            "install-mfaa/runtimes/${{ matrix.os }}-${{ steps.platform.outputs.tag }}/native"
+            "install-mfaa/libs/MaaAgentBinary"
+            "install-mfaa/plugins/${{ matrix.os }}-${{ steps.platform.outputs.tag }}"
+          )
+          for path in "${required_paths[@]}"; do
+            if [ ! -e "$path" ]; then
+              echo "Required MFAA package path not found: $path"
+              exit 1
+            fi
+          done
+
+          ./install/python/python.exe -c 'import json; data = json.load(open("install-mfaa/interface.json", encoding="utf-8")); assert data["agent"]["child_exec"] == "./python/python.exe"; assert data["agent"]["child_args"] == ["-u", "./agent/main.py"]'
+          echo "MFAA package smoke check passed."
 
       # ---- Windows-only: NSIS 安装包 ----
       - name: Install NSIS
@@ -216,7 +277,7 @@ jobs:
         run: |
           choco install nsis --version=3.12.0 -y
 
-      - name: Build NSIS installer
+      - name: Build NSIS installers
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         shell: pwsh
         run: |
@@ -228,22 +289,42 @@ jobs:
             -DARCH="$arch" `
             -DSOURCE_DIR="${{ github.workspace }}\install-mxu" `
             -DICON_FILE="${{ github.workspace }}\mak.ico" `
-            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-$arch-$tag-Setup.exe" `
-            tools/ci/installer.nsi
+            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-${{ matrix.arch }}-$tag-MXU-Setup.exe" `
+            tools/ci/installer_mxu.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          makensis `
+            -DVERSION="$tag" `
+            -DARCH="$arch" `
+            -DSOURCE_DIR="${{ github.workspace }}\install-mfaa" `
+            -DICON_FILE="${{ github.workspace }}\mak.ico" `
+            -DOUTFILE="${{ github.workspace }}\MAK-${{ matrix.os }}-${{ matrix.arch }}-$tag-MFAA-Setup.exe" `
+            tools/ci/installer_mfaa.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # ---- 上传构建产物 ----
       - uses: actions/upload-artifact@v4
         with:
+          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
+          path: "install-mfaa"
+
+      - uses: actions/upload-artifact@v4
+        with:
           name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU
           path: "install-mxu"
 
-      - name: Upload NSIS installer artifact
+      - name: Upload MXU NSIS installer artifact
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v4
         with:
-          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Setup
-          path: "MAK-${{ matrix.os }}-${{ steps.platform.outputs.tag }}-${{ needs.meta.outputs.tag }}-Setup.exe"
+          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup
+          path: "MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU-Setup.exe"
+
+      - name: Upload MFAA NSIS installer artifact
+        if: matrix.os == 'win' && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA-Setup
+          path: "MAK-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA-Setup.exe"
 
   changelog:
     name: Generate changelog

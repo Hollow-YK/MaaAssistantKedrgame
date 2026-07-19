@@ -103,6 +103,139 @@ While a task is running, you can view live logs in MAK's log panel. If a task en
 
 ---
 
+## MFAA (User Interface)
+
+::: details What is MFAA?
+
+**MFAA** (MFAAvalonia) is a general-purpose [MaaFramework](https://github.com/MaaXYZ/MaaFramework) GUI built with [Avalonia UI](https://github.com/AvaloniaUI/Avalonia). It provides this project with another ready-to-use graphical interface.
+
+:::
+
+::: details Why is MFAA provided?
+
+MFAA and MXU support the same MAK tasks, but their layouts and controls differ. MFAA displays the task list, task settings, live view, and logs in separate panels, allowing users to view task configuration and runtime status on the same page.
+
+MFAA is provided so users can choose an interface according to their preferences. If one interface does not work correctly, users can also try the other one.
+
+:::
+
+### Configurations/Tabs
+
+::: details What is a configuration/tab?
+
+Like MXU, MFAA displays configurations as tabs at the top of the window. Each tab represents a configuration profile, allowing you to create different configurations for different scenarios.
+
+In each configuration, you can select the resource type, controller type, and current controller, and manage that configuration's task list.
+
+:::
+
+::: details How do I switch or create a configuration?
+
+Click a configuration tab at the top of the window to switch to it. Click the **+** to the right of the tabs to create a configuration.
+
+You can also open **设置** (“Settings”) → **切换配置** (“Switch Configuration”):
+
+- Use **当前配置** (“Current Configuration”) to view or switch existing configuration profiles.
+- Enter a name under **新增配置名称** (“New Configuration Name”), then click **添加** (“Add”) to create a configuration based on the current one.
+
+:::
+
+::: details About scheduled-execution configurations
+
+Open **设置** (“Settings”) → **定时执行** (“Scheduled Execution”) to configure a schedule and select the configuration to run under **自定义配置选择** (“Custom Configuration Selection”).
+
+When **强制定时启动** (“Force Scheduled Start”) is enabled and another task is running when the schedule is triggered, MFAA stops the current task before starting the new task.
+
+:::
+
+::: details What areas are available in the MFAA main interface?
+
+MFAA provides the following main page entries in the left sidebar:
+
+- **主页** (“Home”): Manage resources, controllers, and tasks for the current configuration.
+- **总控台** (“Dashboard”): Centrally view and manage running content.
+- **截图** (“Screenshot”): Access screenshot-related features.
+- **设置** (“Settings”): Change configuration, runtime, and interface options.
+
+The configuration tabs on **主页** (“Home”) contain the following main areas:
+
+- **Resources and controllers**: At the top of the page; used to select the resource type, controller type, and current controller.
+- **Task list**: On the left; used to add, enable, and reorder tasks.
+- **Task settings**: In the upper-middle area; used to change options for the selected task.
+- **Task description**: In the lower-middle area; displays information about the selected task.
+- **Live view**: In the upper-right area; displays screenshots from the device.
+- **Logs**: In the lower-right area; displays connection, task-execution, and error information.
+
+:::
+
+::: details What can I configure under Settings?
+
+Click **设置** (“Settings”) in the lower-left corner to access the following categories:
+
+- **切换配置** (“Switch Configuration”): Switch an existing configuration or create one based on the current configuration.
+- **定时执行** (“Scheduled Execution”): Configure schedules for configurations.
+- **性能设置** (“Performance Settings”): Change performance-related options.
+- **运行设置** (“Runtime Settings”): Change task runtime options.
+- **连接设置** (“Connection Settings”): Change device connection options.
+- **启动设置** (“Startup Settings”): Change application startup options.
+- **界面设置** (“Interface Settings”): Change interface display options.
+- **外部通知** (“External Notifications”): Configure external notifications.
+- **热键设置** (“Hotkey Settings”): Configure keyboard shortcuts.
+- **更新设置** (“Update Settings”): Change update-related options.
+- **关于我们** (“About”): View application information.
+
+:::
+
+::: details What is a resource type?
+
+A resource type selects the distribution-channel version of the game. MAK currently provides the following three resource types:
+
+- **官服** (“Official”): For the game downloaded from the official website.
+- **B 服** (“Bilibili”): Loads Bilibili distribution-channel resources in addition to the common resources.
+- **TapTap**: Loads TapTap distribution-channel resources in addition to the common resources.
+
+Select the resource type matching your installed game version at the top of the configuration page.
+
+:::
+
+### Tasks
+
+::: details What is a task?
+
+Each automation feature in MAK is an independent “task” that you can freely enable or disable as needed. Every task corresponds to a specific in-game action or game mode.
+
+Add and select the tasks you want to run in the task list on the left. After selecting a task, its settings and description appear in the middle area.
+
+:::
+
+::: details In what order are tasks executed?
+
+Tasks are executed **from top to bottom in the task list**, and unselected tasks are skipped. Drag tasks directly within the task list to change their execution order.
+
+:::
+
+::: details Why can't multiple tasks run simultaneously?
+
+MAK automates the game through image recognition and simulated mouse and keyboard operations. Running multiple tasks simultaneously would cause their operations to interfere with each other, so MAK is designed to execute tasks sequentially.
+
+:::
+
+::: details What is a controller, and how do I select one?
+
+A controller is a MaaFramework component used to interact with the game window. MAK currently provides one controller: `ADB`.
+
+Select **ADB 控制器** (“ADB Controller”) under **控制器类型** (“Controller Type”) at the top of the configuration page, then select the emulator or device to connect to under **当前控制器** (“Current Controller”).
+
+:::
+
+::: details How can I tell whether a task is running normally?
+
+While a task is running, view the device screen in **实时视图** (“Live View”) on the right and check the connection status and live runtime information under **日志** (“Logs”). If a task encounters an error or fails, a corresponding message appears in the logs or an interface notification.
+
+:::
+
+---
+
 ## Usage
 
 ::: details What emulator resolution should I use?
