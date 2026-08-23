@@ -31,7 +31,7 @@
             "detect": "StartGame_icon"
         },
         "StartGame": {
-            "desc": "启动游戏-图标界面",
+            "desc": "启动游戏-点击进入游戏",
             "detect": "StartGame_ClickStart"
         },
         "DailyAward": {
@@ -75,6 +75,22 @@
             "desc": "出击-技能演练",
             "detect": "UI_Combat_SkillMaterial_selected",
             "parent": "Combat"
+        },
+        // -----
+        // region 对话框 Alert
+        // -----
+        "Alert": {
+            "desc": "对话框"
+        },
+        "Alert_ReconnectFailed": {
+            "desc": "对话框-重连失败",
+            "detect": "SceneDo_Alert_Close_safe_ReconnectFailed",
+            "parent": "Alert"
+        },
+        "Alert_MaintenanceArea_Again": {
+            "desc": "对话框-资源派遣-再次派遣",
+            "detect": "SceneDo_Alert_Close_safe_MaintenanceArea_Again",
+            "parent": "Alert"
         },
         // -----
         // region 活动1：耀斑
@@ -228,6 +244,25 @@
             "cost": 1,
             "jump": [
                 "SceneDo_PauseHomeButton"
+            ]
+        },
+        // -----
+        // region 对话框 Alert
+        // -----
+        {
+            "from": "Alert_ReconnectFailed",
+            "to": "StartGame",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Alert_Close_safe_ReconnectFailed"
+            ]
+        },
+        {
+            "from": "Alert_MaintenanceArea_Again",
+            "to": "StartGame",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Alert_Close_safe_MaintenanceArea_Again"
             ]
         },
         // -----
