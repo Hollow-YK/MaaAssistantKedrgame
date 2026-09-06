@@ -5,6 +5,7 @@ ACTION_MODULES = (
     "sweep",
     "scene_jump",
     "stage_select",
+    "pvp",
     "activity.1_sweep",
     "activity.1_shop",
 )

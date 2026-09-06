@@ -1,6 +1,6 @@
 from importlib import import_module
 
-RECOGNITION_MODULES = ("enemy", "vehicle")
+RECOGNITION_MODULES = ("enemy", "vehicle", "pvp")
 
 
 def register_all() -> None:

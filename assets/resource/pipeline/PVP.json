@@ -1,0 +1,686 @@
+{
+    "PVPMain": {
+        "desc": "玩家对战-入口：确保在主界面后进入对战",
+        "next": [
+            "PVP_Click:Exercise",
+            "[JumpBack]PVP_Do:JumpToMain"
+        ]
+    },
+    "PVP_Do:JumpToMain": {
+        "desc": "任意界面跳转回主界面（SceneJump 通用跳转）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SceneJump",
+                "custom_action_param": {
+                    "target": "MainMenu"
+                }
+            }
+        }
+    },
+    "PVP_Click:Exercise": {
+        "desc": "点击主界面-对战入口",
+        "recognition": "And",
+        "all_of": [
+            "UI_MainMenu_exercise"
+        ],
+        "action": "Click",
+        "post_delay": 2000,
+        "next": [
+            "PVP_Click:SeasonReset_Continue",
+            "PVP_Verify:BattleInterface"
+        ]
+    },
+    "PVP_Click:SeasonReset_Continue": {
+        "desc": "赛季重置：识别「点击任意处继续」提示并点击（并列候选；未命中时由上游 PVP_Click:Exercise 的 next 列表继续尝试确认对战界面；timeout 仅作用于本节点作为父节点评估自身 next 链的轮询预算，非候选未命中回落时间）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "点击任意处继续"
+                ],
+                "roi": [
+                    552,
+                    640,
+                    176,
+                    31
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Check:SeasonReset_EnterFormation",
+            "PVP_Click:SeasonReset_Continue"
+        ]
+    },
+    "PVP_Check:SeasonReset_EnterFormation": {
+        "desc": "赛季重置：识别「进入布阵」确认在布阵界面，不做动作",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "进入布阵"
+                ],
+                "roi": [
+                    1078,
+                    659,
+                    97,
+                    27
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "next": [
+            "PVP_Click:SeasonReset_Edit",
+            "PVP_Check:SeasonReset_EnterFormation"
+        ]
+    },
+    "PVP_Click:SeasonReset_Edit": {
+        "desc": "赛季重置：识别「编辑」并点击进入编队界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "编辑"
+                ],
+                "roi": [
+                    265,
+                    141,
+                    54,
+                    29
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Click:SeasonReset_QuickFormation",
+            "PVP_Click:SeasonReset_Edit"
+        ]
+    },
+    "PVP_Click:SeasonReset_QuickFormation": {
+        "desc": "赛季重置：识别「快速编队」并点击",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "快速编队"
+                ],
+                "roi": [
+                    101,
+                    441,
+                    85,
+                    25
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Check:SeasonReset_FormationCount",
+            "PVP_Click:SeasonReset_QuickFormation"
+        ]
+    },
+    "PVP_Check:SeasonReset_FormationCount": {
+        "desc": "赛季重置：识别编队人数数字出现，不做动作",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "\\d"
+                ],
+                "roi": [
+                    203,
+                    561,
+                    22,
+                    18
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "next": [
+            "PVP_Click:SeasonReset_Save",
+            "PVP_Check:SeasonReset_FormationCount"
+        ]
+    },
+    "PVP_Click:SeasonReset_Save": {
+        "desc": "赛季重置：识别「保存」并点击保存编队",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "保存"
+                ],
+                "roi": [
+                    1140,
+                    442,
+                    41,
+                    22
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Click:SeasonReset_EnterFormation",
+            "PVP_Click:SeasonReset_Save"
+        ]
+    },
+    "PVP_Click:SeasonReset_EnterFormation": {
+        "desc": "赛季重置：识别「进入布阵」并点击进入布阵界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "进入布阵"
+                ],
+                "roi": [
+                    1078,
+                    659,
+                    97,
+                    27
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Click:SeasonReset_SavePosition",
+            "PVP_Click:SeasonReset_EnterFormation"
+        ]
+    },
+    "PVP_Click:SeasonReset_SavePosition": {
+        "desc": "赛季重置：识别「保存」确认保存部署位置界面，点击确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "保存"
+                ],
+                "roi": [
+                    1153,
+                    626,
+                    49,
+                    26
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Verify:BattleInterface",
+            "PVP_Click:SeasonReset_SavePosition"
+        ]
+    },
+    "PVP_Verify:BattleInterface": {
+        "desc": "确认已进入玩家对战界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/battle_interface.png"
+                ],
+                "roi": [
+                    69,
+                    611,
+                    94,
+                    86
+                ],
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "next": [
+            "PVP_Do:InitBattleCount"
+        ]
+    },
+    "PVP_Do:InitBattleCount": {
+        "desc": "初始化战斗计数器",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "InitPVPBattleCount",
+                "custom_action_param": {
+                    "target_count": 1
+                }
+            }
+        },
+        "next": [
+            "PVP_Select:Opponent"
+        ]
+    },
+    "PVP_Select:Opponent": {
+        "desc": "识别三个对手等级，选择等级最低的进行点击",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "SelectPVPOpponent",
+                "custom_recognition_param": {
+                    "rois": [
+                        [
+                            579,
+                            276,
+                            45,
+                            27
+                        ],
+                        [
+                            818,
+                            276,
+                            45,
+                            28
+                        ],
+                        [
+                            1055,
+                            276,
+                            45,
+                            28
+                        ]
+                    ],
+                    "click_positions": [
+                        [
+                            716,
+                            578
+                        ],
+                        [
+                            954,
+                            577
+                        ],
+                        [
+                            1191,
+                            578
+                        ]
+                    ],
+                    "only_rec": true
+                }
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "post_delay": 1000,
+        "next": [
+            "PVP_Check:ChallengeLimit",
+            "PVP_Click:StartBattle"
+        ]
+    },
+    "PVP_Check:ChallengeLimit": {
+        "desc": "检测今日挑战次数是否用完（并列候选，命中则返回主页结束任务）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/challenge_limit.png"
+                ],
+                "roi": [
+                    311,
+                    85,
+                    71,
+                    77
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "PVP_Log",
+                "custom_action_param": {
+                    "content": "[PVP] 今日挑战次数已用完"
+                }
+            }
+        },
+        "next": [
+            "PVP_Click:MainMenu"
+        ]
+    },
+    "PVP_Click:StartBattle": {
+        "desc": "点击开始战斗（复用 UI/Combat/Start2 编队界面按钮模板）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/Start2.png"
+                ],
+                "roi": [
+                    940,
+                    620,
+                    300,
+                    90
+                ],
+                "green_mask": true
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "post_delay": 7000,
+        "next": [
+            "[JumpBack]Status_Loading_Screen",
+            "PVP_Click:BeginCombat"
+        ]
+    },
+    "PVP_Click:BeginCombat": {
+        "desc": "点击作战开始（复用 UI/Combat/Start3 模板）。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/Start3.png"
+                ],
+                "roi": [
+                    950,
+                    250,
+                    330,
+                    160
+                ]
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "post_delay": 2000,
+        "next": [
+            "PVP_Check:InBattle",
+            "PVP_Click:BeginCombat"
+        ]
+    },
+    "PVP_Check:InBattle": {
+        "desc": "检测是否在战斗中（并列候选）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/in_battle.png"
+                ],
+                "roi": [
+                    519,
+                    585,
+                    244,
+                    113
+                ],
+                "threshold": 0.8
+            }
+        },
+        "next": [
+            "PVP_Click:Speed2x",
+            "[JumpBack]PVP_Click:BeginCombat"
+        ],
+        "focus": {
+            "Node.PipelineNode.Starting": {
+                "content": "正在自动战斗中",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "PVP_Click:Speed2x": {
+        "desc": "点击2倍速",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/speed_2x.png"
+                ],
+                "roi": [
+                    1188,
+                    27,
+                    53,
+                    52
+                ],
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "next": [
+            "PVP_Wait:BattleLoop"
+        ]
+    },
+    "PVP_Wait:BattleLoop": {
+        "desc": "战斗循环：等待战斗结束",
+        "next": [
+            "[JumpBack]PVP_Wait:InStage_active",
+            "PVP_Check:BattleEnd"
+        ],
+        "on_error": [
+            "PVP_Read:Result"
+        ]
+    },
+    "PVP_Wait:InStage_active": {
+        "desc": "战斗中-作战进行中",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/InStage/active_greenmask.png"
+                ],
+                "roi": [
+                    350,
+                    20,
+                    125,
+                    70
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "PVP_Check:BattleEnd": {
+        "desc": "检测结算画面是否出现（OCR「跳过」，only_rec 直接识别 ROI 并点击）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "跳过"
+                ],
+                "roi": [
+                    1202,
+                    34,
+                    50,
+                    26
+                ],
+                "only_rec": true,
+                "threshold": 0.8
+            }
+        },
+        "action": "Click",
+        "next": [
+            "PVP_Wait:Settlement"
+        ]
+    },
+    "PVP_Wait:Settlement": {
+        "desc": "等待结算动画播放完毕",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/exit_result.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "post_delay": 5000,
+        "next": [
+            "PVP_Read:Result"
+        ]
+    },
+    "PVP_Read:Result": {
+        "desc": "识别积分和排名（详情见日志）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ReadPVPResult",
+                "custom_recognition_param": {
+                    "result_roi": [
+                        62,
+                        44,
+                        189,
+                        47
+                    ],
+                    "current_score_roi": [
+                        78,
+                        264,
+                        92,
+                        40
+                    ],
+                    "score_change_roi": [
+                        190,
+                        264,
+                        50,
+                        36
+                    ],
+                    "current_rank_roi": [
+                        77,
+                        352,
+                        94,
+                        35
+                    ],
+                    "rank_change_roi": [
+                        175,
+                        348,
+                        73,
+                        35
+                    ]
+                }
+            }
+        },
+        "pre_delay": 5000,
+        "next": [
+            "PVP_Click:ExitResult"
+        ],
+        "focus": {
+            "Node.PipelineNode.Starting": {
+                "content": "PVP 战斗结束",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "PVP_Click:ExitResult": {
+        "desc": "点击退出结果界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/exit_result.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "action": "Click",
+        "post_delay": 1000,
+        "next": [
+            "[JumpBack]SceneDo_GetItem",
+            "PVP_Verify:BackToBattleInterface"
+        ]
+    },
+    "PVP_Verify:BackToBattleInterface": {
+        "desc": "确认回到对战界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "PVP/battle_interface.png"
+                ],
+                "roi": [
+                    69,
+                    611,
+                    94,
+                    86
+                ],
+                "threshold": 0.8
+            }
+        },
+        "pre_delay": 500,
+        "next": [
+            "PVP_Do:CheckBattleCount"
+        ]
+    },
+    "PVP_Do:CheckBattleCount": {
+        "desc": "检查剩余战斗次数",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CheckPVPBattleCount"
+            }
+        },
+        "next": [
+            "PVP_Select:Opponent",
+            "PVP_Click:MainMenu"
+        ]
+    },
+    "PVP_Click:MainMenu": {
+        "desc": "点击返回主页按钮（任务结束）",
+        "recognition": "And",
+        "all_of": [
+            "UI_Common_HomeButton"
+        ],
+        "action": "Click",
+        "post_delay": 1000,
+        "next": [
+            "PVP_End"
+        ],
+        "focus": {
+            "Node.PipelineNode.Starting": {
+                "content": "任务完成！",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "PVP_End": {
+        "desc": "任务完成"
+    },
+    "PVP_TextFilter": {
+        "desc": "玩家对战-积分/排名文本颜色遮罩（OCR color_filter 前置二值化）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "method": 4,
+                "lower": [
+                    [
+                        227,
+                        71,
+                        0
+                    ],
+                    [
+                        225,
+                        228,
+                        61
+                    ]
+                ],
+                "upper": [
+                    [
+                        255,
+                        79,
+                        14
+                    ],
+                    [
+                        228,
+                        231,
+                        61
+                    ]
+                ],
+                "connected": false,
+                "count": 1000
+            }
+        }
+    }
+}

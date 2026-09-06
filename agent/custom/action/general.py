@@ -1,4 +1,5 @@
 import json
+import sys
 from typing import Any
 
 from maa.agent.agent_server import AgentServer
@@ -20,6 +21,16 @@ def parse_params(param: Any) -> dict[str, Any]:
         except json.JSONDecodeError:
             pass
     return {}
+
+
+def log_message(message: str) -> None:
+    """输出运行日志到 agent 通道。
+
+    统一写 stderr 并带 ``level:消息`` 前缀：MFAAvalonia 解析 agent 的
+    stderr 行（``level_short:message`` 约定），MXU 与 VSC 插件终端按原文
+    显示两条流；stdout 裸 print 在 MFAAvalonia 下不可见。
+    """
+    print(f"info:{message}", file=sys.stderr)
 
 
 @AgentServer.custom_action("DisableNode")

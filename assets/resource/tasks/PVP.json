@@ -1,0 +1,96 @@
+{
+    "task": [
+        {
+            "name": "PVP",
+            "label": "$task.PVP.label",
+            "entry": "PVPMain",
+            "description": "$task.PVP.desc",
+            "group": [
+                "Daily"
+            ],
+            "controller": [
+                "ADB"
+            ],
+            "option": [
+                "PVP_BattleCount"
+            ]
+        }
+    ],
+    "option": {
+        "PVP_BattleCount": {
+            "label": "$option.PVP_BattleCount.label",
+            "description": "$option.PVP_BattleCount.description",
+            "type": "select",
+            "default_case": "1",
+            "cases": [
+                {
+                    "name": "1",
+                    "label": "$option.PVP_BattleCount_1.label",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "2",
+                    "label": "$option.PVP_BattleCount_2.label",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "3",
+                    "label": "$option.PVP_BattleCount_3.label",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "4",
+                    "label": "$option.PVP_BattleCount_4.label",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 4
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "5",
+                    "label": "$option.PVP_BattleCount_5.label",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 5
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "6",
+                    "label": "$option.PVP_BattleCount_6.label",
+                    "description": "$option.PVP_BattleCount_6.description",
+                    "pipeline_override": {
+                        "PVP_Do:InitBattleCount": {
+                            "custom_action_param": {
+                                "target_count": 6
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

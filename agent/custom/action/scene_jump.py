@@ -120,6 +120,7 @@ class SceneJump(CustomAction):
         super().__init__()  # 初始化基类 _handle（AgentServer 注册时需要 c_handle）
         self.scenes: dict[str, dict[str, Any]] = {}
         self._adj: dict[str, list[dict[str, Any]]] = {}
+        self._descendants_cache: dict[str, set[str]] = {}
 
     # ------------------------------------------------------------------
     # 入口
@@ -341,7 +342,26 @@ class SceneJump(CustomAction):
                 continue
             edge["to"] = to_list  # 归一化为列表，后续统一处理
             self._adj.setdefault(frm, []).append(edge)
+        # 构建后代索引以支持定向探测
+        self._build_descendants_cache()
         return True
+
+    def _build_descendants_cache(self) -> None:
+        """构建父场景 -> 所有具有 detect 的后代场景 的映射"""
+        self._descendants_cache = {}
+        # 先收集所有有 detect 的场景（即实际可识别的场景）
+        detectable = {name for name, info in self.scenes.items() if info.get("detect")}
+
+        for name in detectable:
+            # 向上遍历父链，将自身加入每个父节点的后代集合
+            cur = name
+            while cur:
+                parent = self.scenes.get(cur, {}).get("parent")
+                if parent:
+                    self._descendants_cache.setdefault(parent, set()).add(name)
+                cur = parent
+            # 自身也加入自己的缓存（方便直接查）
+            self._descendants_cache.setdefault(name, set()).add(name)
 
     def _desc(self, name: str) -> str:
         scene = self.scenes.get(name) or {}
@@ -494,6 +514,24 @@ class SceneJump(CustomAction):
                 matches.append(name)
         return matches
 
+    def _detect_scenes_subset(
+        self, context: Context, candidates: set[str]
+    ) -> list[str]:
+        """仅对候选场景列表进行识别，返回其中命中的场景（按 scenes 定义顺序）。"""
+        image = self._screencap(context)
+        matches: list[str] = []
+        # 按照 self.scenes 的定义顺序遍历，保证确定性（具体场景优先）
+        for name, scene in self.scenes.items():
+            if name not in candidates:
+                continue
+            node = scene.get("detect")
+            if not node:
+                continue
+            detail = context.run_recognition(str(node), image)
+            if detail and detail.hit:
+                matches.append(name)
+        return matches
+
     # ------------------------------------------------------------------
     # 单步跳转执行与等待
     # ------------------------------------------------------------------
@@ -529,7 +567,9 @@ class SceneJump(CustomAction):
           - via 表示“可能经过”的中间场景（也可能略过），处于 via 时继续等待其结束；
           - 未知界面（无法识别）时继续等待；
           - 全程受 deadline（wait_timeout）约束，超时返回失败。
-        """
+        优化：使用定向探测（_detect_scenes_subset）替代全量扫描，
+        仅识别与当前边相关的候选场景及其后代，大幅减少模板匹配次数。
+        仅在定向探测未命中或命中意外场景时回退全量识别。"""
         targets = edge["to"]  # 可能为多个候选场景（to 列表）
         from_scene = edge["from"]
         vias = set(edge.get("via") or [])
@@ -545,28 +585,48 @@ class SceneJump(CustomAction):
         def _nap(seconds: float) -> None:
             time.sleep(min(seconds, _left()))
 
+        # ---- 构建定向探测候选集 ----
+        base_candidates = set(targets)
+        base_candidates.add(from_scene)
+        base_candidates.update(vias)
+
+        # 扩展所有后代（可识别场景）
+        probe_candidates: set[str] = set()
+        for base in base_candidates:
+            probe_candidates.update(self._descendants_cache.get(base, set()))
+
+        # 如果候选集意外为空（例如所有场景都无 detect），回退全量
+        if not probe_candidates:
+            probe_candidates = set(self.scenes.keys())
+
         # 1) 首次执行 jump（若有；空 jump 表示无需操作，仅等待自然跳转）
         for node in jumps:
             if time.time() >= deadline:
                 return False, None
             self._run_jump_node(context, str(node))
 
-        # 2) 轮询等待场景变化（同一时刻可能有多个场景同时匹配，逐一判断）
+        # 2) 轮询等待场景变化（定向探测候选场景及其后代）
         retries = 1 if jumps else 0  # 已执行 jump 的次数
         while time.time() < deadline:
-            scenes = self._detect_scenes(context)
+            # 定向探测：仅识别候选场景
+            matched = self._detect_scenes_subset(context, probe_candidates)
 
-            if not scenes:
-                # 未知界面：等待（可能处于过渡中）
-                _nap(settle_interval)
-                continue
+            if not matched:
+                # 定向未命中任何候选 -> 可能进入了完全意外的场景，回退全量识别
+                full_matches = self._detect_scenes(context)
+                if not full_matches:
+                    # 未知界面：等待（可能处于过渡中）
+                    _nap(settle_interval)
+                    continue
+                # 返回意外场景，由主循环重新规划
+                return False, full_matches[0]
 
             # 命中目标：任意匹配场景满足任一 to → 返回最具体的那个
-            hit = next((s for s in scenes if self._satisfies_any(s, targets)), None)
+            hit = next((s for s in matched if self._satisfies_any(s, targets)), None)
             if hit is not None:
                 return True, hit
 
-            if from_scene in scenes and jumps:
+            if from_scene in matched and jumps:
                 # jump 后仍停留在 from：可能点击丢失 → 等待后重试 jump
                 if retries < max_attempts:
                     _nap(retry_interval)
@@ -578,13 +638,17 @@ class SceneJump(CustomAction):
                 _nap(settle_interval)
                 continue
 
-            if any(s in vias or s == from_scene for s in scenes):
+            if any(s in vias or s == from_scene for s in matched):
                 # 中间场景（via 可能经过也可能略过）或空 jump 的自然过渡等待
                 _nap(settle_interval)
                 continue
 
-            # 其余均为非预期场景：交由主循环重新规划（返回最具体的匹配）
-            return False, scenes[0]
+            # 命中了某个场景，但不是目标、不是 via、也不是 from
+            # 回退全量识别以获取准确场景名并重新规划
+            full_matches = self._detect_scenes(context)
+            if not full_matches:
+                return False, matched[0]  # 以定向结果为准
+            return False, full_matches[0]
 
         return False, None  # 等待超时
 
@@ -599,15 +663,29 @@ class SceneJump(CustomAction):
         """在未知界面或“无路径”的死胡同等待场景自行变化。
 
         返回新的已知场景（期间若已满足 target 也返回该场景）；超时返回 None。
+
+        优化：定向探测 target 及其后代，而非全量扫描。
         """
+        # 构建目标的后代候选集
+        probe_candidates = set(self._descendants_cache.get(target, {target}))
+        # 确保 stuck_scene 也在候选里（避免误判变化）
+        if stuck_scene:
+            probe_candidates.add(stuck_scene)
+
         while time.time() < deadline:
-            scene = self._detect_scene(context)
-            if scene is None:
+            # 定向探测目标及相关场景
+            matched = self._detect_scenes_subset(context, probe_candidates)
+            if not matched:
                 time.sleep(min(interval, max(0.0, deadline - time.time())))
                 continue
-            if self._satisfies(scene, target):
-                return scene
-            if scene != stuck_scene:
-                return scene
+
+            # 如果命中了目标（或其后代）
+            if any(self._satisfies(s, target) for s in matched):
+                return matched[0]  # 返回命中的具体场景
+
+            # 如果离开 stuck_scene 到了其他已知场景（但不是目标），返回它
+            if stuck_scene and stuck_scene not in matched:
+                return matched[0]
+
             time.sleep(min(interval, max(0.0, deadline - time.time())))
         return None
