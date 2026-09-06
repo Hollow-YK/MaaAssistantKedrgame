@@ -4,8 +4,7 @@
         "recognition": "And",
         "all_of": [
             "UI_Activity_YaoBan_DailyAward",
-            "UI_Activity_YaoBan_Task",
-            "UI_Activity_YaoBan_Combat"
+            "UI_Activity_YaoBan_Task"
         ]
     },
     "UI_Activity_YaoBanEnter": {
