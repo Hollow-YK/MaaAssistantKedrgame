@@ -358,10 +358,10 @@
                     "UI/Combat/Start2.png"
                 ],
                 "roi": [
-                    940,
-                    620,
+                    971,
+                    630,
                     300,
-                    90
+                    80
                 ],
                 "green_mask": true
             }
