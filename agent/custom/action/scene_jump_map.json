@@ -53,6 +53,10 @@
             "desc": "资源派遣（主界面）",
             "detect": "UI_MainMenu_in_maintenancearea"
         },
+        "Team": {
+            "desc": "编队界面（战斗准备）",
+            "detect": "AutoSweep_Click_Start2"
+        },
         "Combat": {
             "desc": "出击界面",
             "detect": "Status_In_Combat"
@@ -97,6 +101,13 @@
         "Activity_1_Shop": {
             "desc": "活动1-Shop",
             "detect": "UI_Activity_YaoBan_Shop_sign"
+        },
+        // -----
+        // region 玩家对战
+        // -----
+        "PVP": {
+            "desc": "玩家对战界面",
+            "detect": "PVP_Verify:BattleInterface"
         }
     },
     "edges": [
@@ -166,6 +177,17 @@
             "cost": 1,
             "jump": [
                 "SceneDo_MainMenu_ClickCenter"
+            ]
+        },
+        {
+            "from": "Team",
+            "to": [
+                "MainMenu",
+                "PVP"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
             ]
         },
         {
@@ -269,6 +291,20 @@
             "cost": 1,
             "jump": [
                 "SceneDo_PauseBackButton"
+            ]
+        },
+        // -----
+        // region 玩家对战
+        // -----
+        {
+            "from": "PVP",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseHomeButton"
+            ],
+            "via": [
+                "Loading_Screen"
             ]
         }
     ]

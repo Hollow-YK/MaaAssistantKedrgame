@@ -74,6 +74,7 @@
         "resource/tasks/Award.json",
         "resource/tasks/AutoBattle.json",
         "resource/tasks/AutoSweep.json",
+        "resource/tasks/PVP.json",
         "resource/tasks/Activity/1/Award.json",
         "resource/tasks/Activity/1/AutoSweep.json",
         "resource/tasks/Activity/1/Shop.json"

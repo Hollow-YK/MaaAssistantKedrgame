@@ -7,6 +7,9 @@ from pathlib import Path
 
 # utf-8
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+# stderr 同样固定 UTF-8：agent 日志（log_message 的 "level:消息" 行）经 stderr 输出，
+# MFAAvalonia/VSC 插件按 UTF-8 解析，Windows 默认 GBK 会导致中文乱码
+sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
 # 获取当前main.py路径并设置上级目录为工作目录
 current_file_path = os.path.abspath(__file__)
