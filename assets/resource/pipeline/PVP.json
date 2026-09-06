@@ -370,11 +370,12 @@
         "action": "Click",
         "post_delay": 7000,
         "next": [
+            "[JumpBack]Status_Loading_Screen",
             "PVP_Click:BeginCombat"
         ]
     },
     "PVP_Click:BeginCombat": {
-        "desc": "点击作战开始（复用 UI/Combat/Start3 模板）。timeout: 30000ms 覆盖长加载场景（loading 画面持续动画，无法 post_wait_freezes）",
+        "desc": "点击作战开始（复用 UI/Combat/Start3 模板）。",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -392,7 +393,6 @@
         "pre_delay": 500,
         "action": "Click",
         "post_delay": 2000,
-        "timeout": 30000,
         "next": [
             "PVP_Check:InBattle",
             "PVP_Click:BeginCombat"
@@ -453,13 +453,31 @@
     },
     "PVP_Wait:BattleLoop": {
         "desc": "战斗循环：等待战斗结束",
-        "timeout": 300000,
         "next": [
+            "[JumpBack]PVP_Wait:InStage_active",
             "PVP_Check:BattleEnd"
         ],
         "on_error": [
             "PVP_Read:Result"
         ]
+    },
+    "PVP_Wait:InStage_active": {
+        "desc": "战斗中-作战进行中",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Combat/InStage/active_greenmask.png"
+                ],
+                "roi": [
+                    350,
+                    20,
+                    125,
+                    70
+                ],
+                "green_mask": true
+            }
+        }
     },
     "PVP_Check:BattleEnd": {
         "desc": "检测结算画面是否出现（OCR「跳过」，only_rec 直接识别 ROI 并点击）",
