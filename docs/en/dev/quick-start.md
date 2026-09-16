@@ -177,7 +177,7 @@ After modifying pipelines or resources, you can run schema validation:
 
 ```bash
 python -m pip install jsonschema==4.26.0 referencing==0.37.0
-python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --interface-files assets/interface.json
+python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource/pipeline assets/resource_bilibili/pipeline assets/resource_taptap/pipeline --task-dirs assets/resource/tasks --interface-files assets/interface.json
 ```
 
 If you changed the Python Agent or utility scripts:

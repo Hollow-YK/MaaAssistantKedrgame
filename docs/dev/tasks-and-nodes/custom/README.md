@@ -11,3 +11,4 @@ title: Custom
 当前内容：
 
 1. [SceneJump 通用场景跳转](./scene-jump)
+2. [Stage_Select 通用选关](./stage-select)

@@ -89,7 +89,7 @@ Recommended format:
 ## Validation
 
 - [x] Ran `npm ci && npx @nekosu/maa-tools check`
-- [x] Ran `python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --interface-files assets/interface.json`
+- [x] Ran `python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource/pipeline assets/resource_bilibili/pipeline assets/resource_taptap/pipeline --task-dirs assets/resource/tasks --interface-files assets/interface.json`
 - [x] Verified that the documentation links work correctly
 ```
 
