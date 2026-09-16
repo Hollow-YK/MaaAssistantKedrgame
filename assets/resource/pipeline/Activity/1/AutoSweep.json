@@ -50,7 +50,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "Stage_Select",
+                "custom_action": "Activity_Stage_Select",
                 "custom_action_param": {
                     "stage": "EX2-1"
                 }
@@ -71,7 +71,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "Stage_Select",
+                "custom_action": "Activity_Stage_Select",
                 "custom_action_param": {
                     "stage": "EX2-2"
                 }
@@ -92,7 +92,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "Stage_Select",
+                "custom_action": "Activity_Stage_Select",
                 "custom_action_param": {
                     "stage": "EX3-1"
                 }
@@ -113,7 +113,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "Stage_Select",
+                "custom_action": "Activity_Stage_Select",
                 "custom_action_param": {
                     "stage": "EX4-1"
                 }
