@@ -225,5 +225,27 @@
                 "end_hold": 500
             }
         }
+    },
+    "SceneDo_Combat_Field_last": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Combat_Field_last"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Combat_Field_next": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Combat_Field_next"
+                ]
+            }
+        },
+        "action": "Click"
     }
 }
