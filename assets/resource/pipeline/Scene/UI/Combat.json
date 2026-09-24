@@ -334,5 +334,37 @@
                 ]
             }
         }
+    },
+    "UI_Combat_Field_last": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    80,
+                    650,
+                    120,
+                    40
+                ],
+                "expected": [
+                    "上一区域"
+                ]
+            }
+        }
+    },
+    "UI_Combat_Field_next": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1090,
+                    650,
+                    120,
+                    40
+                ],
+                "expected": [
+                    "下一区域"
+                ]
+            }
+        }
     }
 }

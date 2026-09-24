@@ -5,7 +5,7 @@
     "$doc": "场景跳转关系表，供 SceneJump custom action 使用。scenes 记录场景（场景名即 pipeline 节点名），edges 记录跳转关系：from=当前场景, to=目标场景, cost=该一步跳转的成本(缺省1,数值越小越优先), jump=一步跳转要执行的 pipeline 节点（可多个,按序执行）, via=跳转过程中会短暂经过且无需额外操作的中间场景。路径规划用 Dijkstra 取总成本最小的路径。",
     "scenes": {
         // -----
-        // region 通用场景
+        // MARK: 通用场景
         // -----
         "HomeButten": {
             "desc": "主页按钮",
@@ -24,7 +24,7 @@
             "detect": "Status_In_Stage"
         },
         // -----
-        // region 启动
+        // MARK: 启动
         // -----
         "StartGame_icon": {
             "desc": "启动游戏-图标界面",
@@ -43,7 +43,7 @@
             "detect": "Award_DailyAward_MonthlyPlan"
         },
         // -----
-        // region 主要界面
+        // MARK: 主要界面
         // -----
         "MainMenu": {
             "desc": "主界面",
@@ -76,8 +76,28 @@
             "detect": "UI_Combat_SkillMaterial_selected",
             "parent": "Combat"
         },
+        "Combat_MaterialQuests_1": {
+            "desc": "出击-资源收集",
+            "detect": "UI_Combat_MaterialQuests_Field_1",
+            "parent": "Combat"
+        },
+        "Combat_MaterialQuests_2": {
+            "desc": "出击-资源收集",
+            "detect": "UI_Combat_MaterialQuests_Field_2",
+            "parent": "Combat"
+        },
+        "Combat_MaterialQuests_3": {
+            "desc": "出击-资源收集",
+            "detect": "UI_Combat_MaterialQuests_Field_3",
+            "parent": "Combat"
+        },
+        "Combat_MaterialQuests_4": {
+            "desc": "出击-资源收集",
+            "detect": "UI_Combat_MaterialQuests_Field_4",
+            "parent": "Combat"
+        },
         // -----
-        // region 对话框 Alert
+        // MARK: 对话框 Alert
         // -----
         "Alert": {
             "desc": "对话框"
@@ -93,7 +113,7 @@
             "parent": "Alert"
         },
         // -----
-        // region 活动1：耀斑
+        // MARK: 活动1：耀斑
         // -----
         "Activity_1": {
             "desc": "活动1"
@@ -119,7 +139,7 @@
             "detect": "UI_Activity_YaoBan_Shop_sign"
         },
         // -----
-        // region 玩家对战
+        // MARK: 玩家对战
         // -----
         "PVP": {
             "desc": "玩家对战界面",
@@ -214,6 +234,7 @@
                 "UI_MainMenu_combat"
             ]
         },
+        // MARK: 出击 Combat
         {
             "from": "Combat",
             "to": "Combat_MainStory",
@@ -246,8 +267,80 @@
                 "SceneDo_PauseHomeButton"
             ]
         },
+        {
+            "from": "Combat_MaterialQuests",
+            "to": "Combat_MaterialQuests_1",
+            "cost": 1,
+            "jump": [
+                "UI_Combat_MaterialQuests_1"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests",
+            "to": "Combat_MaterialQuests_2",
+            "cost": 1,
+            "jump": [
+                "UI_Combat_MaterialQuests_2"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests",
+            "to": "Combat_MaterialQuests_3",
+            "cost": 1,
+            "jump": [
+                "UI_Combat_MaterialQuests_3"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_1",
+            "to": "Combat_MaterialQuests_2",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_next"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_2",
+            "to": "Combat_MaterialQuests_1",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_last"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_2",
+            "to": "Combat_MaterialQuests_3",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_next"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_3",
+            "to": "Combat_MaterialQuests_2",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_last"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_3",
+            "to": "Combat_MaterialQuests_4",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_next"
+            ]
+        },
+        {
+            "from": "Combat_MaterialQuests_4",
+            "to": "Combat_MaterialQuests_3",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Combat_Field_last"
+            ]
+        },
         // -----
-        // region 对话框 Alert
+        // MARK: 对话框 Alert
         // -----
         {
             "from": "Alert_ReconnectFailed",
@@ -266,7 +359,7 @@
             ]
         },
         // -----
-        // region 活动1：耀斑
+        // MARK: 活动1：耀斑
         // -----
         {
             "from": "Activity_1",
@@ -329,7 +422,7 @@
             ]
         },
         // -----
-        // region 玩家对战
+        // MARK: 玩家对战
         // -----
         {
             "from": "PVP",

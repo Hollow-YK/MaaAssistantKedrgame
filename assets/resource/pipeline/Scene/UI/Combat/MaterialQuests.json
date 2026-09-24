@@ -77,76 +77,68 @@
     "UI_Combat_MaterialQuests_Field_1": {
         "desc": "出击界面-资源收集-特别军费行动",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "UI/Combat/MaterialQuests/Field1.png"
-                    // [603,623,102,91]
+                "expected": [
+                    "特别军费行动"
                 ],
                 "roi": [
-                    580,
-                    615,
-                    130,
-                    105
-                ],
-                "green_mask": true
+                    590,
+                    90,
+                    240,
+                    30
+                ]
             }
         }
     },
     "UI_Combat_MaterialQuests_Field_2": {
         "desc": "出击界面-资源收集-作战体能训练",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "UI/Combat/MaterialQuests/Field2.png"
-                    // [590,623,95,91]
+                "expected": [
+                    "作战体能训练"
                 ],
                 "roi": [
-                    580,
-                    615,
-                    130,
-                    105
-                ],
-                "green_mask": true
+                    590,
+                    90,
+                    240,
+                    30
+                ]
             }
         }
     },
     "UI_Combat_MaterialQuests_Field_3": {
         "desc": "出击界面-资源收集-兵种能力评级",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "UI/Combat/MaterialQuests/Field3.png"
-                    // [603,623,90,91]
+                "expected": [
+                    "兵种能力评级"
                 ],
                 "roi": [
-                    580,
-                    615,
-                    130,
-                    105
-                ],
-                "green_mask": true
+                    590,
+                    90,
+                    240,
+                    30
+                ]
             }
         }
     },
     "UI_Combat_MaterialQuests_Field_4": {
         "desc": "出击界面-资源收集-载具对抗演练",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "UI/Combat/MaterialQuests/Field4.png"
-                    // [584,623,118,91]
+                "expected": [
+                    "载具对抗演练"
                 ],
                 "roi": [
-                    580,
-                    615,
-                    130,
-                    105
-                ],
-                "green_mask": true
+                    590,
+                    90,
+                    240,
+                    30
+                ]
             }
         }
     }
