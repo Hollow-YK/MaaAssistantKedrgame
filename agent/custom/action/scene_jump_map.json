@@ -226,21 +226,21 @@
                 "SceneDo_PauseBackButton"
             ]
         },
+        // MARK: 出击 Combat
         {
             "from": "MainMenu",
             "to": "Combat_MainStory",
             "cost": 1,
             "jump": [
-                "UI_MainMenu_combat"
+                "SceneDo_Click_Combat"
             ]
         },
-        // MARK: 出击 Combat
         {
             "from": "Combat",
             "to": "Combat_MainStory",
             "cost": 1,
             "jump": [
-                "UI_Combat_MainStory"
+                "SceneDo_Click_Combat_MainStory"
             ]
         },
         {
@@ -248,7 +248,7 @@
             "to": "Combat_MaterialQuests",
             "cost": 1,
             "jump": [
-                "UI_Combat_MaterialQuests"
+                "SceneDo_Click_Combat_MaterialQuests"
             ]
         },
         {
@@ -256,7 +256,7 @@
             "to": "Combat_SkillMaterial",
             "cost": 1,
             "jump": [
-                "UI_Combat_SkillMaterial"
+                "SceneDo_Click_Combat_SkillMaterial"
             ]
         },
         {
@@ -272,7 +272,7 @@
             "to": "Combat_MaterialQuests_1",
             "cost": 1,
             "jump": [
-                "UI_Combat_MaterialQuests_1"
+                "SceneDo_Click_Combat_MaterialQuests_1"
             ]
         },
         {
@@ -280,7 +280,7 @@
             "to": "Combat_MaterialQuests_2",
             "cost": 1,
             "jump": [
-                "UI_Combat_MaterialQuests_2"
+                "SceneDo_Click_Combat_MaterialQuests_2"
             ]
         },
         {
@@ -288,7 +288,7 @@
             "to": "Combat_MaterialQuests_3",
             "cost": 1,
             "jump": [
-                "UI_Combat_MaterialQuests_3"
+                "SceneDo_Click_Combat_MaterialQuests_3"
             ]
         },
         {
