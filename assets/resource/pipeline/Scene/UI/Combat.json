@@ -65,14 +65,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    231,
-                    232,
+                    230,
+                    230,
                     0
                 ],
                 "upper": [
                     255,
                     255,
-                    24
+                    100
                 ],
                 "count": 200,
                 "connected": true,
@@ -91,14 +91,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    56,
-                    56,
-                    57
+                    55,
+                    55,
+                    55
                 ],
                 "upper": [
-                    81,
-                    82,
-                    83
+                    80,
+                    80,
+                    80
                 ],
                 "count": 200,
                 "connected": true,
@@ -177,14 +177,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    231,
-                    232,
+                    230,
+                    230,
                     0
                 ],
                 "upper": [
                     255,
                     255,
-                    24
+                    100
                 ],
                 "count": 200,
                 "connected": true,
@@ -203,14 +203,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    56,
-                    56,
-                    57
+                    55,
+                    55,
+                    55
                 ],
                 "upper": [
-                    81,
-                    82,
-                    83
+                    80,
+                    80,
+                    80
                 ],
                 "count": 200,
                 "connected": true,
@@ -289,14 +289,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    231,
-                    232,
+                    230,
+                    230,
                     0
                 ],
                 "upper": [
                     255,
                     255,
-                    24
+                    100
                 ],
                 "count": 200,
                 "connected": true,
@@ -315,14 +315,14 @@
             "type": "ColorMatch",
             "param": {
                 "lower": [
-                    56,
-                    56,
-                    57
+                    55,
+                    55,
+                    55
                 ],
                 "upper": [
-                    81,
-                    82,
-                    83
+                    80,
+                    80,
+                    80
                 ],
                 "count": 200,
                 "connected": true,
