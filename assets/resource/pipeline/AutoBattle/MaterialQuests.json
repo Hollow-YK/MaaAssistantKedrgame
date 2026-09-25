@@ -1,19 +1,16 @@
 {
     "AutoBattle_Stage_MaterialQuests": {
-        "desc": "出击-资源收集",
-        "next": [
-            "[JumpBack]AutoBattle_Stage_MaterialQuests_Swipe2begin",
-            "AutoBattle_Stage_MaterialQuests_Click",
-            "[JumpBack]AutoBattle_Stage_MaterialQuests_Swipe2next"
-        ]
-    },
-    "AutoBattle_Stage_MaterialQuests_Click": {
-        "desc": "出击-资源收集-点击",
-        "recognition": "And",
-        "all_of": [
-            "UI_Combat_Stage_2-2"
-        ],
-        "action": "Click",
+        "desc": "出击-资源收集-选关（Stage_Select 通用选关，field / stage 由任务选项注入）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "Stage_Select",
+                "custom_action_param": {
+                    "field": "MaterialQuests_2",
+                    "stage": "2-2"
+                }
+            }
+        },
         "next": [
             "AutoBattle_MaterialQuests_Click:Start"
         ]
@@ -103,49 +100,5 @@
             }
         },
         "action": "Click"
-    },
-    "AutoBattle_Stage_MaterialQuests_Swipe2begin": {
-        "desc": "选关-滑动到最左侧",
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "begin": [
-                    300,
-                    150,
-                    1,
-                    500
-                ],
-                "end": [
-                    900,
-                    150,
-                    1,
-                    500
-                ],
-                "end_hold": 500
-            }
-        },
-        "max_hit": 3
-    },
-    "AutoBattle_Stage_MaterialQuests_Swipe2next": {
-        "desc": "选关-向右滑动",
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "begin": [
-                    300,
-                    150,
-                    1,
-                    500
-                ],
-                "end": [
-                    900,
-                    150,
-                    1,
-                    500
-                ],
-                "end_hold": 500
-            }
-        },
-        "max_hit": 0
     }
 }
