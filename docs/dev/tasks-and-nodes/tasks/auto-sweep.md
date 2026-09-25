@@ -27,7 +27,8 @@ Pipeline 入口文件：`assets/resource/pipeline/AutoSweep.json`
 
 ### 入口与路由
 
-- `AutoSweepMain`：自动刷本入口。接收选项中的 `pipeline_override` 来动态修改 `next`，跳转到对应关卡的 `AnySceneEnter_Combat_*` 节点。
+- `AutoSweepMain`：自动刷本入口。`next` 中以 `[JumpBack]AutoSweep_Do:JumpToField` 作为通用导航兜底，前往所选区域的关卡页面。
+- `AutoSweep_Do:JumpToField`：通用导航节点。调用 `SceneJump` custom action（`target` 由选项注入，如 `Combat_MaterialQuests_1`），从任意界面跳转到资源收集对应区域页面。
 - `AutoSweepStage`：关卡页面确认节点。使用 `And` 识别确认已到达目标关卡页面，然后进入选关流程。
 
 ### 选关流程

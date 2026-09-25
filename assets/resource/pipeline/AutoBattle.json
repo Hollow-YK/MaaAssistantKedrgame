@@ -3,7 +3,7 @@
         "desc": "自动战斗入口",
         "next": [
             "AutoBattleStage",
-            "[JumpBack]AnySceneEnter_Combat_MaterialQuests_2"
+            "[JumpBack]AutoBattle_Do:JumpToField"
         ],
         "focus": {
             "Node.Recognition.Starting": {
@@ -11,6 +11,18 @@
                 "display": [
                     "log"
                 ]
+            }
+        }
+    },
+    "AutoBattle_Do:JumpToField": {
+        "desc": "任意界面跳转到出击-资源收集区域（SceneJump 通用跳转，target 由任务选项注入）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SceneJump",
+                "custom_action_param": {
+                    "target": "Combat_MaterialQuests_2"
+                }
             }
         }
     },

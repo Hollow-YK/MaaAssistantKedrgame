@@ -28,7 +28,8 @@ Pipeline 入口文件：`assets/resource/pipeline/AutoBattle.json`
 
 ### 入口与路由
 
-- `AutoBattleMain`：自动战斗入口。接收选项中的 `pipeline_override` 来动态修改 `next`，跳转到对应关卡的 `AnySceneEnter_Combat_*` 节点。
+- `AutoBattleMain`：自动战斗入口。`next` 中以 `[JumpBack]AutoBattle_Do:JumpToField` 作为通用导航兜底，前往所选区域的关卡页面。
+- `AutoBattle_Do:JumpToField`：通用导航节点。调用 `SceneJump` custom action（`target` 由选项注入，如 `Combat_MaterialQuests_1`），从任意界面跳转到资源收集对应区域页面。
 - `AutoBattleStage`：关卡页面确认节点。使用 `And` 识别确认已到达目标关卡页面，然后进入战斗循环。
 
 ### 循环控制

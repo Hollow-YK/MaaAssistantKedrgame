@@ -31,7 +31,8 @@
                 ],
                 "end_hold": 500
             }
-        }
+        },
+        "max_hit": 3
     },
     "SceneDo_Swipe_Stage_Swipe2next": {
         "desc": "选关-向右滑动",
