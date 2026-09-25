@@ -40,6 +40,13 @@
                 "/agent/custom/action/scene_jump_map.json"
             ],
             "url": "/agent/custom/action/scene_jump_map.schema.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/resource/stage/map.json",
+                "/install/resource/stage/map.json"
+            ],
+            "url": "/tools/schema/stage_map.schema.json"
         }
     ],
     "files.exclude": {
@@ -47,7 +54,9 @@
     },
     "files.associations": {
         "**/assets/**/*.json": "jsonc",
-        "**/agent/custom/action/scene_jump_map.json": "jsonc"
+        "**/agent/custom/action/scene_jump_map.json": "jsonc",
+        "**/assets/resource/stage/map.json": "jsonc",
+        "**/install/resource/stage/map.json": "jsonc"
     },
     "[json][jsonc]": {
         "editor.formatOnSave": true,

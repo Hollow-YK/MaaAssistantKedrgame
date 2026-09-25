@@ -45,10 +45,7 @@ Currently supported modes:
 
 File: `assets/resource/pipeline/AutoBattle/MaterialQuests.json`
 
-- `AutoBattle_Stage_MaterialQuests`: the stage-selection entry point. It first attempts to swipe to the far left, then recognizes and clicks the target stage.
-- `AutoBattle_Stage_MaterialQuests_Swipe2begin`: swipes to the far left of the stage list (`max_hit: 3`).
-- `AutoBattle_Stage_MaterialQuests_Swipe2next`: swipes right to find the target stage; `max_hit` is injected by an option.
-- `AutoBattle_Stage_MaterialQuests_Click`: recognizes and clicks the target stage image using `And` recognition with high-threshold template matching (`threshold: 0.96`).
+- `AutoBattle_Stage_MaterialQuests`: the stage-selection node. It calls the `Stage_Select` custom action (`field` is the stage-map name and `stage` is the target stage, both injected by the option), locating and clicking the target stage according to the stage order recorded in `assets/resource/stage/map.json`.
 
 ### Battle Flow
 

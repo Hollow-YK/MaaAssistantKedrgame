@@ -41,10 +41,7 @@ Pipeline 入口文件：`assets/resource/pipeline/AutoBattle.json`
 
 文件：`assets/resource/pipeline/AutoBattle/MaterialQuests.json`
 
-- `AutoBattle_Stage_MaterialQuests`：选关入口。先尝试滑到最左侧，再依次识别并点击目标关卡。
-- `AutoBattle_Stage_MaterialQuests_Swipe2begin`：滑动到关卡列表最左侧（`max_hit: 3`）。
-- `AutoBattle_Stage_MaterialQuests_Swipe2next`：向右滑动寻找目标关卡（`max_hit` 由选项注入）。
-- `AutoBattle_Stage_MaterialQuests_Click`：识别并点击目标关卡图片（`And` 识别高阈值模板匹配，`threshold: 0.96`）。
+- `AutoBattle_Stage_MaterialQuests`：选关节点。调用 `Stage_Select` custom action（`field` 为选关地图名、`stage` 为目标关卡，均由选项注入），按 `assets/resource/stage/map.json` 记录的关卡顺序定位并点击目标关卡。
 
 ### 作战流程
 

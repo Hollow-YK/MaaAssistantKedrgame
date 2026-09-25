@@ -37,8 +37,7 @@ Core logic is handled by `AutoSweepManager` (a custom action): from entering the
 
 ### Stage Selection Flow
 
-- `AutoSweep_Stage`: the stage-selection entry point. It first attempts to swipe to the far left, then recognizes and clicks the target stage.
-- `AutoSweep_Stage_Click`: recognizes and clicks the target stage image (`And` recognition; target injected by the option). Clicking enters `AutoSweepManager`.
+- `AutoSweep_Stage`: the stage-selection node. It calls the `Stage_Select` custom action (`field` is the stage-map name and `stage` is the target stage, both injected by the option), locating and clicking the target stage according to the stage order recorded in `assets/resource/stage/map.json`, then enters `AutoSweepManager`.
 
 ### Sweep Management (custom)
 

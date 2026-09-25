@@ -37,20 +37,17 @@
         ]
     },
     "AutoSweep_Stage": {
-        "desc": "选关",
-        "next": [
-            "[JumpBack]SceneDo_Swipe_Stage_Swipe2begin",
-            "AutoSweep_Stage_Click",
-            "[JumpBack]SceneDo_Swipe_Stage_Swipe2next"
-        ]
-    },
-    "AutoSweep_Stage_Click": {
-        "desc": "选关-点击",
-        "recognition": "And",
-        "all_of": [
-            "UI_Combat_Stage_2-2"
-        ],
-        "action": "Click",
+        "desc": "选关（Stage_Select 通用选关，field / stage 由任务选项注入）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "Stage_Select",
+                "custom_action_param": {
+                    "field": "MaterialQuests_2",
+                    "stage": "2-2"
+                }
+            }
+        },
         "next": [
             "AutoSweepManager"
         ]
@@ -109,9 +106,9 @@
                     0
                 ],
                 "upper": [
-                    241,
-                    34,
-                    18
+                    250,
+                    50,
+                    50
                 ],
                 "roi": [
                     1005,

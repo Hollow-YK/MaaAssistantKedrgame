@@ -134,6 +134,7 @@ export default hopeTheme({
                 collapsible: true,
                 children: [
                   "scene-jump.md",
+                  "stage-select.md",
                 ],
               },
             ],
@@ -294,6 +295,7 @@ export default hopeTheme({
                 collapsible: true,
                 children: [
                   "scene-jump.md",
+                  "stage-select.md",
                 ],
               },
             ],

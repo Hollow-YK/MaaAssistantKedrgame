@@ -7,6 +7,53 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 
 
+def strip_jsonc_comments(text: str) -> str:
+    """移除 JSONC 注释（// 与 /* */），保留字符串/转义，并维持行号。
+
+    agent 运行时无法引用 tools/ 下的实现，故此处自包含。
+    """
+    result = []
+    state = 0  # 0=普通, 1=字符串内, 2=转义
+    i = 0
+    n = len(text)
+    while i < n:
+        ch = text[i]
+        if state == 0:
+            if ch == '"':
+                result.append(ch)
+                state = 1
+                i += 1
+            elif text.startswith("//", i):
+                i += 2
+                while i < n and text[i] != "\n":
+                    i += 1
+                if i < n:
+                    result.append("\n")  # 保留换行以维持行号
+                    i += 1
+            elif text.startswith("/*", i):
+                i += 2
+                while i + 1 < n and not text.startswith("*/", i):
+                    if text[i] == "\n":
+                        result.append("\n")
+                    i += 1
+                i = min(i + 2, n)
+            else:
+                result.append(ch)
+                i += 1
+        elif state == 1:
+            result.append(ch)
+            if ch == "\\":
+                state = 2
+            elif ch == '"':
+                state = 0
+            i += 1
+        else:  # state == 2（转义）
+            result.append(ch)
+            state = 1
+            i += 1
+    return "".join(result)
+
+
 def parse_params(param: Any) -> dict[str, Any]:
     """解析 custom_action_param，支持 dict 或 JSON 字符串"""
     if param is None:

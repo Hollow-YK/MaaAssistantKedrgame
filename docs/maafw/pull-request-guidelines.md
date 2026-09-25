@@ -85,7 +85,7 @@ PR 描述至少应包含以下信息：
 ## 验证
 
 - [x] 执行 `npm ci && npx @nekosu/maa-tools check`
-- [x] 执行 `python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --interface-files assets/interface.json`
+- [x] 执行 `python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource/pipeline assets/resource_bilibili/pipeline assets/resource_taptap/pipeline --task-dirs assets/resource/tasks --interface-files assets/interface.json`
 - [x] 检查文档链接可正常跳转
 ```
 

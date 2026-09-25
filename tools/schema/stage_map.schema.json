@@ -1,0 +1,83 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Stage_Select 选关地图分布表",
+    "description": "Stage_Select custom action 使用的选关地图分布表。顶层 key 为 field（选关地图）名，value 描述该地图的关卡排布与滑动参数。",
+    "type": "object",
+    "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "description": "field 名（如 MaterialQuests_2），须为字母或下划线开头"
+    },
+    "additionalProperties": {
+        "type": "object",
+        "required": [
+            "stage"
+        ],
+        "properties": {
+            "desc": {
+                "type": "string",
+                "description": "选关地图的中文描述，用于日志可读性（可选）"
+            },
+            "stage": {
+                "type": "array",
+                "description": "地图上从左到右的关卡顺序，如 [\"1-1\", \"1-2\"]。Stage_Select 依赖它把目标关卡换算成滑动方向",
+                "minItems": 1,
+                "items": {
+                    "type": "string",
+                    "pattern": "^(?:EX)?\\d+-\\d+$",
+                    "description": "关卡名，形如 1-1 或 EX2-2"
+                }
+            },
+            "roi": {
+                "type": "array",
+                "description": "选关地图 OCR 区域，默认 [0, 200, 1280, 400]",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                    "type": "integer"
+                }
+            },
+            "swipe_begin": {
+                "type": "string",
+                "description": "向左（回退）滑动的 pipeline 节点名，默认 SceneDo_Swipe_Stage_Swipe2begin"
+            },
+            "swipe_next": {
+                "type": "string",
+                "description": "向右（前进）滑动的 pipeline 节点名，默认 SceneDo_Swipe_Stage_Swipe2next"
+            },
+            "load_wait": {
+                "type": "number",
+                "description": "进入选关界面后的等待秒数，默认 5",
+                "minimum": 0
+            },
+            "max_swipes": {
+                "type": "integer",
+                "description": "最多滑动次数（安全上限），默认 50",
+                "minimum": 1
+            },
+            "swipe_wait": {
+                "type": "number",
+                "description": "每次滑动后等待地图稳定的上限秒数，默认 3",
+                "minimum": 0
+            },
+            "verify": {
+                "type": "boolean",
+                "description": "点击后是否 OCR 校验进入的关卡，默认 true"
+            },
+            "verify_roi": {
+                "type": "array",
+                "description": "校验用关卡标题 OCR 区域，默认 [130, 25, 290, 70]",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                    "type": "integer"
+                }
+            },
+            "verify_wait": {
+                "type": "number",
+                "description": "点击关卡后等待详情加载的秒数，默认 3",
+                "minimum": 0
+            }
+        },
+        "additionalProperties": false
+    }
+}

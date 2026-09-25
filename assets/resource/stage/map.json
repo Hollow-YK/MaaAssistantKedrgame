@@ -1,0 +1,56 @@
+// 选关地图分布表（本文件支持 JSONC 注释：// 与 /* */）
+// 供 Stage_Select custom action 使用，记录每个选关地图（field）的关卡排布。
+// 顶层 key 即 field 名，调用时通过 custom_action_param 的 field 传入。
+{
+    // 选关地图分布表。每个 field 描述一张选关地图：
+    // stage 为地图上从左到右的关卡顺序（Stage_Select 依赖它把目标关卡换算成滑动方向与次数）；
+    // roi 为选关地图 OCR 区域；
+    // swipe_begin / swipe_next 为向左 / 向右滑动的 pipeline 节点名；
+    // load_wait 为进入选关界面后的等待秒数；
+    // max_swipes 为每个阶段最多滑动次数（安全上限）；
+    // verify_roi / verify_wait 为点击关卡后的校验区域与等待秒数。
+    // -----
+    // region 资源收集
+    // -----
+    "MaterialQuests_1": {
+        "desc": "资源收集-特别军费行动",
+        "stage": [
+            "1-1",
+            "1-2",
+            "1-3",
+            "1-4",
+            "1-5"
+        ]
+    },
+    "MaterialQuests_2": {
+        "desc": "资源收集-作战体能训练",
+        "stage": [
+            "2-1",
+            "2-2",
+            "2-3",
+            "2-4",
+            "2-5"
+        ]
+    },
+    "MaterialQuests_3": {
+        "desc": "资源收集-兵种能力评级",
+        "stage": [
+            "3-1",
+            "3-2",
+            "3-3",
+            "3-4",
+            "3-5"
+        ]
+    },
+    "MaterialQuests_4": {
+        "desc": "资源收集-载具对抗演练",
+        "stage": [
+            "4-1",
+            "4-2",
+            "4-3",
+            "4-4",
+            "4-5",
+            "4-6"
+        ]
+    }
+}
