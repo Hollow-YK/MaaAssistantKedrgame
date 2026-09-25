@@ -86,11 +86,10 @@
                     "name": "MaterialQuests_1",
                     "label": "$text.combat.MaterialQuests_1",
                     "pipeline_override": {
-                        "AutoBattleMain": {
-                            "next": [
-                                "AutoBattleStage",
-                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_1"
-                            ]
+                        "AutoBattle_Do:JumpToField": {
+                            "custom_action_param": {
+                                "target": "Combat_MaterialQuests_1"
+                            }
                         },
                         "AutoBattleStage": {
                             "all_of": [
@@ -106,11 +105,10 @@
                     "name": "MaterialQuests_2",
                     "label": "$text.combat.MaterialQuests_2",
                     "pipeline_override": {
-                        "AutoBattleMain": {
-                            "next": [
-                                "AutoBattleStage",
-                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_2"
-                            ]
+                        "AutoBattle_Do:JumpToField": {
+                            "custom_action_param": {
+                                "target": "Combat_MaterialQuests_2"
+                            }
                         },
                         "AutoBattleStage": {
                             "all_of": [
@@ -126,11 +124,10 @@
                     "name": "MaterialQuests_3",
                     "label": "$text.combat.MaterialQuests_3",
                     "pipeline_override": {
-                        "AutoBattleMain": {
-                            "next": [
-                                "AutoBattleStage",
-                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_3"
-                            ]
+                        "AutoBattle_Do:JumpToField": {
+                            "custom_action_param": {
+                                "target": "Combat_MaterialQuests_3"
+                            }
                         },
                         "AutoBattleStage": {
                             "all_of": [
@@ -144,11 +141,10 @@
                     "name": "MaterialQuests_4",
                     "label": "$text.combat.MaterialQuests_4",
                     "pipeline_override": {
-                        "AutoBattleMain": {
-                            "next": [
-                                "AutoBattleStage",
-                                "[JumpBack]AnySceneEnter_Combat_MaterialQuests_4"
-                            ]
+                        "AutoBattle_Do:JumpToField": {
+                            "custom_action_param": {
+                                "target": "Combat_MaterialQuests_4"
+                            }
                         },
                         "AutoBattleStage": {
                             "all_of": [

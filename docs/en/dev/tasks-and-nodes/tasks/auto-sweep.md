@@ -31,7 +31,8 @@ Core logic is handled by `AutoSweepManager` (a custom action): from entering the
 
 ### Entry and Routing
 
-- `AutoSweepMain`: the 自动刷本 (Auto Sweep) entry point. It receives `pipeline_override` from the options to dynamically modify `next`, routing to the `AnySceneEnter_Combat_*` node for the selected stage.
+- `AutoSweepMain`: the 自动刷本 (Auto Sweep) entry point. Its `next` contains `[JumpBack]AutoSweep_Do:JumpToField` as the universal navigation fallback, routing to the target stage page for the selected area.
+- `AutoSweep_Do:JumpToField`: universal navigation node. Calls the `SceneJump` custom action (`target` is injected by the option, e.g. `Combat_MaterialQuests_1`), navigating from any screen to the resource-collection area page.
 - `AutoSweepStage`: the stage-page verification node. It uses `And` recognition to confirm arrival at the target stage page, then enters the stage-selection flow.
 
 ### Stage Selection Flow

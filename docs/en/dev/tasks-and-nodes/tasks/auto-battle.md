@@ -32,7 +32,8 @@ Currently supported modes:
 
 ### Entry and Routing
 
-- `AutoBattleMain`: the 自动战斗 (Auto Battle) entry point. It receives `pipeline_override` from the options to dynamically modify `next`, routing to the `AnySceneEnter_Combat_*` node for the selected stage.
+- `AutoBattleMain`: the 自动战斗 (Auto Battle) entry point. Its `next` contains `[JumpBack]AutoBattle_Do:JumpToField` as the universal navigation fallback, routing to the target stage page for the selected area.
+- `AutoBattle_Do:JumpToField`: universal navigation node. Calls the `SceneJump` custom action (`target` is injected by the option, e.g. `Combat_MaterialQuests_1`), navigating from any screen to the resource-collection area page.
 - `AutoBattleStage`: the stage-page verification node. It uses `And` recognition to confirm arrival at the target stage page, then enters the battle loop.
 
 ### Loop Control
