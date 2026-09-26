@@ -20,9 +20,9 @@ on:
   workflow_dispatch:
 
 env:
-  MAA_FRAMEWORK_VERSION: "v5.11.0"
-  MFAA_VERSION: "v2.12.2"
-  MXU_VERSION: "v2.1.3"
+  MAA_FRAMEWORK_VERSION: "v5.14.0"
+  MFAA_VERSION: "v2.16.2"
+  MXU_VERSION: "v2.7.0"
 
 permissions:
   contents: write
