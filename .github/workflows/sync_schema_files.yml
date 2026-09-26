@@ -1,3 +1,8 @@
+# 供应链安全：本文件所有 actions 均固定到 commit SHA，SHA 后的注释为对应版本 tag。
+# 未启用 dependabot，升级时需手动更新 SHA 与注释。
+# Security: all actions are pinned to commit SHAs; the trailing comment is the version tag.
+# Dependabot is not enabled - update the SHA and comment manually when upgrading.
+
 name: Sync JSON Schema Files from MaaFramework
 
 on:
@@ -32,9 +37,13 @@ jobs:
 
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
 
       - name: Download JSON schema files from MaaFramework
+        env:
+          # 固定到具体 commit，避免跟踪 main 分支带来的供应链投毒风险
+          # v5.14.0 = b96ab05ace1c14533144fedfcbb7358dad785579
+          MAAFW_SCHEMA_REF: "b96ab05ace1c14533144fedfcbb7358dad785579"
         run: |
           echo "Current Date and Time (UTC): $(date -u '+%Y-%m-%d %H:%M:%S')"
 
@@ -42,10 +51,11 @@ jobs:
           mkdir -p deps/tools
 
           # 下载四个JSON schema文件
-          curl -s -o deps/tools/interface.schema.json https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface.schema.json || echo "Failed to download interface.schema.json"
-          curl -s -o deps/tools/interface_config.schema.json https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface_config.schema.json || echo "Failed to download interface_config.schema.json"
-          curl -s -o deps/tools/interface_import.schema.json https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface_import.schema.json || echo "Failed to download interface_import.schema.json"
-          curl -s -o deps/tools/pipeline.schema.json https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/pipeline.schema.json || echo "Failed to download pipeline.schema.json"
+          base="https://raw.githubusercontent.com/MaaXYZ/MaaFramework/${MAAFW_SCHEMA_REF}/tools"
+          curl -s -o deps/tools/interface.schema.json "${base}/interface.schema.json" || echo "Failed to download interface.schema.json"
+          curl -s -o deps/tools/interface_config.schema.json "${base}/interface_config.schema.json" || echo "Failed to download interface_config.schema.json"
+          curl -s -o deps/tools/interface_import.schema.json "${base}/interface_import.schema.json" || echo "Failed to download interface_import.schema.json"
+          curl -s -o deps/tools/pipeline.schema.json "${base}/pipeline.schema.json" || echo "Failed to download pipeline.schema.json"
 
           # 检查文件是否成功下载
           echo "Checking downloaded files:"
