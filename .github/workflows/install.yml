@@ -159,8 +159,12 @@ jobs:
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
         shell: bash
         run: |
-          # 固定版本，避免上游更新引入非预期变更
-          choco install imagemagick --version=7.1.2.1900 -y --no-progress
+          # runner 镜像已预装 ImageMagick（7.1.2-25），此时跳过安装，
+          # 避免 choco 因不允许降级而失败（runner 镜像随上游更新）。
+          # 未预装时安装固定版本，保证结果确定、不受上游更新影响。
+          if ! command -v magick >/dev/null; then
+            choco install imagemagick --version=7.1.2.2500 -y --no-progress
+          fi
           magick convert assets/resource/image/Game_Icon.png -define icon:auto-resize=256,128,64,48,32,24,16 mak.ico
 
       - name: Modify Windows exe icons
