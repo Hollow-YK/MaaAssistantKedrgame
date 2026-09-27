@@ -1,6 +1,8 @@
 # Mirror酱为第三方分发服务，新项目默认关闭
 # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
 # https://mirrorchyan.com/
+#
+# 供应链安全：本文件 actions 固定到 commit SHA，SHA 后注释为对应版本 tag（未启用 dependabot，需手动更新）。
 
 name: mirrorchyan_release
 
@@ -27,7 +29,7 @@ jobs:
         os: [win, macos, linux]
         arch: [aarch64, x86_64]
     steps:
-      - uses: MirrorChyan/uploading-action@v1
+      - uses: MirrorChyan/uploading-action@ea9a0f6f516fafb6b0a3046a1fe4b0dccb29eca8 # v1 (branch tip)
         with:
           filetype: latest-release
           filename: ${{ format('MaaXXX-{0}-{1}-*', matrix.os, matrix.arch) }}

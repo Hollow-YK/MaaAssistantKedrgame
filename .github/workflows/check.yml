@@ -1,3 +1,8 @@
+# 供应链安全：本文件所有 actions 均固定到 commit SHA，SHA 后的注释为对应版本 tag。
+# 未启用 dependabot，升级时需手动更新 SHA 与注释。
+# Security: all actions are pinned to commit SHAs; the trailing comment is the version tag.
+# Dependabot is not enabled - update the SHA and comment manually when upgrading.
+
 name: check
 
 on:
@@ -21,24 +26,25 @@ jobs:
   resource:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
       - name: Use Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
       - name: Run maa-checker
         run: |
           npm ci
-          npx @nekosu/maa-tools check
+          # 使用 package-lock.json 锁定的本地版本，避免 npx 从网络拉取非预期版本
+          ./node_modules/.bin/maa-tools check
 
       - name: Install maafw
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade maafw --pre
+          python -m pip install -r requirements.txt
 
       - name: Validate JSON Schema
         run: |
