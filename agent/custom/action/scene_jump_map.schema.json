@@ -35,8 +35,60 @@
                         "description": "场景的中文描述，用于日志可读性"
                     },
                     "detect": {
-                        "type": "string",
-                        "description": "用于识别该场景的 pipeline 节点名；可选。缺省表示该场景仅作 parent 使用（抽象分组，不直接识别）"
+                        "description": "用于识别该场景的识别条件；可选。缺省表示该场景仅作 parent 使用（抽象分组，不直接识别）。\n\n写法一：pipeline 节点名字符串，命中即视为处于该场景。\n写法二：组合识别对象，{\"type\":\"And\",\"all_of\":[节点名,...]}（全部命中）或 {\"type\":\"Or\",\"any_of\":[节点名,...]}（任一命中），语义与 pipeline 的 And/Or 一致。\n组合写法用于区分共用同一父界面节点的多个子场景，例如 {\"type\":\"And\",\"all_of\":[\"UI_Shop_VipShop\",\"UI_Shop_OCRSelected_1\"]}。列表元素只支持节点名字符串。",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "pipeline 节点名，命中即视为处于该场景"
+                            },
+                            {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "all_of"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "const": "And",
+                                        "description": "逻辑与：所有子识别都命中才算处于该场景"
+                                    },
+                                    "all_of": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "description": "子识别节点名列表；须全部命中"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "any_of"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "const": "Or",
+                                        "description": "逻辑或：任一子识别命中即算处于该场景"
+                                    },
+                                    "any_of": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "description": "子识别节点名列表；命中任一即可"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        ]
                     },
                     "parent": {
                         "type": "string",

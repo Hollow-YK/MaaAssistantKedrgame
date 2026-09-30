@@ -85,8 +85,61 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
 | 字段 | 说明 |
 | --- | --- |
 | `desc` | 场景描述，用于日志与扩展悬停 |
-| `detect` | （可选）用于识别该场景的 pipeline 节点名；**缺省表示该场景仅作 `parent`** 的抽象场景，不直接识别，也不要求对应 pipeline 节点 |
+| `detect` | （可选）用于识别该场景的识别条件；**缺省表示该场景仅作 `parent`** 的抽象场景，不直接识别，也不要求对应 pipeline 节点。支持字符串与组合两种写法，见下 |
 | `parent` | （可选）父场景名。表示“处于子场景即视为处于父场景”，规划时子场景可使用父场景的出边 |
+
+#### detect 的两种写法
+
+**写法一：单个节点名字符串**
+
+```jsonc
+"detect": "UI_Shop_VipShop"
+```
+
+命中该节点即视为处于此场景。
+
+**写法二：组合识别（And / Or）**
+
+```jsonc
+"detect": {
+    "type": "And",
+    "all_of": [
+        "UI_Shop_VipShop",
+        "UI_Shop_OCRSelected_1"
+    ]
+}
+```
+
+```jsonc
+"detect": {
+    "type": "Or",
+    "any_of": [
+        "UI_Shop_VipShop",
+        "UI_Shop_Shop"
+    ]
+}
+```
+
+| type | 字段 | 语义 |
+| --- | --- | --- |
+| `And` | `all_of` | 全部子节点都命中才算处于该场景 |
+| `Or` | `any_of` | 任一子节点命中即算处于该场景 |
+
+组合写法用于区分**共用同一父界面节点**的多个子场景。例如商店各子页都长在同一个 `UI_Shop_VipShop`
+界面上，靠标签页 OCR 区分：
+
+```jsonc
+"Shop":        { "desc": "常驻商店", "detect": "UI_Shop_VipShop" },
+"Shop_Shop_1": { "desc": "推荐商店", "detect": { "type": "And", "all_of": ["UI_Shop_VipShop", "UI_Shop_OCRSelected_1"] } },
+"Shop_Shop_2": { "desc": "兑换商店", "detect": { "type": "And", "all_of": ["UI_Shop_VipShop", "UI_Shop_OCRSelected_2"] } }
+```
+
+字段名与 pipeline 的 `And`/`Or` 一致（`And` 用 `all_of`、`Or` 用 `any_of`）；
+列表元素**只支持节点名字符串**（不支持内联识别对象、`box_index`、`sub_name`）。
+
+> **识别性能**：一次检测周期（一次截屏）内，每个 pipeline 节点最多识别一次；且组合写法保留短路
+> （`And` 遇假即停、`Or` 遇真即停）。因此上例中 `UI_Shop_VipShop` 只识别一次，若它未命中，
+> `Shop_Shop_*` 会直接短路、不再识别各自的 OCR 节点。全量扫描时 34 个引用可降到 29 次识别。
 
 ### edges
 
@@ -129,6 +182,10 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
   点完后由 SceneJump 重新识别场景并按 `to` 判断。
 - **无 `detect` 的抽象场景**：仅作 `parent` 的抽象分组（如 `Activity_1`），不参与识别；
   可被 `parent` 引用，也可作为目标（子场景经 `parent` 链满足它）。
+- **组合 `detect`**：`{"type":"And","all_of":[...]}` 需全部命中，`{"type":"Or","any_of":[...]}`
+  任一命中即可；用于区分共用同一父界面节点的多个子场景。列表元素只支持节点名。
+- **识别性能**：一次检测周期内每个节点最多识别一次（节点级缓存），组合写法保留短路，
+  因此共用节点不会重复识别、失败时后续组合场景直接短路。
 - **`parent` 出边继承**：处于子场景即可使用父场景（沿 `parent` 链）的出边。例如
   `MainMenu → Combat_MainStory`（子场景），再借 `Combat` 的出边到达 `Combat_SkillMaterial`。
 - **多起点选择**：同一时刻可能有多个场景同时满足识别（如出击页与其子 Tab），这些场景都可作起点，
@@ -142,8 +199,9 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
 
 ## Schema 校验
 
-`scene_jump_map.schema.json` 描述了数据表的合法结构（如 `to` 支持字符串或列表、`jump` 可空等），
-已在 `.vscode/settings.json` 注册，编辑时 VS Code 会实时校验并给出补全提示。
+`scene_jump_map.schema.json` 描述了数据表的合法结构（如 `to` 支持字符串或列表、`jump` 可空、
+`detect` 支持字符串或 And/Or 组合等），已在 `.vscode/settings.json` 注册，
+编辑时 VS Code 会实时校验并给出补全提示。
 
 ## 校验工具
 

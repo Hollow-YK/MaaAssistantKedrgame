@@ -175,7 +175,7 @@ function scanJsoncStrings(text) {
  *     'from' / 'to' —— 边的当前/目标场景
  *     'via'     —— 边的中间场景
  *   节点引用（指向 pipeline 中的节点定义）:
- *     'detect'  —— 场景的识别节点
+ *     'detect'  —— 场景的识别节点（含组合写法 scenes.<场景>.detect.all_of[i] / .any_of[i]）
  *     'jump'    —— 边的跳转节点
  */
 function refKind(tok) {
@@ -186,7 +186,14 @@ function refKind(tok) {
   const s = tok.segments;
   if (s.length >= 3 && s[0] === 'scenes') {
     const last = s[s.length - 1];
-    return last === 'detect' || last === 'parent' ? last : null;
+    if (last === 'detect' || last === 'parent') return last;
+    if (typeof last === 'number') {
+      // detect 组合写法中的子识别节点：scenes.<场景>.detect.all_of[i] / .any_of[i]
+      const field = s[s.length - 2];
+      if ((field === 'all_of' || field === 'any_of') && s[s.length - 3] === 'detect') {
+        return 'detect';
+      }
+    }
   }
   if (s[0] === 'edges') {
     const last = s[s.length - 1];
@@ -198,6 +205,16 @@ function refKind(tok) {
     }
   }
   return null;
+}
+
+/** 是否为“detect 组合写法中的子识别列表字段”（all_of / any_of）。 */
+function isDetectLogicField(keyTok) {
+  return (
+    keyTok.isKey &&
+    (keyTok.value === 'all_of' || keyTok.value === 'any_of') &&
+    keyTok.segments.length >= 3 &&
+    keyTok.segments[keyTok.segments.length - 1] === 'detect'
+  );
 }
 
 /** 是否为“场景引用”（应跳转到 scene_jump_map.json 的 scenes.<name>）。 */
@@ -263,10 +280,73 @@ function segmentsEq(a, b) {
 }
 
 /**
+ * 从某个 key 的结束位置起，若其值是数组则返回该数组 `]` 的偏移，否则返回 null。
+ * 用于判断光标是否仍在 all_of / any_of 数组内部（补全用）。
+ */
+function valueArrayEnd(text, keyEnd) {
+  const n = text.length;
+  let i = keyEnd;
+
+  const skipTrivia = () => {
+    for (;;) {
+      while (i < n && /\s/.test(text[i])) i++;
+      if (text[i] === '/' && text[i + 1] === '/') {
+        while (i < n && text[i] !== '\n') i++;
+        continue;
+      }
+      if (text[i] === '/' && text[i + 1] === '*') {
+        i += 2;
+        while (i + 1 < n && !(text[i] === '*' && text[i + 1] === '/')) i++;
+        i += 2;
+        continue;
+      }
+      break;
+    }
+  };
+
+  skipTrivia();
+  if (text[i] === ':') i++;
+  skipTrivia();
+  if (text[i] !== '[') return null;
+
+  let depth = 0;
+  while (i < n) {
+    const c = text[i];
+    if (c === '"') {
+      i++;
+      while (i < n && text[i] !== '"') {
+        if (text[i] === '\\') i++;
+        i++;
+      }
+      i++;
+      continue;
+    }
+    if (c === '/' && text[i + 1] === '/') {
+      while (i < n && text[i] !== '\n') i++;
+      continue;
+    }
+    if (c === '/' && text[i + 1] === '*') {
+      i += 2;
+      while (i + 1 < n && !(text[i] === '*' && text[i + 1] === '/')) i++;
+      i += 2;
+      continue;
+    }
+    if (c === '[') depth++;
+    else if (c === ']') {
+      depth--;
+      if (depth === 0) return i;
+    }
+    i++;
+  }
+  return null;
+}
+
+/**
  * 判断光标 offset 所在位置正在编辑的“节点引用字段”。
  * 返回 { kind, value? }；非引用位置返回 null。
  *   - 光标落在已完成 token 内：kind 为该引用类型，value 为当前节点名；
  *   - 光标正在输入值（值未完成）：kind 为最近一个值未完成的引用字段；
+ *   - 光标在 detect 组合写法的 all_of / any_of 数组内：kind 为 'detect'；
  *   - 其他位置返回 null。
  */
 function fieldAt(text, offset, toks) {
@@ -280,6 +360,12 @@ function fieldAt(text, offset, toks) {
     .filter((x) => x.isKey && x.end <= offset)
     .sort((a, b) => b.end - a.end);
   for (const k of before) {
+    // detect 组合写法：光标在 all_of / any_of 数组内 → 补全节点名
+    if (isDetectLogicField(k)) {
+      const end = valueArrayEnd(text, k.end);
+      if (end !== null && offset < end) return { kind: 'detect' };
+      continue;
+    }
     if (!REF_FIELDS.has(k.value)) continue;
     const valPrefix = k.segments.concat(k.value);
     const hasVal = toks.some(
@@ -301,6 +387,7 @@ module.exports = {
   refKind,
   isSceneRef,
   isNodeRef,
+  isDetectLogicField,
   buildNodeIndex,
   offsetToPosition,
   tokenAt,
