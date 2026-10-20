@@ -1,0 +1,35 @@
+{
+    "SceneDo_Click_Shop": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_MainMenu_shop"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Shop_Shop": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Shop_Shop"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Shop_VipShop": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Shop_VipShop"
+                ]
+            }
+        },
+        "action": "Click"
+    }
+}

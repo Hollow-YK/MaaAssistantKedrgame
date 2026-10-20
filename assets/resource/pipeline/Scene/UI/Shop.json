@@ -1,0 +1,150 @@
+{
+    "UI_Shop_Shop": {
+        "desc": "常驻商店",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/Shop.png" //[40,587,215,77]
+                ],
+                "roi": [
+                    30,
+                    570,
+                    250,
+                    110
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Shop_VipShop": {
+        "desc": "高账商店",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/VipShop.png" //[40,587,215,77]
+                ],
+                "roi": [
+                    30,
+                    570,
+                    250,
+                    110
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Shop_OCRSelectedMask": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    45,
+                    45,
+                    45
+                ],
+                "upper": [
+                    140,
+                    140,
+                    140
+                ]
+            }
+        }
+    },
+    "UI_Shop_OCRSelected_1": {
+        "desc": "推荐商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    310,
+                    135,
+                    165,
+                    40
+                ],
+                "expected": [
+                    "推荐商店",
+                    "推荐"
+                ],
+                "color_filter": "UI_Shop_OCRSelectedMask"
+            }
+        }
+    },
+    "UI_Shop_OCRSelected_2": {
+        "desc": "兑换商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    135,
+                    165,
+                    40
+                ],
+                "expected": [
+                    "兑换商店",
+                    "兑换"
+                ],
+                "color_filter": "UI_Shop_OCRSelectedMask"
+            }
+        }
+    },
+    "UI_Shop_OCRSelected_3": {
+        "desc": "礼包商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    670,
+                    135,
+                    165,
+                    40
+                ],
+                "expected": [
+                    "礼包商店",
+                    "礼包"
+                ],
+                "color_filter": "UI_Shop_OCRSelectedMask"
+            }
+        }
+    },
+    "UI_Shop_OCRSelected_4": {
+        "desc": "服装商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    850,
+                    135,
+                    165,
+                    40
+                ],
+                "expected": [
+                    "服装商店",
+                    "服装"
+                ],
+                "color_filter": "UI_Shop_OCRSelectedMask"
+            }
+        }
+    },
+    "UI_Shop_OCRSelected_5": {
+        "desc": "充值商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1030,
+                    135,
+                    165,
+                    40
+                ],
+                "expected": [
+                    "充值商店",
+                    "充值"
+                ],
+                "color_filter": "UI_Shop_OCRSelectedMask"
+            }
+        }
+    }
+}
