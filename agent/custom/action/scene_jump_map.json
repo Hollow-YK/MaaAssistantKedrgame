@@ -61,6 +61,12 @@
             "desc": "出击界面",
             "detect": "Status_In_Combat"
         },
+        // -----
+        // MARK: 出击
+        // -----
+        "Combat_Field": {
+            "desc": "出击地图"
+        },
         "Combat_MainStory": {
             "desc": "出击-主线任务",
             "detect": "UI_Combat_MainStory_selected",
@@ -79,22 +85,88 @@
         "Combat_MaterialQuests_1": {
             "desc": "出击-资源收集",
             "detect": "UI_Combat_MaterialQuests_Field_1",
-            "parent": "Combat"
+            "parent": "Combat_Field"
         },
         "Combat_MaterialQuests_2": {
             "desc": "出击-资源收集",
             "detect": "UI_Combat_MaterialQuests_Field_2",
-            "parent": "Combat"
+            "parent": "Combat_Field"
         },
         "Combat_MaterialQuests_3": {
             "desc": "出击-资源收集",
             "detect": "UI_Combat_MaterialQuests_Field_3",
-            "parent": "Combat"
+            "parent": "Combat_Field"
         },
         "Combat_MaterialQuests_4": {
             "desc": "出击-资源收集",
             "detect": "UI_Combat_MaterialQuests_Field_4",
-            "parent": "Combat"
+            "parent": "Combat_Field"
+        },
+        // -----
+        // MARK: 商店
+        // -----
+        "Shop": {
+            "desc": "常驻商店",
+            "detect": "UI_Shop_VipShop"
+        },
+        "VIP_Shop": {
+            "desc": "高账商店",
+            "detect": "UI_Shop_Shop"
+        },
+        "Shop_Shop_1": {
+            "desc": "推荐商店",
+            "detect": {
+                "type": "And",
+                "all_of": [
+                    "UI_Shop_VipShop",
+                    "UI_Shop_OCRSelected_1"
+                ]
+            },
+            "parent": "Shop"
+        },
+        "Shop_Shop_2": {
+            "desc": "兑换商店",
+            "detect": {
+                "type": "And",
+                "all_of": [
+                    "UI_Shop_VipShop",
+                    "UI_Shop_OCRSelected_2"
+                ]
+            },
+            "parent": "Shop"
+        },
+        "Shop_Shop_3": {
+            "desc": "礼包商店",
+            "detect": {
+                "type": "And",
+                "all_of": [
+                    "UI_Shop_VipShop",
+                    "UI_Shop_OCRSelected_3"
+                ]
+            },
+            "parent": "Shop"
+        },
+        "Shop_Shop_4": {
+            "desc": "服装商店",
+            "detect": {
+                "type": "And",
+                "all_of": [
+                    "UI_Shop_VipShop",
+                    "UI_Shop_OCRSelected_4"
+                ]
+            },
+            "parent": "Shop"
+        },
+        "Shop_Shop_5": {
+            "desc": "充值商店",
+            "detect": {
+                "type": "And",
+                "all_of": [
+                    "UI_Shop_VipShop",
+                    "UI_Shop_OCRSelected_5"
+                ]
+            },
+            "parent": "Shop"
         },
         // -----
         // MARK: 对话框 Alert
@@ -268,6 +340,14 @@
             ]
         },
         {
+            "from": "Combat",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
+            ]
+        },
+        {
             "from": "Combat_MaterialQuests",
             "to": "Combat_MaterialQuests_1",
             "cost": 1,
@@ -337,6 +417,65 @@
             "cost": 1,
             "jump": [
                 "SceneDo_Combat_Field_last"
+            ]
+        },
+        {
+            "from": "Combat_Field",
+            "to": "Combat",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
+            ]
+        },
+        // -----
+        // MARK: 商店
+        // -----
+        {
+            "from": "MainMenu",
+            "to": "Shop_Shop_1",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Shop"
+            ]
+        },
+        {
+            "from": "VIP_Shop",
+            "to": "Shop",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Shop_Shop"
+            ]
+        },
+        {
+            "from": "Shop",
+            "to": "VIP_Shop",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Shop_VipShop"
+            ]
+        },
+        {
+            "from": "Shop",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseHomeButton"
+            ]
+        },
+        {
+            "from": "Shop",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
+            ]
+        },
+        {
+            "from": "VIP_Shop",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
             ]
         },
         // -----

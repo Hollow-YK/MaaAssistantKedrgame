@@ -7,6 +7,11 @@ edges 的 from / to / jump / via；无 detect 的场景视为仅作 parent 的�
   1. 解析其在 pipeline 资源中的定义位置（文件:行号），输出可点击的跳转清单；
   2. 检查引用到不存在的节点（跨文件一致性校验，JSON Schema 无法表达）。
 
+detect 支持两种写法，组合写法内的每个节点名都会被校验：
+  - "UI_Shop_VipShop"
+  - {"type": "And", "all_of": ["UI_Shop_VipShop", "UI_Shop_OCRSelected_1"]}
+  - {"type": "Or",  "any_of": ["UI_Shop_VipShop", "UI_Shop_Shop"]}
+
 用法:
     python tools/validate_scene_map.py
     python tools/validate_scene_map.py --map agent/custom/action/scene_jump_map.json
@@ -23,6 +28,9 @@ from validate_schema import find_line_number, load_jsonc, strip_jsonc_comments
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MAP = REPO_ROOT / "agent" / "custom" / "action" / "scene_jump_map.json"
+
+# 组合 detect 支持的类型 → 子识别列表字段名（与 pipeline 协议一致）
+DETECT_LOGIC_FIELDS = {"And": "all_of", "Or": "any_of"}
 
 
 def scan_node_definitions(resource_dirs):
@@ -147,9 +155,34 @@ def main():
     # ---- scenes 引用 ----
     for name, sc in scenes.items():
         detect = sc.get("detect")
-        if detect:
+        if isinstance(detect, str):
             # 显式指定 detect：节点引用，须在 pipeline 中
             resolve_node(f"scenes.{name}.detect", detect)
+        elif isinstance(detect, dict):
+            # 组合 detect：{"type":"And","all_of":[...]} / {"type":"Or","any_of":[...]}
+            # 列表内每个节点名都是节点引用，逐个校验
+            field = DETECT_LOGIC_FIELDS.get(detect.get("type"))
+            if field is None:
+                errors.append(
+                    (
+                        f"scenes.{name}.detect",
+                        str(detect.get("type")),
+                        "组合 detect 的 type 须为 And 或 Or",
+                    )
+                )
+            else:
+                items = detect.get(field)
+                if not isinstance(items, list) or not items:
+                    errors.append(
+                        (
+                            f"scenes.{name}.detect.{field}",
+                            "",
+                            f"组合 detect 的 {field} 须为非空字符串数组",
+                        )
+                    )
+                else:
+                    for j, v in enumerate(items):
+                        resolve_node(f"scenes.{name}.detect.{field}[{j}]", v)
         # 未指定 detect：仅作 parent 的抽象场景，不直接识别，不要求 pipeline 节点
         parent = sc.get("parent")
         if parent:

@@ -8,7 +8,6 @@
 const fs = require('fs');
 const path = require('path');
 const { scanJsoncStrings, refKind, isSceneRef, buildNodeIndex, fieldAt, parseJsonc } = require('./sceneMap');
-
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const MAP_FILE = path.join(REPO_ROOT, 'agent', 'custom', 'action', 'scene_jump_map.json');
 const mapText = fs.readFileSync(MAP_FILE, 'utf-8');
@@ -141,6 +140,77 @@ function testToArray() {
   console.log('✓ to 数组场景引用分类测试通过');
 }
 testToArray();
+
+// ── detect 组合写法（And/Or）引用分类与补全自测 ───────────────────────
+function testDetectComposite() {
+  const snip = JSON.stringify({
+    scenes: {
+      Shop: { desc: '商店', detect: 'UI_Shop_VipShop' },
+      Shop_1: {
+        desc: '推荐',
+        detect: { type: 'And', all_of: ['UI_Shop_VipShop', 'UI_Shop_OCRSelected_1'] },
+      },
+      Shop_2: {
+        desc: '兑换',
+        detect: { type: 'Or', any_of: ['UI_Shop_Shop', 'UI_Shop_OCRSelected_2'] },
+      },
+      Alert: { desc: '对话框' },
+    },
+    edges: [],
+  });
+
+  const toks = scanJsoncStrings(snip);
+
+  // 1) 组合 detect 内的节点名应识别为节点引用 'detect'
+  const kinds = toks
+    .filter((t) => refKind(t))
+    .map((t) => `${t.value}:${refKind(t)}`);
+
+  for (const want of [
+    'UI_Shop_VipShop:detect',
+    'UI_Shop_OCRSelected_1:detect',
+    'UI_Shop_Shop:detect',
+    'UI_Shop_OCRSelected_2:detect',
+  ]) {
+    if (kinds.indexOf(want) < 0) {
+      throw new Error(`组合 detect 引用分类错误，缺少 ${want}：${kinds.join(',')}`);
+    }
+  }
+
+  // 2) 组合 detect 内的 token 应能定位到（供跳转/悬停用）
+  const comboVal = toks.find(
+    (t) => t.value === 'UI_Shop_OCRSelected_1' && t.segments[0] === 'scenes'
+  );
+  if (!comboVal) throw new Error('组合 detect 子节点 token 未找到');
+  if (comboVal.segments[comboVal.segments.length - 1] !== 1) {
+    throw new Error(`组合 detect 子节点路径错误: ${JSON.stringify(comboVal.segments)}`);
+  }
+
+  // 3) 光标在 all_of 数组内（输入中）→ fieldAt 返回 detect，供补全节点名
+  const cut = snip.slice(0, snip.indexOf('UI_Shop_OCRSelected_1'));
+  const cutToks = scanJsoncStrings(cut);
+  const f = fieldAt(cut, cut.length, cutToks);
+  if (!f || f.kind !== 'detect') {
+    throw new Error(`all_of 内补全定位错误: ${JSON.stringify(f)}`);
+  }
+
+  // 4) any_of 同理
+  const cut2 = snip.slice(0, snip.indexOf('UI_Shop_OCRSelected_2'));
+  const f2 = fieldAt(cut2, cut2.length, scanJsoncStrings(cut2));
+  if (!f2 || f2.kind !== 'detect') {
+    throw new Error(`any_of 内补全定位错误: ${JSON.stringify(f2)}`);
+  }
+
+  // 5) 数组闭合之后不应再被判定为该字段（避免后续无关位置误补全）
+  const after = snip.slice(0, snip.indexOf('"Alert"'));
+  const f3 = fieldAt(after, after.length, scanJsoncStrings(after));
+  if (f3 !== null) {
+    throw new Error(`数组闭合后仍误判: ${JSON.stringify(f3)}`);
+  }
+
+  console.log('✓ detect 组合写法（And/Or）引用分类与补全测试通过');
+}
+testDetectComposite();
 
 // ── 残缺 JSON 不死循环自测 ────────────────────────────────────────────
 function testMalformed() {

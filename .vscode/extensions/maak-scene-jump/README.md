@@ -5,7 +5,7 @@
 `scene_jump_map.json` 里的引用分两类，跳转目标不同：
 
 - **场景引用**（`scenes` 场景名 key、`parent`、`from`、`to`、`via`）→ 跳到 `scenes` 中同名场景的定义；
-- **节点引用**（`detect`、`jump`）→ 跳到 pipeline 资源中该节点的定义。
+- **节点引用**（`detect`、`jump`，含组合 `detect` 的 `all_of` / `any_of` 数组元素）→ 跳到 pipeline 资源中该节点的定义。
 
 ## 功能
 
@@ -13,17 +13,17 @@
 - **悬停提示**：
   - 场景引用：显示名称、`desc` 与场景定义 JSON 块；
   - 场景 key：显示名称与 `desc`；
-  - 节点引用：显示名称与 pipeline 定义位置。
-- **查找引用**（`Shift+F12`）：列出 `scene_jump_map.json` 中所有引用同一名称的地方。
+  - 节点引用：显示名称与 pipeline 定义位置。- **查找引用**（`Shift+F12`）：列出 `scene_jump_map.json` 中所有引用同一名称的地方。
 - **文档链接**：引用处显示可点击下划线（场景 key 除外）。
-- **补全**：场景引用字段（`from`/`to`/`parent`/`via`）提示场景名；节点引用字段（`detect`/`jump`）提示 pipeline 节点名。
+- **补全**：场景引用字段（`from`/`to`/`parent`/`via`）提示场景名；节点引用字段（`detect`/`jump`，含组合 `detect` 的 `all_of` / `any_of` 数组内）提示 pipeline 节点名。
 - **`to` 多候选**：`to` 支持场景名列表，数组元素同样按场景引用处理。
+- **组合 `detect`**：`{"type":"And","all_of":[...]}` / `{"type":"Or","any_of":[...]}` 内的节点名同样按节点引用处理（跳转/悬停/补全）。
 
 ## 数据格式要点
 
 `scene_jump_map.json` 由 `SceneJump` custom（`agent/custom/action/scene_jump.py`）使用：
 
-- `scenes`：场景名 → `{ desc, detect(识别节点), parent(父场景,可选) }`。`parent` 表示“处于子场景即视为处于父场景”；规划时子场景可使用父场景的出边，多场景同时命中时自动选择到目标成本最小的起点。
+- `scenes`：场景名 → `{ desc, detect(识别条件), parent(父场景,可选) }`。`detect` 支持节点名字符串，或组合写法 `{"type":"And","all_of":[节点名,...]}` / `{"type":"Or","any_of":[节点名,...]}`（用于区分共用同一父界面节点的多个子场景，列表元素只支持节点名）。`parent` 表示“处于子场景即视为处于父场景”；规划时子场景可使用父场景的出边，多场景同时命中时自动选择到目标成本最小的起点。
 - `edges`：`{ from, to, cost, jump, via }`。`to` 可为字符串或列表（操作后有概率进入其中任意一个）；`jump` 可为空（表示等待自然跳转，不执行操作）；`via` 表示可能经过的中间场景（也可能略过）。
 
 ## 原理

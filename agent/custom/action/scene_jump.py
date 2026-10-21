@@ -16,6 +16,10 @@ from .general import parse_params
 # 场景跳转关系表（与本模块同目录，不依赖 cwd）
 MAP_FILE = Path(__file__).resolve().parent / "scene_jump_map.json"
 
+# detect 组合识别支持的逻辑类型 → 对应子识别列表字段名
+# （与 pipeline 协议一致：And 用 all_of，Or 用 any_of）
+DETECT_LOGIC_FIELDS: dict[str, str] = {"And": "all_of", "Or": "any_of"}
+
 
 def _strip_jsonc_comments(text: str) -> str:
     """移除 JSONC 注释（// 与 /* */），保留字符串/转义，并维持行号。
@@ -72,7 +76,14 @@ class SceneJump(CustomAction):
     规划最短路径，并通过多次“一步跳转”最终到达目标场景。
 
     数据文件（scene_jump_map.json）格式：
-      - scenes: 场景名 → { desc, detect(用于识别该场景的 pipeline 节点，可选；缺省表示仅作 parent 的抽象场景，不直接识别), parent(父场景,可选) }
+      - scenes: 场景名 → { desc, detect(用于识别该场景的识别条件，可选；缺省表示仅作 parent 的抽象场景，不直接识别), parent(父场景,可选) }
+        detect 支持两种写法：
+          1. 字符串：单个 pipeline 节点名，命中即视为处于该场景；
+          2. 组合识别对象：{"type": "And", "all_of": [节点名, ...]} 或
+             {"type": "Or", "any_of": [节点名, ...]}，语义与 pipeline 的 And/Or 一致
+             （And 需全部命中，Or 命中任一即可）。列表元素只支持 pipeline 节点名。
+             例如商店各子页共用同一父界面节点时：
+             {"type": "And", "all_of": ["UI_Shop_VipShop", "UI_Shop_OCRSelected_1"]}
       - edges:  跳转关系 { from, to, cost(该一步跳转的成本,缺省1,数值越小越优先), jump(一步跳转要执行的 pipeline 节点名或列表，可为空), via(中间场景列表) }
         to 可为单个场景名或场景名列表：列表表示执行 jump 后有概率进入其中任意一个场景（例如
         进游戏可能落到主界面或签到页）；落到非目标候选时，会沿该候选继续规划下一步。
@@ -85,6 +96,10 @@ class SceneJump(CustomAction):
 
     父场景（parent）不仅参与“是否已到目标”的判断，规划时处于子场景也可使用父场景的出边
     （例如 MainMenu → Combat_MainStory，再借 Combat 的出边到达 Combat_SkillMaterial）。
+
+    识别性能：一次检测周期（一次截屏）内，各 pipeline 节点最多识别一次（节点级 memo），
+    且组合 detect 保留短路（And 遇假即停、Or 遇真即停）。因此共用节点只识别一次、
+    失败时后续组合场景直接短路；全量扫描时 34 个引用可降到 29 次识别。
 
     容错行为：
       - 未知界面、或当前场景没有通往其它界面的路径时，会进行等待（场景可能自行变化）；
@@ -322,6 +337,17 @@ class SceneJump(CustomAction):
         if not isinstance(scenes, dict) or not scenes:
             return False
         self.scenes = scenes
+        for name, scene in scenes.items():
+            if not isinstance(scene, dict):
+                continue
+            detect = scene.get("detect")
+            if detect is None or self._normalize_detect(detect) is not None:
+                continue
+            # detect 写了但格式非法：仅作 parent 的抽象场景处理，并提示一次
+            print(
+                f"[SceneJump] 场景 {name} 的 detect 格式无法识别，已忽略："
+                f'{detect!r}（仅支持节点名字符串或 {{"type":"And"/"Or", ...}}）'
+            )
         self._adj = {}
         for edge in data.get("edges", []):
             if not isinstance(edge, dict):
@@ -350,7 +376,13 @@ class SceneJump(CustomAction):
         """构建父场景 -> 所有具有 detect 的后代场景 的映射"""
         self._descendants_cache = {}
         # 先收集所有有 detect 的场景（即实际可识别的场景）
-        detectable = {name for name, info in self.scenes.items() if info.get("detect")}
+        # 注意：detect 写错（非法）的场景不参与识别，与 _detect_* 行为保持一致
+        detectable = {
+            name
+            for name, info in self.scenes.items()
+            if isinstance(info, dict)
+            and self._normalize_detect(info.get("detect")) is not None
+        }
 
         for name in detectable:
             # 向上遍历父链，将自身加入每个父节点的后代集合
@@ -366,6 +398,100 @@ class SceneJump(CustomAction):
     def _desc(self, name: str) -> str:
         scene = self.scenes.get(name) or {}
         return str(scene.get("desc", ""))
+
+    # ------------------------------------------------------------------
+    # detect 归一化与命中判断
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _normalize_detect(
+        raw: Any,
+    ) -> tuple[str, list[str]] | None:
+        """把场景的 detect 归一化为 (kind, 节点名列表)。
+
+        - 字符串          → ("node", [节点名])
+        - {"type":"And", "all_of":[...]} → ("And", [节点名, ...])
+        - {"type":"Or",  "any_of":[...]} → ("Or",  [节点名, ...])
+
+        无法识别（缺省、类型非法、列表为空、含非字符串元素等）时返回 None，
+        表示该场景不直接参与识别。
+        """
+        if isinstance(raw, str):
+            node = raw.strip()
+            return ("node", [node]) if node else None
+
+        if not isinstance(raw, dict):
+            return None
+
+        logic = raw.get("type")
+        if not isinstance(logic, str):
+            return None
+        field = DETECT_LOGIC_FIELDS.get(logic)
+        if field is None:
+            return None
+
+        items = raw.get(field)
+        if not isinstance(items, list) or not items:
+            return None
+        nodes = [n.strip() for n in items if isinstance(n, str) and n.strip()]
+        # 列表长度不一致说明存在非字符串/空元素，视为非法
+        if len(nodes) != len(items):
+            return None
+        return (logic, nodes)
+
+    def _node_hit(
+        self, context: Context, image: Any, node: str, memo: dict[str, bool]
+    ) -> bool:
+        """识别单个 pipeline 节点，结果按“一次截屏周期”缓存。
+
+        同一张截图内重复出现的节点只识别一次。例如 UI_Shop_VipShop 同时被
+        Shop 与 Shop_Shop_1..5 引用，一次全量扫描只需识别一次（34 个引用 → 29 次）。
+        memo 由调用方在每次重新截图时清空，因此不会跨画面复用结果。
+        """
+        cached = memo.get(node)
+        if cached is not None:
+            return cached
+        detail = context.run_recognition(node, image)
+        hit = bool(detail and detail.hit)
+        memo[node] = hit
+        return hit
+
+    def _eval_detect(
+        self,
+        context: Context,
+        image: Any,
+        detect: tuple[str, Any],
+        memo: dict[str, bool],
+    ) -> bool:
+        """按 detect 的归一化结果求值。
+
+        And/Or 在此**自行求值**而非交给框架的 JAnd/JOr，原因是：
+          - 框架在 C++ 侧内部执行子识别，不会回调 Python，_node_hit 的 memo 无法生效；
+          - 自行求值可保留短路（And 遇假即停、Or 遇真即停），并与 memo 叠加：
+            某共用节点失败时，后续引用它的组合场景直接短路，不再重复识别。
+        本项目 detect 的子项只支持节点名（不含内联对象/box_index/sub_name），
+        而此处只需“是否命中”、不需要 box，故不依赖框架的组合识别。
+        """
+        kind, nodes = detect
+        if kind == "node":
+            return self._node_hit(context, image, nodes[0], memo)
+        if kind == "And":
+            # all() 天然短路：任一子项未命中即停止
+            return all(self._node_hit(context, image, n, memo) for n in nodes)
+        # Or：any() 天然短路，命中第一个即停止
+        return any(self._node_hit(context, image, n, memo) for n in nodes)
+
+    def _scene_hits(
+        self,
+        context: Context,
+        image: Any,
+        scene: dict[str, Any],
+        memo: dict[str, bool],
+    ) -> bool:
+        """判断当前画面是否命中该场景的 detect（支持单节点与 And/Or 组合）。"""
+        detect = self._normalize_detect(scene.get("detect"))
+        if detect is None:
+            return False
+        return self._eval_detect(context, image, detect, memo)
 
     def _satisfies(self, scene: str | None, target: str) -> bool:
         """scene 是否满足目标 target：scene 自身，或 scene 的父场景链上存在 target。"""
@@ -491,46 +617,44 @@ class SceneJump(CustomAction):
 
         无 detect 的场景视为“仅作 parent 的抽象场景”，不可直接识别，跳过。
         """
-        image = self._screencap(context)
+        matches = self._detect_scenes(context)
+        return matches[0] if matches else None
+
+    def _detect_scenes_with(
+        self,
+        context: Context,
+        image: Any,
+        memo: dict[str, bool],
+        candidates: set[str] | None = None,
+    ) -> list[str]:
+        """在**给定截图与 memo** 上检测场景（按 scenes 定义顺序）。
+
+        candidates 为 None 时检测全部场景，否则仅检测其中列出的场景。
+        同一周期内的多次调用应复用同一个 image 与 memo：
+          - 共用 image  → 避免重复截屏；
+          - 共用 memo   → 已识别过的节点不重复识别（含定向探测未命中后回退全量的场景）。
+        """
+        matches: list[str] = []
         for name, scene in self.scenes.items():
-            node = scene.get("detect")
-            if not node:
-                continue  # 仅作 parent，无独立识别
-            detail = context.run_recognition(str(node), image)
-            if detail and detail.hit:
-                return name
-        return None
+            if candidates is not None and name not in candidates:
+                continue
+            if not isinstance(scene, dict):
+                continue
+            if self._scene_hits(context, image, scene, memo):
+                matches.append(name)
+        return matches
 
     def _detect_scenes(self, context: Context) -> list[str]:
         """检测所有当前同时匹配的场景（同一时刻可能有多个场景同时满足识别）。"""
         image = self._screencap(context)
-        matches: list[str] = []
-        for name, scene in self.scenes.items():
-            node = scene.get("detect")
-            if not node:
-                continue  # 仅作 parent，无独立识别
-            detail = context.run_recognition(str(node), image)
-            if detail and detail.hit:
-                matches.append(name)
-        return matches
+        return self._detect_scenes_with(context, image, {})
 
     def _detect_scenes_subset(
         self, context: Context, candidates: set[str]
     ) -> list[str]:
         """仅对候选场景列表进行识别，返回其中命中的场景（按 scenes 定义顺序）。"""
         image = self._screencap(context)
-        matches: list[str] = []
-        # 按照 self.scenes 的定义顺序遍历，保证确定性（具体场景优先）
-        for name, scene in self.scenes.items():
-            if name not in candidates:
-                continue
-            node = scene.get("detect")
-            if not node:
-                continue
-            detail = context.run_recognition(str(node), image)
-            if detail and detail.hit:
-                matches.append(name)
-        return matches
+        return self._detect_scenes_with(context, image, {}, candidates)
 
     # ------------------------------------------------------------------
     # 单步跳转执行与等待
@@ -608,12 +732,18 @@ class SceneJump(CustomAction):
         # 2) 轮询等待场景变化（定向探测候选场景及其后代）
         retries = 1 if jumps else 0  # 已执行 jump 的次数
         while time.time() < deadline:
+            # 每轮只截一次屏；image 与 memo 在同一轮内共享，
+            # 使「定向未命中 → 回退全量」不再重复截屏与重复识别
+            image = self._screencap(context)
+            memo: dict[str, bool] = {}
+
             # 定向探测：仅识别候选场景
-            matched = self._detect_scenes_subset(context, probe_candidates)
+            matched = self._detect_scenes_with(context, image, memo, probe_candidates)
 
             if not matched:
                 # 定向未命中任何候选 -> 可能进入了完全意外的场景，回退全量识别
-                full_matches = self._detect_scenes(context)
+                # （复用同一 image/memo，已识别过的节点不会重复识别）
+                full_matches = self._detect_scenes_with(context, image, memo)
                 if not full_matches:
                     # 未知界面：等待（可能处于过渡中）
                     _nap(settle_interval)
@@ -644,8 +774,8 @@ class SceneJump(CustomAction):
                 continue
 
             # 命中了某个场景，但不是目标、不是 via、也不是 from
-            # 回退全量识别以获取准确场景名并重新规划
-            full_matches = self._detect_scenes(context)
+            # 回退全量识别以获取准确场景名并重新规划（复用同一 image/memo）
+            full_matches = self._detect_scenes_with(context, image, memo)
             if not full_matches:
                 return False, matched[0]  # 以定向结果为准
             return False, full_matches[0]
@@ -673,8 +803,12 @@ class SceneJump(CustomAction):
             probe_candidates.add(stuck_scene)
 
         while time.time() < deadline:
+            # 每轮只截一次屏，image/memo 在轮内共享
+            image = self._screencap(context)
             # 定向探测目标及相关场景
-            matched = self._detect_scenes_subset(context, probe_candidates)
+            matched = self._detect_scenes_with(
+                context, image, {}, probe_candidates
+            )
             if not matched:
                 time.sleep(min(interval, max(0.0, deadline - time.time())))
                 continue
