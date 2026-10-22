@@ -1,0 +1,62 @@
+# 供应链安全：本文件所有 actions 均固定到 commit SHA（本文件没有 uses）。
+#
+# 日常 Android 出包：push / PR 自动出 debug 包，手动 dispatch 可选 release。
+# 这里只上传 GitHub Actions artifact；正式版由 install.yml 在 v* tag 上调用
+# android-build.yml，APK 与桌面包一起进 GitHub Release（本仓库暂未接入 Mirror 酱）。
+# release 缺 KEYSTORE_BASE64 时为未签名包。
+
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "assets/**"
+      - "requirements.txt"
+      - "tools/android/**"
+      - ".github/workflows/android.yml"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "assets/**"
+      - "requirements.txt"
+      - "tools/android/**"
+      - ".github/workflows/android.yml"
+      - ".github/workflows/android-build.yml"
+  workflow_dispatch:
+    inputs:
+      assemble:
+        description: "debug 或 release（release 出 APK 工件、不发布；缺 KEYSTORE_BASE64 时为未签名包）"
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
+      maafw_tag:
+        description: "覆盖 MaaFramework tag（一般不用，需与 core_tag 同时提供）"
+        required: false
+        default: ""
+      core_tag:
+        description: "覆盖 agent 内核 tag（一般不用，需与 maafw_tag 同时提供）"
+        required: false
+        default: ""
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    uses: ./.github/workflows/android-build.yml
+    with:
+      assemble: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.assemble || 'debug' }}
+      maafw_tag: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.maafw_tag || '' }}
+      core_tag: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.core_tag || '' }}
+    secrets: inherit
