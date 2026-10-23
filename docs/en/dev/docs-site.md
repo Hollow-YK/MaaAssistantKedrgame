@@ -24,8 +24,8 @@ docs/
 │   └── public/             ← Static assets
 ├── README.md               ← Home page (Simplified Chinese)
 ├── guide/                  ← User documentation
-│   ├── quickstart.md
-│   ├── faq.md
+│   ├── quickstart/         ← Quick start (platform / UI guides)
+│   ├── faq/                ← FAQ (split by UI)
 │   └── features/
 ├── maafw/                  ← MaaFramework documentation
 │   ├── how-to-develop.md
@@ -84,7 +84,7 @@ The navigation bar and sidebar are configured in `docs/.vuepress/theme.ts`.
 ```ts
 navbar: [
   { text: "Home", link: "/" },
-  { text: "User Guide", link: "/guide/quickstart" },
+  { text: "User Guide", link: "/guide/quickstart/" },
 ]
 ```
 
@@ -93,8 +93,18 @@ navbar: [
 ```ts
 sidebar: {
   "/guide/": [
-    "quickstart.md",
-    "faq.md",
+    {
+      text: "Quick Start",
+      prefix: "quickstart/",
+      link: "quickstart/",
+      children: ["mxu.md", "mfaa.md", "maafwapp.md"],
+    },
+    {
+      text: "FAQ",
+      prefix: "faq/",
+      link: "faq/",
+      children: ["mxu.md", "mfaa.md", "maafwapp.md"],
+    },
     { text: "Features", prefix: "features/", link: "features/", children: ["start-game.md", "award.md"] },
   ],
 }

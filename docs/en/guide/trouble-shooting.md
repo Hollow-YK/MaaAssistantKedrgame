@@ -12,7 +12,7 @@ This document was translated using AI. Please refer to the Chinese documentation
 
 Encountered a problem while using MAK? Follow the steps below first—you may be able to resolve it yourself!
 
-> 💡 You can also visit the [Frequently Asked Questions (FAQ)](/en/guide/faq.md) for conceptual answers.
+> 💡 You can also visit the [Frequently Asked Questions (FAQ)](/en/guide/faq/) for conceptual answers.
 
 ---
 
