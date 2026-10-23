@@ -20,8 +20,8 @@ docs/
 │   └── public/             ← 静态资源
 ├── README.md               ← 首页（简体中文）
 ├── guide/                  ← 用户文档
-│   ├── quickstart.md
-│   ├── faq.md
+│   ├── quickstart/         ← 快速开始（平台 / 界面向导）
+│   ├── faq/                ← 常见问题（按 UI 拆分）
 │   └── features/
 ├── maafw/                  ← MaaFramework 相关文档
 │   ├── how-to-develop.md
@@ -80,7 +80,7 @@ pnpm docs:build
 ```ts
 navbar: [
   { text: "首页", link: "/" },
-  { text: "用户文档", link: "/guide/quickstart" },
+  { text: "用户文档", link: "/guide/quickstart/" },
 ]
 ```
 
@@ -89,8 +89,18 @@ navbar: [
 ```ts
 sidebar: {
   "/guide/": [
-    "quickstart.md",
-    "faq.md",
+    {
+      text: "快速开始",
+      prefix: "quickstart/",
+      link: "quickstart/",
+      children: ["mxu.md", "mfaa.md", "maafwapp.md"],
+    },
+    {
+      text: "FAQ",
+      prefix: "faq/",
+      link: "faq/",
+      children: ["mxu.md", "mfaa.md", "maafwapp.md"],
+    },
     { text: "功能介绍", prefix: "features/", link: "features/", children: ["start-game.md", "award.md"] },
   ],
 }
@@ -101,6 +111,21 @@ sidebar: {
 ## 多语言
 
 文档站支持简体中文（`/`）和英语（`/en/`）两种语言。
+
+**新增内容先写简体中文**，其它语言先放占位页，格式：
+
+```md
+---
+title: Page Title (待翻译)
+---
+
+# Page Title (待翻译 / Pending Translation)
+
+> 本页待翻译。中文原文见 [/guide/quickstart/](/guide/quickstart/)。
+> This page is pending translation. See the Chinese original at [/guide/quickstart/](/guide/quickstart/).
+```
+
+占位页仍需出现在 `theme.ts` 的对应侧边栏中，避免导航断链。
 
 添加新语言：
 
