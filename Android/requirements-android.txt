@@ -1,0 +1,10 @@
+# Android agent 运行时的额外依赖。
+#
+# maafw 与 numpy 由 MaaAgentCoreAndroid 内核自带，build_agent_bundle.py 会丢弃
+# requirements 里对它们的钉版（core wins），因此这里不需要重复声明。
+#
+# 注意：requirements.txt 里的 json-with-comments 只被 tools/ 使用，agent 运行时不导入，
+# 不要加到这里，否则会白白增大 APK。
+#
+# 以后 agent 新增第三方纯 Python 依赖时，在本文件追加即可；带原生库的包需要
+# Chaquopy 索引里有对应 ABI 的 wheel（见 MaaFwApp INTEGRATION.md）。

@@ -1,0 +1,469 @@
+# 供应链安全：本文件所有 actions 均固定到 commit SHA，SHA 后的注释为对应版本 tag。
+# 未启用 dependabot，升级时需手动更新 SHA 与注释。
+# Security: all actions are pinned to commit SHAs; the trailing comment is the version tag.
+#
+# Android 出包流水线（MaaFwApp 外壳）：
+# - android.yml 在 push / PR / 手动触发时调用
+# - install.yml 在 v* tag 上以 release 调用，APK 与桌面包一起进 GitHub Release
+# - 不推送 Mirror 酱；release 缺 KEYSTORE_BASE64 时打出未签名包并告警
+# - MaaFwApp 是 submodule，固定在具体 commit（MAAFWAPP_REF），不跟随 branch
+
+name: Build Android APK (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      assemble:
+        description: "debug 或 release"
+        required: true
+        type: string
+      maafw_tag:
+        description: "覆盖解析出的 MaaFramework tag（一般不用，需与 core_tag 同时提供）"
+        required: false
+        type: string
+        default: ""
+      core_tag:
+        description: "覆盖解析出的 agent 内核 tag（一般不用，需与 maafw_tag 同时提供）"
+        required: false
+        type: string
+        default: ""
+      require_signed:
+        description: "release 必须签名（tag 发版用；缺 KEYSTORE_BASE64 时失败）"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  # MaaFwApp v0.2.2。submodule 的 gitlink 才是真正的钉版，这里作为 CI 的额外断言：
+  # 两者不一致时 check_versions.py 会直接失败。
+  MAAFWAPP_REF: "de65f7a43fc6a110706f44d756a0bf82b5c296d7"
+
+jobs:
+  # 只做版本解析，不装 JDK / SDK，避免占用构建 runner。
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      maafw_tag: ${{ steps.resolve.outputs.maafw_tag }}
+      core_tag: ${{ steps.resolve.outputs.core_tag }}
+      core_fallback: ${{ steps.resolve.outputs.core_fallback }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+
+      - name: Run version resolver tests
+        run: python -m unittest discover -s tools/android -p "test_*.py"
+
+      - name: Resolve MaaFramework / agent core versions
+        id: resolve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAAFW_TAG: ${{ inputs.maafw_tag }}
+          CORE_TAG: ${{ inputs.core_tag }}
+        shell: bash
+        run: |
+          if [ -n "$MAAFW_TAG" ] || [ -n "$CORE_TAG" ]; then
+            if [ -z "$MAAFW_TAG" ] || [ -z "$CORE_TAG" ]; then
+              echo "::error::maafw_tag 与 core_tag 必须同时提供，避免前后端版本错配"
+              exit 1
+            fi
+            python tools/android/resolve_versions.py \
+              --framework "$MAAFW_TAG" --core "$CORE_TAG" --github-output
+          else
+            python tools/android/resolve_versions.py --github-output
+          fi
+
+  # 库模块资源校验：不需要 NDK / keystore / agent 运行时，放在 ubuntu 上跑。
+  # app-only 出包（IDE / :app:assembleRelease）不会带上这个任务，所以单独跑一遍。
+  verify:
+    needs: meta
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          java-version: "25"
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+
+      - name: Check version alignment
+        env:
+          MAAFW_TAG: ${{ needs.meta.outputs.maafw_tag }}
+          CORE_TAG: ${{ needs.meta.outputs.core_tag }}
+          CORE_FALLBACK: ${{ needs.meta.outputs.core_fallback }}
+        shell: bash
+        run: |
+          ARGS="--framework $MAAFW_TAG --core $CORE_TAG --maafwapp-ref $MAAFWAPP_REF"
+          if [ "$CORE_FALLBACK" = "true" ]; then
+            ARGS="$ARGS --allow-core-fallback"
+          fi
+          python tools/android/check_versions.py $ARGS
+
+      - name: Stage PI
+        run: python tools/android/stage_pi.py
+
+      - name: Write local.properties
+        run: python tools/android/write_local_properties.py --assemble release --abi arm64-v8a
+
+      - name: Verify library resources
+        working-directory: Android/MaaFwApp
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon verifyReleaseResources
+
+  # universal 包：debug 只出 arm64，release 出 arm64-v8a + x86_64。
+  build:
+    needs: meta
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      ASSEMBLE: ${{ inputs.assemble }}
+      MAAFW_TAG: ${{ needs.meta.outputs.maafw_tag }}
+      CORE_TAG: ${{ needs.meta.outputs.core_tag }}
+      CORE_FALLBACK: ${{ needs.meta.outputs.core_fallback }}
+      CACHE_SCOPE: universal
+      REQUIRE_SIGNED: ${{ inputs.require_signed }}
+    steps:
+      - name: Validate input
+        shell: bash
+        run: |
+          case "$ASSEMBLE" in
+            debug|release) ;;
+            *)
+              echo "::error::assemble 只能是 debug 或 release，实际为 '$ASSEMBLE'"
+              exit 1
+              ;;
+          esac
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          java-version: "25"
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+
+      - name: Install NDK and CMake
+        shell: bash
+        run: |
+          # ubuntu runner 由 setup-android 装 cmdline-tools；显式接受 license，
+          # 避免 NDK / CMake 安装时卡在交互提示
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+
+      - name: Cache Gradle
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-android-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/**/*.gradle.kts', 'Android/MaaFwApp/**/gradle-wrapper.properties', 'Android/MaaFwApp/**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-android-
+
+      - name: Cache agent core
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ env.CORE_TAG }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Check version alignment
+        shell: bash
+        run: |
+          ARGS="--framework $MAAFW_TAG --core $CORE_TAG --maafwapp-ref $MAAFWAPP_REF"
+          if [ "$CORE_FALLBACK" = "true" ]; then
+            ARGS="$ARGS --allow-core-fallback"
+          fi
+          python tools/android/check_versions.py $ARGS
+
+      - name: Stage PI
+        run: python tools/android/stage_pi.py
+
+      # release 签名材料：缺 KEYSTORE_BASE64 时不写 KEYSTORE_PATH，MaaFwApp 会出未签名包。
+      # 这里不创建 0 字节 jks，避免把失败拖到 apksigner 阶段。
+      - name: Decode keystore
+        id: keystore
+        if: env.ASSEMBLE == 'release'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$REQUIRE_SIGNED" = "true" ]; then
+              echo "::error::正式发版必须配置 KEYSTORE_BASE64，未签名 APK 无法安装 / 更新"
+              exit 1
+            fi
+            echo "::warning::未配置 KEYSTORE_BASE64，release APK 将不签名（工件仍可下载）"
+            exit 0
+          fi
+          JKS="${{ github.workspace }}/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$JKS"
+          echo "path=$JKS" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          # debug 只出 arm64；release 出双 ABI 通用包
+          ABIS="--abi arm64-v8a"
+          if [ "$ASSEMBLE" = "release" ]; then
+            ABIS="--abi arm64-v8a --abi x86_64"
+          fi
+          FALLBACK=""
+          if [ "$CORE_FALLBACK" = "true" ]; then
+            FALLBACK="--allow-core-fallback"
+          fi
+          python tools/android/build_apk.py \
+            --assemble "$ASSEMBLE" \
+            --skip-stage \
+            --maafw-tag "$MAAFW_TAG" \
+            --core-tag "$CORE_TAG" \
+            --maafwapp-ref "$MAAFWAPP_REF" \
+            $FALLBACK \
+            $ABIS
+
+      - name: Rename APK
+        id: rename
+        shell: bash
+        run: |
+          if [ "$ASSEMBLE" = "release" ]; then
+            APK_DIR="Android/MaaFwApp/app/build/outputs/apk/release"
+            LABEL="universal"
+          else
+            APK_DIR="Android/MaaFwApp/app/build/outputs/apk/debug"
+            LABEL="debug"
+          fi
+
+          # nullglob：没有匹配时数组为空，避免 ls/find 的平台兼容问题
+          shopt -s nullglob
+          APKS=("$APK_DIR"/*.apk)
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "::error::预期恰好一个 APK，实际 ${#APKS[@]} 个"
+            exit 1
+          fi
+
+          TAG="${GITHUB_REF_NAME:-dev}"
+          TAG="${TAG//\//-}"
+          APK="MAK-android-${LABEL}-${TAG}.apk"
+          mv "${APKS[0]}" "$APK"
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+
+      # 少铺一个 .so 不会让打包失败，要到设备上才发现起不来。
+      # libMaaAgentServer.so 是 agent 子进程 dlopen 的，agent 项目必带。
+      - name: Verify APK native libraries
+        shell: bash
+        run: |
+          APK="${{ steps.rename.outputs.apk }}"
+          LIBS="libMaaFramework.so libMaaUtils.so libMaaAndroidNativeControlUnit.so libMaaAgentServer.so"
+          if [ "$ASSEMBLE" = "release" ]; then
+            ABIS="arm64-v8a x86_64"
+          else
+            ABIS="arm64-v8a"
+          fi
+
+          # unzip -Z1 只列条目名，grep -Fxq 整行全名匹配；不走管道，避免 grep 提前退出误报
+          entries=$(unzip -Z1 "$APK")
+          for abi in $ABIS; do
+            for lib in $LIBS; do
+              if ! grep -Fxq "lib/$abi/$lib" <<< "$entries"; then
+                echo "::error::$APK 缺少 lib/$abi/$lib"
+                exit 1
+              fi
+            done
+          done
+          echo "[OK] native 自检通过：$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: MAK-android-${{ inputs.assemble }}-${{ github.sha }}
+          path: ${{ steps.rename.outputs.apk }}
+          if-no-files-found: error
+
+  # release 时额外出单 ABI 包：每个 job 只铺/只打自己的 ABI，体积约为 universal 的一半。
+  # 应用内更新按 asset 名选包，单 ABI 包的 ABI 标记必须保留，universal 包不能带。
+  abi-split:
+    if: inputs.assemble == 'release'
+    needs: meta
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: [arm64-v8a, x86_64]
+    env:
+      ASSEMBLE: release
+      ABI: ${{ matrix.abi }}
+      MAAFW_TAG: ${{ needs.meta.outputs.maafw_tag }}
+      CORE_TAG: ${{ needs.meta.outputs.core_tag }}
+      CORE_FALLBACK: ${{ needs.meta.outputs.core_fallback }}
+      CACHE_SCOPE: ${{ matrix.abi }}
+      REQUIRE_SIGNED: ${{ inputs.require_signed }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          java-version: "25"
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+
+      - name: Install NDK and CMake
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+
+      - name: Cache Gradle
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-android-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/**/*.gradle.kts', 'Android/MaaFwApp/**/gradle-wrapper.properties', 'Android/MaaFwApp/**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-android-
+
+      - name: Cache agent core
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ env.CORE_TAG }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Check version alignment
+        shell: bash
+        run: |
+          ARGS="--framework $MAAFW_TAG --core $CORE_TAG --maafwapp-ref $MAAFWAPP_REF"
+          if [ "$CORE_FALLBACK" = "true" ]; then
+            ARGS="$ARGS --allow-core-fallback"
+          fi
+          python tools/android/check_versions.py $ARGS
+
+      - name: Stage PI
+        run: python tools/android/stage_pi.py
+
+      - name: Decode keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$REQUIRE_SIGNED" = "true" ]; then
+              echo "::error::正式发版必须配置 KEYSTORE_BASE64，未签名 APK 无法安装 / 更新"
+              exit 1
+            fi
+            echo "::warning::未配置 KEYSTORE_BASE64，release APK 将不签名（工件仍可下载）"
+            exit 0
+          fi
+          JKS="${{ github.workspace }}/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$JKS"
+          echo "path=$JKS" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK (single ABI)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          FALLBACK=""
+          if [ "$CORE_FALLBACK" = "true" ]; then
+            FALLBACK="--allow-core-fallback"
+          fi
+          python tools/android/build_apk.py \
+            --assemble release \
+            --skip-stage \
+            --maafw-tag "$MAAFW_TAG" \
+            --core-tag "$CORE_TAG" \
+            --maafwapp-ref "$MAAFWAPP_REF" \
+            $FALLBACK \
+            --abi "$ABI"
+
+      - name: Rename APK
+        id: rename
+        shell: bash
+        run: |
+          APK_DIR="Android/MaaFwApp/app/build/outputs/apk/release"
+          shopt -s nullglob
+          APKS=("$APK_DIR"/*.apk)
+          if [ "${#APKS[@]}" -ne 1 ]; then
+            echo "::error::预期恰好一个 APK，实际 ${#APKS[@]} 个"
+            exit 1
+          fi
+          TAG="${GITHUB_REF_NAME:-dev}"
+          TAG="${TAG//\//-}"
+          APK="MAK-android-${ABI}-${TAG}.apk"
+          mv "${APKS[0]}" "$APK"
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK native libraries
+        shell: bash
+        run: |
+          APK="${{ steps.rename.outputs.apk }}"
+          LIBS="libMaaFramework.so libMaaUtils.so libMaaAndroidNativeControlUnit.so libMaaAgentServer.so"
+          entries=$(unzip -Z1 "$APK")
+          for lib in $LIBS; do
+            if ! grep -Fxq "lib/$ABI/$lib" <<< "$entries"; then
+              echo "::error::$APK 缺少 lib/$ABI/$lib"
+              exit 1
+            fi
+          done
+          echo "[OK] native 自检通过：$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: MAK-android-${{ matrix.abi }}-${{ github.sha }}
+          path: ${{ steps.rename.outputs.apk }}
+          if-no-files-found: error

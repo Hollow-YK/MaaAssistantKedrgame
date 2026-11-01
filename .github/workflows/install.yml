@@ -365,9 +365,19 @@ jobs:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
+  # Android APK 与桌面包同 tag 发布；本仓库暂未接入 Mirror 酱，只进 GitHub Release。
+  android:
+    if: ${{ needs.meta.outputs.is_release == 'true' }}
+    needs: [meta]
+    uses: ./.github/workflows/android-build.yml
+    with:
+      assemble: release
+      require_signed: true
+    secrets: inherit
+
   release:
     if: ${{ needs.meta.outputs.is_release == 'true' }}
-    needs: [meta, build, changelog]
+    needs: [meta, build, changelog, android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -386,6 +396,12 @@ jobs:
           done
           for f in *; do
             if [ ! -d "$f" ]; then
+              continue
+            fi
+            # Android 工件目录里是 APK，直接提到 assets 根目录，不要打包成 tar.gz
+            if compgen -G "$f/*.apk" > /dev/null; then
+              mv "$f"/*.apk .
+              rm -rf "$f"
               continue
             fi
             if [[ $f == *"win"* ]]; then

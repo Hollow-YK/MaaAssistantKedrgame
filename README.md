@@ -87,8 +87,12 @@
 ![license](https://img.shields.io/github/license/SweetSmellFox/MFAAvalonia?style=flat-square) 基于 Avalonia UI 构建的 MaaFramework 通用 GUI 解决方案
 - [MXU](https://github.com/MistEO/MXU)
   ![Static Badge](https://img.shields.io/badge/UI-blue?style=flat-square) ![license](https://img.shields.io/github/license/MistEO/MXU?style=flat-square) MaaFramework Next UI
+- [MaaFwApp](https://github.com/Aliothmoon/MaaFwApp)
+  ![Static Badge](https://img.shields.io/badge/UI-blue?style=flat-square) ![license](https://img.shields.io/github/license/Aliothmoon/MaaFwApp?style=flat-square) MaaFramework 的通用 Android GUI
 - [MaaAssistantArknights](https://github.com/MaaAssistantArknights/MaaAssistantArknights)
   ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/MaaAssistantArknights/MaaAssistantArknights?style=flat-square) 《明日方舟》小助手，全日常一键长草！
+- [MaaEnd](https://github.com/MaaEnd/MaaEnd)
+ ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/MaaEnd/MaaEnd?style=flat-square) MaaEnd 终末地小助手：基于视觉 AI 的「明日方舟：终末地」自动化工具
 - [MaaKEDR](https://github.com/APPLe-DF/MaaKEDR)
   ![Static Badge](https://img.shields.io/badge/参考-blue?style=flat-square) ![license](https://img.shields.io/github/license/APPLe-DF/MaaKEDR?style=flat-square) MaaKEDR 雪松小助手：基于视觉 AI 的「雪松」自动化工具，由 MaaFramework 强力驱动！
 - [M9A](https://github.com/MAA1999/M9A)

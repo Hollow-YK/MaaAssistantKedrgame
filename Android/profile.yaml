@@ -1,0 +1,65 @@
+# Android 打包配方（MaaFwApp）
+#
+# 相对路径相对本文件所在目录（Android/）。
+# assets 指向 tools/android/stage_pi.py 生成的 PI 暂存目录：
+#   - interface.json / resource / resource_* 来自 assets/
+#   - agent/ 来自仓库根 agent/
+#   - LICENSE 来自仓库根
+# 这样不必为了 Android 改动仓库原有的 assets/ 布局。
+#
+# MaaFwApp 外壳是 submodule，固定在 commit de65f7a4（v0.2.2），不跟随 branch。
+#
+# 版本对齐（APK 内的 .so 与 Python 绑定必须同版本）：
+#   MaaFramework        v5.14.0                 ← tools/android/resolve_versions.py
+#   Agent 内核          3.13.15-maafw5.14.0      ← tools/android/resolve_versions.py
+#   桌面 requirements   maafw==v5.14.0           ← requirements.txt（目标版本）
+# 内核尚未发布目标版本的配对时，resolver 会降级到不高于目标的最近配对；
+# 构建前由 tools/android/check_versions.py 校验版本与 submodule 状态。
+#
+# 本地 / CI 出包说明见 docs/dev/android.md。
+
+# 含 interface.json 的那一层（stage_pi.py 的产物）
+assets: pi
+
+# 进包白名单，相对 assets；写了即整体替换 MaaFwApp 的默认值。
+# 本项目的任务、语言文件、OCR 模型都在 resource/ 下，resource_*/ 覆盖 B 服与 TapTap。
+include:
+  - interface.json
+  - resource/**
+  - resource_*/**
+  - agent/**
+  - LICENSE
+
+# agent 运行时（由 tools/android/build_apk.py 调用 MaaFwApp 的
+# build_agent_bundle.py 生成到 Android/agent-dist）
+agent:
+  sourceDir: agent-dist
+  # 不写死 abi：按 agent-dist 里实际构建出的运行时打包。
+  # build_apk.py 在 debug 下只建 arm64-v8a，release 下建 arm64-v8a + x86_64。
+  runtimes:
+    # 条数必须与 interface.json 的 agent 条目一一对应（本项目只有 1 个）。
+    # 实际命令 = executable + args + identifier，PI 的 child_exec / child_args 不参与。
+    - location: bundle
+      executable: bin/python3
+      args: [-u, agent/main.py]
+      env:
+        PYTHONHOME: "{bundle}/prefix"
+        PYTHONPATH: "{bundle}/site-packages/pure.zip:{bundle}/site-packages"
+        LD_LIBRARY_PATH: "{bundle}/prefix/lib:{nativeLibs}"
+        MAAFW_BINARY_PATH: "{nativeLibs}"
+
+# 只保留后台虚拟屏。资源按 720P 制作，前台模式在手机主屏上分辨率/比例不一致，
+# 识别会漂；代价是 Android 10（API 29）以下无法使用后台模式。
+display:
+  foreground: false
+  presets:
+    - label: 720P
+      width: 1280
+      height: 720
+      dpi: 240
+
+# 包名拼成 com.aliothmoon.maafw.mak
+app:
+  id: mak
+  label: 雪松小助手
+  icon: pi/resource/image/Game_Icon.png

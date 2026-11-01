@@ -5,6 +5,11 @@ import sys
 import subprocess
 from pathlib import Path
 
+# Android（MaaFwApp 打包）由外壳提供打包好的 Python 运行时：设备上没有 venv，
+# 也不应联网执行 pip install。Chaquopy/CPython for Android 以 sys.platform == "android"
+# 标识，ANDROID_ROOT 作为兜底。
+IS_ANDROID = sys.platform == "android" or "ANDROID_ROOT" in os.environ
+
 # utf-8
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 # stderr 同样固定 UTF-8：agent 日志（log_message 的 "level:消息" 行）经 stderr 输出，
@@ -204,8 +209,10 @@ def agent():
 
 
 def main():
-    ensure_venv_and_relaunch_if_needed()
-    check_and_install_dependencies()
+    # 桌面端保留原有的 venv / 依赖安装流程；Android 上直接进入 agent。
+    if not IS_ANDROID:
+        ensure_venv_and_relaunch_if_needed()
+        check_and_install_dependencies()
     agent()
 
 

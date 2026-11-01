@@ -14,8 +14,8 @@ export default hopeTheme({
         {
           text: "用户文档",
           children: [
-            { text: "快速开始", link: "/guide/quickstart" },
-            { text: "FAQ", link: "/guide/faq" },
+            { text: "快速开始", link: "/guide/quickstart/" },
+            { text: "FAQ", link: "/guide/faq/" },
             { text: "问题排查手册", link: "/guide/trouble-shooting" },
             { text: "功能介绍", link: "/guide/features/" },
           ],
@@ -27,6 +27,7 @@ export default hopeTheme({
             { text: "新手入门", link: "/dev/beginner-guide/" },
             { text: "任务与节点", link: "/dev/tasks-and-nodes/" },
             { text: "项目规范", link: "/dev/project-conventions/" },
+            { text: "安卓打包", link: "/dev/android" },
             { text: "文档站开发", link: "/dev/docs-site" },
           ],
         },
@@ -43,12 +44,26 @@ export default hopeTheme({
         "/guide/": [
           {
             text: "快速开始",
-            link: "quickstart.md",
+            prefix: "quickstart/",
+            link: "quickstart/",
+            collapsible: true,
+            children: [
+              "mxu.md",
+              "mfaa.md",
+              "maafwapp.md",
+            ],
           },
           {
             text: "FAQ（常见问题）",
             icon: "fa-solid:question",
-            link: "faq.md",
+            prefix: "faq/",
+            link: "faq/",
+            collapsible: true,
+            children: [
+              "mxu.md",
+              "mfaa.md",
+              "maafwapp.md",
+            ],
           },
           {
             text: "问题排查手册",
@@ -160,6 +175,10 @@ export default hopeTheme({
             children: [],
           },
           {
+            text: "安卓打包",
+            link: "android.md",
+          },
+          {
             text: "文档站开发",
             link: "docs-site.md",
           },
@@ -179,8 +198,8 @@ export default hopeTheme({
         {
           text: "User Guide",
           children: [
-            { text: "Quick Start", link: "/en/guide/quickstart" },
-            { text: "FAQ", link: "/en/guide/faq" },
+            { text: "Quick Start", link: "/en/guide/quickstart/" },
+            { text: "FAQ", link: "/en/guide/faq/" },
             { text: "Troubleshooting", link: "/en/guide/trouble-shooting" },
             { text: "Features", link: "/en/guide/features/" },
           ],
@@ -192,6 +211,7 @@ export default hopeTheme({
             { text: "Beginner Guide", link: "/en/dev/beginner-guide/" },
             { text: "Tasks and Nodes", link: "/en/dev/tasks-and-nodes/" },
             { text: "Project Conventions", link: "/en/dev/project-conventions/" },
+            { text: "Android Packaging", link: "/en/dev/android" },
             { text: "Documentation Site Development", link: "/en/dev/docs-site" },
           ],
         },
@@ -204,12 +224,26 @@ export default hopeTheme({
         "/en/guide/": [
           {
             text: "Quick Start",
-            link: "quickstart.md",
+            prefix: "quickstart/",
+            link: "quickstart/",
+            collapsible: true,
+            children: [
+              "mxu.md",
+              "mfaa.md",
+              "maafwapp.md",
+            ],
           },
           {
             text: "FAQ",
             icon: "fa-solid:question",
-            link: "faq.md",
+            prefix: "faq/",
+            link: "faq/",
+            collapsible: true,
+            children: [
+              "mxu.md",
+              "mfaa.md",
+              "maafwapp.md",
+            ],
           },
           {
             text: "Troubleshooting",
@@ -319,6 +353,10 @@ export default hopeTheme({
           {
             text: "",
             children: [],
+          },
+          {
+            text: "Android Packaging",
+            link: "android.md",
           },
           {
             text: "Documentation Site Development",

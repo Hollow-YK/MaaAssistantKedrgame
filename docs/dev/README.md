@@ -16,6 +16,10 @@ title: 开发文档
 - [新手入门](./beginner-guide/)
 - [任务与节点](./tasks-and-nodes/)
 
+## 平台构建
+
+- [安卓打包](./android)
+
 ## MaaFramework 相关
 
 - [MAAFW 文档](../maafw/)

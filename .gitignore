@@ -470,3 +470,13 @@ pyvenv.cfg
 .vscode/extensions/*
 !.vscode/extensions/maak-scene-jump/
 !.vscode/extensions/maak-scene-jump/**
+
+# Android 打包生成物（PI 暂存 / agent 运行时）
+# MaaFwApp 外壳是 submodule（Android/MaaFwApp），固定在具体 commit，不能忽略。
+/Android/agent-dist/
+/Android/pi/
+
+# Android release 签名材料，绝不入库
+*.jks
+*.keystore
+release.jks

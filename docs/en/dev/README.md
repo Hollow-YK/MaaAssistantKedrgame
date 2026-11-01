@@ -20,6 +20,10 @@ This is the development documentation hub for MAK, the assistant for 《雪松�
 - [Beginner Guide](/en/dev/beginner-guide/)
 - [Tasks and Nodes](/en/dev/tasks-and-nodes/)
 
+## Platform Builds
+
+- [Android Packaging](/en/dev/android)
+
 ## MaaFramework Resources
 
 - [MAAFW Documentation](/en/maafw/)

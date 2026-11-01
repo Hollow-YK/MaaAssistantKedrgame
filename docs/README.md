@@ -5,7 +5,7 @@ tagline: 基于 MaaFramework 的《雪松》自动化小助手
 heroFullScreen: true
 actions:
   - text: 快速开始
-    link: /guide/quickstart
+    link: /guide/quickstart/
     type: primary
   - text: GitHub
     link: https://github.com/Hollow-YK/MaaAssistantKedrgame
