@@ -76,7 +76,7 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
         "Combat_SkillMaterial": {
             "desc": "出击-技能演练",
             "detect": "UI_Combat_SkillMaterial_selected",
-            "parent": "Combat"
+            "parent": "Combat" // 多父时可写成数组，如 ["Combat", "Activity_1"]
         }
     }
 }
@@ -86,7 +86,7 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
 | --- | --- |
 | `desc` | 场景描述，用于日志与扩展悬停 |
 | `detect` | （可选）用于识别该场景的识别条件；**缺省表示该场景仅作 `parent`** 的抽象场景，不直接识别，也不要求对应 pipeline 节点。支持字符串与组合两种写法，见下 |
-| `parent` | （可选）父场景名。表示“处于子场景即视为处于父场景”，规划时子场景可使用父场景的出边 |
+| `parent` | （可选）父场景名，可为**单个场景名或场景名数组**（多父）。表示“处于子场景即视为处于父场景”，规划时子场景可使用所有父场景（沿 `parent` 链）的出边 |
 
 #### detect 的两种写法
 
@@ -188,6 +188,9 @@ Schema：`agent/custom/action/scene_jump_map.schema.json`
   因此共用节点不会重复识别、失败时后续组合场景直接短路。
 - **`parent` 出边继承**：处于子场景即可使用父场景（沿 `parent` 链）的出边。例如
   `MainMenu → Combat_MainStory`（子场景），再借 `Combat` 的出边到达 `Combat_SkillMaterial`。
+- **多父 `parent`**：`parent` 可写成数组（如 `["Combat", "Activity_1"]`），此时子场景同时视为处于
+  所有父场景；“是否已到目标”的判断与可用出边都取所有父场景并集（父场景可各自再有 `parent`，
+  允许菱形结构；父链成环会自动去重，不会死循环）。
 - **多起点选择**：同一时刻可能有多个场景同时满足识别（如出击页与其子 Tab），这些场景都可作起点，
   自动选择“到目标总成本最小”的那一个。
 

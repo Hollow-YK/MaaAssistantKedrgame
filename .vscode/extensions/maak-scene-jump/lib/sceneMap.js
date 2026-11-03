@@ -171,7 +171,7 @@ function scanJsoncStrings(text) {
  * 返回引用类型字符串，非引用返回 null：
  *   场景引用（指向 scenes 中同名场景定义）:
  *     'scene'   —— scenes 下的场景名（key）
- *     'parent'  —— 场景的父场景
+ *     'parent'  —— 场景的父场景（可为字符串或数组）
  *     'from' / 'to' —— 边的当前/目标场景
  *     'via'     —— 边的中间场景
  *   节点引用（指向 pipeline 中的节点定义）:
@@ -188,8 +188,10 @@ function refKind(tok) {
     const last = s[s.length - 1];
     if (last === 'detect' || last === 'parent') return last;
     if (typeof last === 'number') {
-      // detect 组合写法中的子识别节点：scenes.<场景>.detect.all_of[i] / .any_of[i]
       const field = s[s.length - 2];
+      // parent 数组中的元素（多父）
+      if (field === 'parent') return 'parent';
+      // detect 组合写法中的子识别节点：scenes.<场景>.detect.all_of[i] / .any_of[i]
       if ((field === 'all_of' || field === 'any_of') && s[s.length - 3] === 'detect') {
         return 'detect';
       }

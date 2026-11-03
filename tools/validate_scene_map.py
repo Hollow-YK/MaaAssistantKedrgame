@@ -185,7 +185,12 @@ def main():
                         resolve_node(f"scenes.{name}.detect.{field}[{j}]", v)
         # 未指定 detect：仅作 parent 的抽象场景，不直接识别，不要求 pipeline 节点
         parent = sc.get("parent")
-        if parent:
+        if isinstance(parent, list):
+            # parent 支持场景名数组（多父）
+            for j, v in enumerate(parent):
+                if v:
+                    check_scene(f"scenes.{name}.parent[{j}]", v, "parent")
+        elif parent:
             check_scene(f"scenes.{name}.parent", parent, "parent")
 
     # ---- edges 引用 ----

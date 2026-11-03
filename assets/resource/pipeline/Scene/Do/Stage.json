@@ -53,5 +53,16 @@
                 "end_hold": 500
             }
         }
+    },
+    "SceneDo_Click_StageDetails_Close": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Combat_StageDetails_Close"
+                ]
+            }
+        },
+        "action": "Click"
     }
 }

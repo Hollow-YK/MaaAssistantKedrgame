@@ -212,6 +212,22 @@ function testDetectComposite() {
 }
 testDetectComposite();
 
+// ── parent 数组（多父）场景引用分类自测 ───────────────────────────────
+function testParentArray() {
+  const snip =
+    '{"scenes":{"A":{},"B":{},"C":{},"D":{"parent":["A","B"]}},"edges":[]}';
+  const toks = scanJsoncStrings(snip);
+  const kinds = toks
+    .filter((t) => !t.isKey && t.segments[0] === 'scenes')
+    .filter((t) => refKind(t))
+    .map((t) => `${t.value}:${refKind(t)}`);
+  if (kinds.indexOf('A:parent') < 0 || kinds.indexOf('B:parent') < 0) {
+    throw new Error(`parent 数组分类错误: ${kinds.join(',')}`);
+  }
+  console.log('✓ parent 数组场景引用分类测试通过');
+}
+testParentArray();
+
 // ── 残缺 JSON 不死循环自测 ────────────────────────────────────────────
 function testMalformed() {
   const cases = [
