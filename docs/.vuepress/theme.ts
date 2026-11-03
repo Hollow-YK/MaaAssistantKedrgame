@@ -2,7 +2,7 @@ import { hopeTheme } from "vuepress-theme-hope";
 
 export default hopeTheme({
   hostname: "https://Hollow-YK.github.io",
-  logo: "/MaaAssistantKedrgame/logo.png",
+  logo: "/MaaAssistantKedrgame/icon.png",
 
   repo: "Hollow-YK/MaaAssistantKedrgame",
   docsDir: "docs",

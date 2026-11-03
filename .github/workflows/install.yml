@@ -165,7 +165,7 @@ jobs:
           if ! command -v magick >/dev/null; then
             choco install imagemagick --version=7.1.2.2500 -y --no-progress
           fi
-          magick convert assets/resource/image/Game_Icon.png -define icon:auto-resize=256,128,64,48,32,24,16 mak.ico
+          magick convert icon.png -define icon:auto-resize=256,128,64,48,32,24,16 mak.ico
 
       - name: Modify Windows exe icons
         if: matrix.os == 'win' && matrix.arch == 'x86_64'

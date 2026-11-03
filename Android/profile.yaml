@@ -62,4 +62,5 @@ display:
 app:
   id: mak
   label: 雪松小助手
-  icon: pi/resource/image/Game_Icon.png
+  # 仓库根的 icon.webp（路径相对本文件所在目录 Android/），不进 PI，仅作启动图标源
+  icon: ../icon.webp
