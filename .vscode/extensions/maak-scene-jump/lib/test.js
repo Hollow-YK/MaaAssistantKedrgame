@@ -7,7 +7,15 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { scanJsoncStrings, refKind, isSceneRef, buildNodeIndex, fieldAt, parseJsonc } = require('./sceneMap');
+const {
+  scanJsoncStrings,
+  refKind,
+  isSceneRef,
+  buildNodeIndex,
+  fieldAt,
+  parseJsonc,
+  resourceDirsFromInterface,
+} = require('./sceneMap');
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const MAP_FILE = path.join(REPO_ROOT, 'agent', 'custom', 'action', 'scene_jump_map.json');
 const mapText = fs.readFileSync(MAP_FILE, 'utf-8');
@@ -23,27 +31,26 @@ function rglob(dir, exts, out = []) {
 }
 
 function resolveResourceDirs() {
-  // 与扩展的 resolveResourcePaths 一致：从 assets/interface.json 的 resource[].path 推导
-  const dirs = new Set();
+  // 与扩展的 resolveResourceUris 一致：共用 sceneMap.resourceDirsFromInterface 解析
+  // assets/interface.json（JSONC，含注释）的 resource[].path + controller[].attach_resource_path。
   const ifacePath = path.join(REPO_ROOT, 'assets', 'interface.json');
+  const dirs = [];
   if (fs.existsSync(ifacePath)) {
-    try {
-      const iface = parseJsonc(fs.readFileSync(ifacePath, 'utf-8'));
-      for (const res of iface.resource || []) {
-        for (const p of res.path || []) {
-          dirs.add(path.resolve(path.dirname(ifacePath), p));
-        }
-      }
-    } catch (e) {
-      console.warn(`解析 interface.json 失败: ${e}`);
+    const text = fs.readFileSync(ifacePath, 'utf-8');
+    for (const rel of resourceDirsFromInterface(text)) {
+      const clean = rel.replace(/^\.\//, '').replace(/\/+$/, '');
+      if (!clean || clean.startsWith('/')) continue;
+      const dir = path.resolve(path.dirname(ifacePath), clean);
+      if (fs.existsSync(dir) && !dirs.includes(dir)) dirs.push(dir);
     }
   }
-  if (!dirs.size) {
+  if (!dirs.length) {
     for (const d of ['assets/resource', 'assets/resource_bilibili', 'assets/resource_taptap']) {
-      dirs.add(path.join(REPO_ROOT, d));
+      const dir = path.join(REPO_ROOT, d);
+      if (fs.existsSync(dir)) dirs.push(dir);
     }
   }
-  return [...dirs];
+  return dirs;
 }
 
 function main() {
@@ -103,6 +110,67 @@ function main() {
 function segPath(segs) {
   return segs.map((s, i) => (typeof s === 'number' ? `[${s}]` : i === 0 ? s : `.${s}`)).join('');
 }
+
+// ── 资源目录解析（JSONC interface.json）自测 ───────────────────────────
+function testResourceDirs() {
+  // 1) 真实 interface.json 是 JSONC（Maa 模板自带注释），必须能解析出渠道目录
+  const real = fs.readFileSync(path.join(REPO_ROOT, 'assets', 'interface.json'), 'utf-8');
+  let strictFailed = false;
+  try { JSON.parse(real); } catch { strictFailed = true; }
+  if (!strictFailed) throw new Error('assets/interface.json 已无注释，本用例前提失效（请复核资源目录解析路径）');
+  const fromReal = resourceDirsFromInterface(real);
+  for (const want of ['./resource', './resource_bilibili', './resource_taptap']) {
+    if (!fromReal.includes(want)) {
+      throw new Error(`interface.json 未解析出 ${want}：${JSON.stringify(fromReal)}`);
+    }
+  }
+
+  // 2) 注释 + controller.attach_resource_path（{PROJECT_DIR} 归一化为 .）；重复路径去重
+  const fixture = `{
+    // 带注释
+    "resource": [{ "name": "a", "path": ["./resource", "./resource_b"] }],
+    "controller": [{ "name": "adb", "attach_resource_path": ["{PROJECT_DIR}/resource_c", "./resource"] }]
+  }`;
+  const got = resourceDirsFromInterface(fixture);
+  const want = ['./resource', './resource_b', './resource_c'];
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
+    throw new Error(`资源目录解析错误：${JSON.stringify(got)} != ${JSON.stringify(want)}`);
+  }
+
+  // 3) 解析失败返回空数组，而不是抛出
+  if (resourceDirsFromInterface('{ 坏 JSON').length !== 0) {
+    throw new Error('无法解析的 interface 应返回空数组');
+  }
+  console.log('✓ 资源目录解析（JSONC interface）测试通过');
+}
+testResourceDirs();
+
+// ── 字符串值范围（定义跳转 Range 用）自测 ─────────────────────────────
+function testTokenSpans() {
+  const text = '{\n    "UI_X": "UI_Y"\n}';
+  const toks = scanJsoncStrings(text);
+  if (!toks.length) throw new Error('扫描不到 token');
+  for (const t of toks) {
+    const sliced = text.slice(t.valueStart, t.valueEnd);
+    if (sliced !== t.value) throw new Error(`值范围不含引号断言失败：${JSON.stringify(sliced)} != ${JSON.stringify(t.value)}`);
+    if (!(t.start < t.valueStart && t.valueEnd < t.end)) throw new Error(`值范围未落在字面量内部：${JSON.stringify(t)}`);
+  }
+  // 未闭合字符串不应把范围算到负方向
+  for (const t of scanJsoncStrings('{"a": "unterminated')) {
+    if (!(t.valueEnd >= t.valueStart)) throw new Error(`未闭合字符串值范围异常：${JSON.stringify(t)}`);
+  }
+  // 索引里的定义范围应正好是节点名本身（此前会多带一个左引号）
+  const idx = buildNodeIndex([{ path: 'p.json', text }]);
+  const d = idx.get('UI_X')[0];
+  if (text.slice(d.valueStart, d.valueEnd) !== 'UI_X') {
+    throw new Error(`定义范围未指向节点名：${JSON.stringify(text.slice(d.valueStart, d.valueEnd))}`);
+  }
+  if (d.valueStart !== text.indexOf('UI_X') || d.valueEnd !== d.valueStart + 4) {
+    throw new Error(`定义范围偏移错误：${d.valueStart}..${d.valueEnd}`);
+  }
+  console.log('✓ 字符串值范围（定义跳转 Range）测试通过');
+}
+testTokenSpans();
 
 // ── fieldAt（补全定位）自测 ───────────────────────────────────────────
 function testFieldAt() {

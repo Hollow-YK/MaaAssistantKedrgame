@@ -47,14 +47,52 @@ function parseJsonc(text) {
   return JSON.parse(stripJsonc(text));
 }
 
+/**
+ * 从 interface.json（JSONC，允许注释）中提取资源目录的相对路径。
+ *
+ * 与 maa-support 推导 Bundle 根目录的方式保持一致：
+ *   - resource[].path
+ *   - controller[].attach_resource_path（其中 {PROJECT_DIR} 表示 interface.json 所在目录）
+ * interface.json 一律是 JSONC（Maa 官方模板自带注释），因此必须走 parseJsonc；
+ * 用严格 JSON.parse 会解析失败并静默退化。
+ *
+ * 返回按出现顺序去重的相对路径数组；解析失败返回 []。
+ */
+function resourceDirsFromInterface(text) {
+  let obj;
+  try {
+    obj = parseJsonc(text);
+  } catch {
+    return [];
+  }
+  const out = [];
+  const seen = new Set();
+  const add = (p) => {
+    if (typeof p !== 'string') return;
+    const norm = p.replace(/\{PROJECT_DIR\}/g, '.').replace(/\\/g, '/');
+    if (!norm || seen.has(norm)) return;
+    seen.add(norm);
+    out.push(norm);
+  };
+  const asArray = (v) => (Array.isArray(v) ? v : typeof v === 'string' ? [v] : []);
+  for (const res of asArray(obj && obj.resource)) {
+    for (const p of asArray(res && res.path)) add(p);
+  }
+  for (const ctrl of asArray(obj && obj.controller)) {
+    for (const p of asArray(ctrl && ctrl.attach_resource_path)) add(p);
+  }
+  return out;
+}
+
 // ── 字符串扫描（带 JSON 路径与偏移）──────────────────────────────────
 
 /**
  * 扫描文本中所有字符串字面量，返回 token 数组：
- *   { segments: Array<string|number>, isKey?: boolean, value: string, start: number, end: number }
+ *   { segments, isKey?, value, start, end, valueStart, valueEnd }
  * segments 为从根到该字符串的 JSON 路径段（对象键为字符串，数组下标为数字）。
  * 对于对象键 token：segments 为该键所属对象的路径（不含键本身），isKey=true。
- * start/end 为字节偏移（不含注释，偏移与原文一致）。
+ * start/end 为字节偏移（不含注释，偏移与原文一致）；valueStart/valueEnd 为字面量
+ * 去掉两侧引号后的内容范围，用于定义跳转/悬停的精确 Range。
  */
 function scanJsoncStrings(text) {
   const tokens = [];
@@ -88,10 +126,15 @@ function scanJsoncStrings(text) {
       else if (c === '"') { i++; break; }
       else i++;
     }
-    const raw = text.slice(start, i);
+    const end = i; // 结束引号之后（字符串未闭合时等于 n）
+    // 值范围（不含两侧引号）：跳转/悬停用它定位，避免把引号算进定义范围。
+    // 与 maa-support 用 jsonc-parser 节点 offset/length 时的 +1 / -2 修正同源。
+    const valueStart = start + 1;
+    const valueEnd = end > valueStart && text[end - 1] === '"' ? end - 1 : end;
+    const raw = text.slice(start, end);
     let value;
     try { value = JSON.parse(raw); } catch { value = raw.slice(1, -1); }
-    return { start, end: i, value };
+    return { start, end, valueStart, valueEnd, value };
   }
 
   function skipPrimitive() {
@@ -108,7 +151,14 @@ function scanJsoncStrings(text) {
     const c = text[i];
     if (c === '"') {
       const tok = parseStringToken();
-      tokens.push({ segments: path.slice(), value: tok.value, start: tok.start, end: tok.end });
+      tokens.push({
+        segments: path.slice(),
+        value: tok.value,
+        start: tok.start,
+        end: tok.end,
+        valueStart: tok.valueStart,
+        valueEnd: tok.valueEnd,
+      });
       return;
     }
     if (c === '{') {
@@ -119,7 +169,15 @@ function scanJsoncStrings(text) {
         skipWs();
         if (i >= n || text[i] !== '"') { skipPrimitive(); break; }
         const keyTok = parseStringToken();
-        tokens.push({ segments: path.slice(), isKey: true, value: keyTok.value, start: keyTok.start, end: keyTok.end });
+        tokens.push({
+          segments: path.slice(),
+          isKey: true,
+          value: keyTok.value,
+          start: keyTok.start,
+          end: keyTok.end,
+          valueStart: keyTok.valueStart,
+          valueEnd: keyTok.valueEnd,
+        });
         skipWs();
         if (text[i] === ':') i++;
         path.push(keyTok.value);
@@ -245,7 +303,14 @@ function buildNodeIndex(files) {
     for (const t of tokens) {
       if (t.isKey && t.segments.length === 0) {
         if (!index.has(t.value)) index.set(t.value, []);
-        index.get(t.value).push({ path: f.path, offset: t.start, text: f.text });
+        index.get(t.value).push({
+          path: f.path,
+          offset: t.start,
+          // 定义范围应指向节点名本身，而不是它两侧的引号
+          valueStart: t.valueStart,
+          valueEnd: t.valueEnd,
+          text: f.text,
+        });
       }
     }
   }
@@ -385,6 +450,7 @@ function fieldAt(text, offset, toks) {
 module.exports = {
   stripJsonc,
   parseJsonc,
+  resourceDirsFromInterface,
   scanJsoncStrings,
   refKind,
   isSceneRef,

@@ -34,22 +34,34 @@ Maa 支持扩展 [maa-support-extension](https://github.com/neko-para/maa-suppor
 Pipeline 语义分析（节点索引 + 定义解析）只覆盖 `interface.json` 资源路径下的 `pipeline/**`，
 无法覆盖 `agent/` 下的自定义数据文件；且其不导出公共 API，无法直接调用其内部能力。
 
-本扩展**借用同样的实现思路**（解析 `assets/interface.json` 的 `resource[].path` 建立“节点名 →
-定义位置”索引，再解析 `scene_jump_map.json` 中的引用），独立实现等价能力（见 `lib/sceneMap.js`），
-不依赖 maa-support 内部实现。
+本扩展**借用同样的实现思路**（解析 `assets/interface.json` 建立“节点名 → 定义位置”索引，
+再解析 `scene_jump_map.json` 中的引用），独立实现等价能力（见 `lib/sceneMap.js`），
+不依赖 maa-support 内部实现。三处关键行为与 maa-support 对齐：
+
+- **资源目录**：`assets/interface.json` 所在目录下的 `resource[].path` 与
+  `controller[].attach_resource_path`（其中 `{PROJECT_DIR}` 表示该目录），只取真实存在的目录；
+  不再全仓搜索 `interface.json`，因此不会把 `install/`、`Android/` 等部署快照扫进索引。
+- **JSONC 解析**：`interface.json` 与 pipeline 资源都允许注释（Maa 模板自带 `//` 注释），
+  统一按 JSONC 解析；用严格 `JSON.parse` 会静默解析失败。
+- **重建合并**：资源文件变更后延迟 100ms 合并重建（同 maa-support `ContentJson.dispatchFlush`），
+  重建期间到来的事件只标记“再跑一次”，避免并发重建；`interface.json` 变化会重新解析资源目录。
 
 ## 使用
 
 1. 本扩展位于 `.vscode/extensions/maak-scene-jump/`，属于工作区扩展，仅在本项目生效。
 2. 重新加载 VS Code 窗口（`Developer: Reload Window`）；首次可能提示安装/信任工作区扩展。
 3. 打开 `agent/custom/action/scene_jump_map.json`，即可对节点引用进行跳转/悬停/查找引用/补全。
-4. 修改 pipeline 资源后索引会自动重建；也可用命令 `MaaK: 刷新 SceneJump 节点索引` 手动刷新。
+4. 修改 pipeline 资源或 `interface.json` 后索引会自动重建；也可用命令
+   `MaaK: 刷新 SceneJump 节点索引` 手动刷新。状态栏显示已索引的节点数，输出面板
+   `SceneJump` 通道记录每次重建的规模与耗时。
 
 ## 开发 / 测试
 
-纯逻辑（扫描/索引/引用分类）不依赖 VS Code，可直接用 Node 测试：
+纯逻辑（扫描/索引/引用分类/资源目录解析）不依赖 VS Code，可直接用 Node 测试：
 
 ```sh
+npm test --prefix .vscode/extensions/maak-scene-jump
+# 等价于
 node .vscode/extensions/maak-scene-jump/lib/test.js
 ```
 

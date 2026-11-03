@@ -9,6 +9,11 @@
  *
  * 能力与 nekosu.maa-support 的 Pipeline 语义分析同源（建立节点索引并解析引用），
  * 因 maa-support 未暴露公共 API，此处独立实现其等价逻辑（见 lib/sceneMap.js）。
+ * 其中资源目录推导、JSONC 解析、重建防抖三点与 maa-support 的做法保持一致：
+ *   - 资源目录 = interface.json 所在目录下的 resource[].path + controller[].attach_resource_path；
+ *   - interface.json 一律按 JSONC 解析（Maa 官方模板自带注释）；
+ *   - 文件变更后延迟合并重建（maa-support ContentJson.dispatchFlush 为 100ms），
+ *     重建期间到来的事件标记为“再跑一次”，避免并发重建。
  */
 
 const path = require('path');
@@ -16,6 +21,7 @@ const vscode = require('vscode');
 const {
   scanJsoncStrings,
   parseJsonc,
+  resourceDirsFromInterface,
   refKind,
   isSceneRef,
   tokenAt,
@@ -25,60 +31,226 @@ const {
 } = require('./lib/sceneMap');
 
 const MAP_PATTERN = '**/agent/custom/action/scene_jump_map.json';
+/** 找不到 assets/interface.json 时的兜底资源目录（与 Maa 插件默认一致）。 */
+const FALLBACK_RESOURCE_DIRS = [
+  'assets/resource',
+  'assets/resource_bilibili',
+  'assets/resource_taptap',
+];
+/** 单次索引扫描的文件上限，达到上限时告警而不是静默截断。 */
+const MAX_INDEX_FILES = 8000;
+/** 文件变更后的重建合并窗口（同 maa-support 的 100ms）。 */
+const REBUILD_DEBOUNCE_MS = 100;
 
 let nodeIndex = new Map(); // pipeline 节点名 -> 定义位置（资源文件变更时重建）
+let watchers = [];
+let watchKey = ''; // 当前监视的资源目录集合，用于判断是否需要重建监视器
+let rebuildTimer = null;
+let rebuildReason = '';
+let rebuilding = false;
+let rebuildAgain = false;
+let output = null;
+let statusItem = null;
+
+function log(message) {
+  const line = `[${new Date().toLocaleTimeString()}] ${message}`;
+  if (output) output.appendLine(line);
+  else console.log(`[SceneJump] ${line}`);
+}
+
+/** 读取文本文件；不存在或不可读时返回 null（不抛异常）。 */
+async function readText(uri) {
+  try {
+    const bytes = await vscode.workspace.fs.readFile(uri);
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+async function exists(uri) {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 取父目录（不依赖 Uri.joinPath 对 '..' 的归一化行为）。 */
+function parentUri(uri) {
+  return uri.with({ path: uri.path.replace(/\/[^/]*$/, '') });
+}
 
 /**
- * 从 interface.json 的 resource[].path 推导真实资源目录（与 Maa 插件一致）。
- * 优先使用 assets/interface.json；找不到时回退到 assets/resource*。
- * 只索引真实游戏资源，不会把 install/install-mxu 等部署快照扫进来。
+ * 解析要索引的资源目录与 interface.json 位置（与 maa-support 的 Bundle 根目录推导一致）。
+ * 只看工作区自身的 assets/interface.json，不会把 install/、Android/ 等部署快照扫进来；
+ * interface.json 是 JSONC，必须用 parseJsonc 解析（见 lib/sceneMap.js）。
+ * 只保留真实存在的目录；一个都没解析到时回退到默认资源目录。
  */
-async function resolveResourcePaths() {
-  const root = vscode.workspace.workspaceFolders?.[0]?.uri;
-  const dirs = new Set();
-  const addIface = async (iface) => {
-    try {
-      const doc = await vscode.workspace.openTextDocument(iface);
-      const obj = JSON.parse(doc.getText());
-      for (const res of obj.resource || []) {
-        for (const p of res.path || []) {
-          dirs.add(vscode.Uri.joinPath(iface, '..', p));
-        }
-      }
-    } catch {
-      /* 忽略无法解析的 interface.json */
-    }
+async function resolveResourceUris() {
+  const dirs = [];
+  const ifaces = [];
+  const seen = new Set();
+  const push = async (uri) => {
+    const key = uri.toString();
+    if (seen.has(key)) return;
+    if (!(await exists(uri))) return;
+    seen.add(key);
+    dirs.push(uri);
   };
 
-  if (root) {
-    const primary = vscode.Uri.joinPath(root, 'assets', 'interface.json');
-    try {
-      await vscode.workspace.fs.stat(primary);
-      await addIface(primary);
-    } catch {
-      const uris = await vscode.workspace.findFiles(
-        '**/interface.json',
-        '**/{node_modules,.git,deps}/**',
-        20
-      );
-      for (const u of uris) await addIface(u);
+  for (const folder of vscode.workspace.workspaceFolders || []) {
+    const iface = vscode.Uri.joinPath(folder.uri, 'assets', 'interface.json');
+    const text = await readText(iface);
+    if (text === null) continue;
+    ifaces.push(iface);
+    const base = parentUri(iface);
+    for (const rel of resourceDirsFromInterface(text)) {
+      const clean = rel.replace(/^\.\//, '').replace(/\/+$/, '');
+      if (!clean || clean.startsWith('/')) continue;
+      await push(vscode.Uri.joinPath(base, clean));
     }
-    if (!dirs.size) {
-      for (const d of ['assets/resource', 'assets/resource_bilibili', 'assets/resource_taptap']) {
-        dirs.add(vscode.Uri.joinPath(root, d));
+  }
+
+  if (!dirs.length) {
+    log('未从 assets/interface.json 解析到可用资源目录，回退到默认资源目录');
+    for (const folder of vscode.workspace.workspaceFolders || []) {
+      for (const d of FALLBACK_RESOURCE_DIRS) {
+        await push(vscode.Uri.joinPath(folder.uri, d));
       }
     }
   }
-  return [...dirs];
+  return { dirs, ifaces };
 }
+
+/** 收集 pipeline/tasks 下的 JSON/JSONC 文本（含资源根目录的 default_pipeline.json）。 */
+async function collectIndexFiles(dirs) {
+  const files = [];
+  const seen = new Set();
+  const add = async (uri) => {
+    const key = uri.fsPath;
+    if (seen.has(key)) return;
+    const text = await readText(uri);
+    if (text === null) return;
+    seen.add(key);
+    files.push({ path: key, text });
+  };
+
+  for (const dir of dirs) {
+    for (const sub of ['pipeline', 'tasks']) {
+      const uris = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(vscode.Uri.joinPath(dir, sub), '**/*.{json,jsonc}'),
+        '**/node_modules/**',
+        MAX_INDEX_FILES
+      );
+      if (uris.length >= MAX_INDEX_FILES) {
+        log(`⚠ ${dir.fsPath} 下 ${sub} 文件数达到上限 ${MAX_INDEX_FILES}，索引可能不完整`);
+      }
+      for (const uri of uris) await add(uri);
+    }
+    // 与 Maa 插件一致，额外收录资源根目录下的 default_pipeline.json
+    await add(vscode.Uri.joinPath(dir, 'default_pipeline.json'));
+  }
+  return files;
+}
+
+function setupWatchers(dirs, ifaces) {
+  for (const w of watchers) w.dispose();
+  watchers = [];
+  const watch = (pattern, delay, reason) => {
+    const w = vscode.workspace.createFileSystemWatcher(pattern);
+    const fire = () => scheduleRebuild(delay, reason);
+    w.onDidChange(fire);
+    w.onDidCreate(fire);
+    w.onDidDelete(fire);
+    watchers.push(w);
+  };
+  for (const dir of dirs) {
+    watch(new vscode.RelativePattern(dir, '**/*.{json,jsonc}'), REBUILD_DEBOUNCE_MS, '资源文件变更');
+  }
+  for (const iface of ifaces) {
+    // interface.json 变化可能改变资源目录集合（等价于 maa-support 的 interfaceChanged → updatePaths）
+    watch(new vscode.RelativePattern(parentUri(iface), 'interface.json'), 0, 'interface.json 变更');
+  }
+}
+
+/** 延迟合并重建：窗口内的多个事件只触发一次（对应 maa-support 的 dispatchFlush）。 */
+function scheduleRebuild(delay = REBUILD_DEBOUNCE_MS, reason = '文件变更') {
+  rebuildReason = reason;
+  if (rebuildTimer) return;
+  rebuildTimer = setTimeout(() => {
+    rebuildTimer = null;
+    void runRebuild(rebuildReason);
+  }, delay);
+}
+
+async function rebuildIndex(reason) {
+  const started = Date.now();
+  const { dirs, ifaces } = await resolveResourceUris();
+  const key = [...dirs, ...ifaces].map((u) => u.toString()).join('|');
+  if (key !== watchKey) {
+    watchKey = key;
+    setupWatchers(dirs, ifaces);
+  }
+
+  const files = await collectIndexFiles(dirs);
+  nodeIndex = buildNodeIndex(files);
+
+  const ms = Date.now() - started;
+  log(
+    `${reason}：索引 ${nodeIndex.size} 个节点 / ${files.length} 个文件` +
+      `（${dirs.length} 个资源目录，用时 ${ms}ms）`
+  );
+  if (statusItem) {
+    statusItem.text = `$(symbol-namespace) SceneJump ${nodeIndex.size}`;
+    statusItem.tooltip = `SceneJump 已索引 ${nodeIndex.size} 个 pipeline 节点（${files.length} 个文件，${ms}ms）\n点击刷新索引`;
+  }
+}
+
+/**
+ * 串行化重建：进行中时只标记“再跑一次”，避免并发重建（对应 maa-support 的 duringFlush/needFlush）。
+ * 任何异常都只记录日志，不影响已注册的 provider 与手动刷新命令。
+ */
+async function runRebuild(reason) {
+  if (rebuilding) {
+    rebuildAgain = true;
+    return;
+  }
+  rebuilding = true;
+  try {
+    await rebuildIndex(reason);
+  } catch (err) {
+    log(`✗ 索引重建失败：${err && err.message ? err.message : err}`);
+    if (statusItem) {
+      statusItem.text = '$(warning) SceneJump';
+      statusItem.tooltip = `SceneJump 索引重建失败：${err && err.message ? err.message : err}`;
+    }
+  } finally {
+    rebuilding = false;
+    if (rebuildAgain) {
+      rebuildAgain = false;
+      scheduleRebuild(0, '排程合并');
+    }
+  }
+}
+
+/* ── SceneJump 文档内解析（不依赖缓存，编辑后立即可用）──────────────── */
 
 function rel(p) {
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  return root && p.startsWith(root) ? path.relative(root, p) : p;
+  if (!root || !p.startsWith(root)) return p;
+  // 与 tools/validate_scene_map.py 的输出保持一致：统一用 '/'
+  return path.relative(root, p).split(path.sep).join('/');
 }
 
 function docTokens(doc) {
   return scanJsoncStrings(doc.getText());
+}
+
+function positionAt(text, offset) {
+  const pos = offsetToPosition(text, offset);
+  return new vscode.Position(pos.line, pos.col);
 }
 
 /**
@@ -100,17 +272,8 @@ function buildSceneInfo(doc) {
   for (const t of toks) {
     if (t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes') {
       names.add(t.value);
-      locs.set(
-        t.value,
-        new vscode.Location(
-          doc.uri,
-          new vscode.Range(doc.positionAt(t.start), doc.positionAt(t.end))
-        )
-      );
-      const data =
-        scenesObj[t.value] && typeof scenesObj[t.value] === 'object'
-          ? scenesObj[t.value]
-          : {};
+      locs.set(t.value, new vscode.Location(doc.uri, new vscode.Range(doc.positionAt(t.start), doc.positionAt(t.end))));
+      const data = scenesObj[t.value] && typeof scenesObj[t.value] === 'object' ? scenesObj[t.value] : {};
       defs.set(t.value, {
         desc: typeof data.desc === 'string' ? data.desc : '',
         def: `"${t.value}": ${JSON.stringify(data, null, 4)}`,
@@ -118,38 +281,6 @@ function buildSceneInfo(doc) {
     }
   }
   return { names, locs, defs };
-}
-
-async function rebuildIndex() {
-  const dirs = await resolveResourcePaths();
-  const files = [];
-  for (const dir of dirs) {
-    for (const sub of ['pipeline', 'tasks']) {
-      const uris = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(vscode.Uri.joinPath(dir, sub), '**/*.{json,jsonc}'),
-        '**/node_modules/**',
-        20000
-      );
-      for (const uri of uris.slice(0, 8000)) {
-        try {
-          const doc = await vscode.workspace.openTextDocument(uri);
-          files.push({ path: uri.fsPath, text: doc.getText() });
-        } catch {
-          /* 无法打开的文件跳过 */
-        }
-      }
-    }
-    // 与 Maa 插件一致，额外收录资源根目录下的 default_pipeline.json
-    const defUri = vscode.Uri.joinPath(dir, 'default_pipeline.json');
-    try {
-      await vscode.workspace.fs.stat(defUri);
-      const doc = await vscode.workspace.openTextDocument(defUri);
-      files.push({ path: defUri.fsPath, text: doc.getText() });
-    } catch {
-      /* 不存在则跳过 */
-    }
-  }
-  nodeIndex = buildNodeIndex(files);
 }
 
 function defsFor(token, kind, sceneInfo) {
@@ -164,25 +295,26 @@ function defsFor(token, kind, sceneInfo) {
   }
   // 节点引用（detect / jump）：跳到 pipeline 资源中的节点定义
   return (nodeIndex.get(token.value) || []).map((d) => {
-    const pos = offsetToPosition(d.text, d.offset);
-    const start = new vscode.Position(pos.line, pos.col);
+    // 定义范围指向节点名本身（valueStart/valueEnd 已排除引号），而不是包含引号
+    const from = d.valueStart !== undefined ? d.valueStart : d.offset;
+    const to = d.valueEnd !== undefined ? d.valueEnd : from + token.value.length;
     return new vscode.Location(
       vscode.Uri.file(d.path),
-      new vscode.Range(start, start.translate(0, token.value.length))
+      new vscode.Range(positionAt(d.text, from), positionAt(d.text, to))
     );
   });
 }
 
 async function activate(context) {
-  await rebuildIndex();
+  output = vscode.window.createOutputChannel('SceneJump');
+  context.subscriptions.push(output);
 
-  const watcher = vscode.workspace.createFileSystemWatcher(
-    '**/resource*/**/*.{json,jsonc}'
-  );
-  watcher.onDidChange(() => rebuildIndex());
-  watcher.onDidCreate(() => rebuildIndex());
-  watcher.onDidDelete(() => rebuildIndex());
-  context.subscriptions.push(watcher);
+  statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  statusItem.command = 'maak-scene-jump.refreshIndex';
+  statusItem.text = '$(symbol-namespace) SceneJump …';
+  statusItem.tooltip = 'SceneJump 节点索引：正在建立…';
+  statusItem.show();
+  context.subscriptions.push(statusItem);
 
   // 地图已关联为 jsonc（支持注释），同时覆盖 json/jsonc 以兼容不同编辑器设置
   const selector = [
@@ -225,16 +357,13 @@ async function activate(context) {
 
         if (isSceneRef(kind)) {
           // 场景引用：显示 desc + 场景定义内容 + 位置
-          const title =
-            scene && scene.desc ? `**${t.value}** — ${scene.desc}` : `**${t.value}**`;
+          const title = scene && scene.desc ? `**${t.value}** — ${scene.desc}` : `**${t.value}**`;
           md.appendMarkdown(`${title}  \`(${kind} · 场景)\``);
           if (scene) {
             md.appendCodeblock(scene.def, 'json');
             const loc = sceneInfo.locs.get(t.value);
             if (loc) {
-              md.appendMarkdown(
-                `\n定义位置: \`${rel(loc.uri.fsPath)}:${loc.range.start.line + 1}\``
-              );
+              md.appendMarkdown(`\n定义位置: \`${rel(loc.uri.fsPath)}:${loc.range.start.line + 1}\``);
             }
           } else {
             md.appendMarkdown('\n\n⚠ 该场景未在 scenes 中定义');
@@ -250,8 +379,8 @@ async function activate(context) {
         } else {
           md.appendMarkdown('\n\n**定义位置**\n\n');
           for (const d of defs.slice(0, 6)) {
-            const pos = offsetToPosition(d.text, d.offset);
-            md.appendMarkdown(`- \`${rel(d.path)}:${pos.line + 1}\`\n`);
+            const from = d.valueStart !== undefined ? d.valueStart : d.offset;
+            md.appendMarkdown(`- \`${rel(d.path)}:${offsetToPosition(d.text, from).line + 1}\`\n`);
           }
           if (defs.length > 6) md.appendMarkdown(`- …另有 ${defs.length - 6} 处\n`);
         }
@@ -293,15 +422,8 @@ async function activate(context) {
           if (!kind || kind === 'scene') continue; // 场景 key 自身即定义，不加链接
           const defs = defsFor(t, kind, sceneInfo);
           if (!defs.length) continue;
-          const target = defs[0].uri.with({
-            fragment: `L${defs[0].range.start.line + 1}`,
-          });
-          links.push(
-            new vscode.DocumentLink(
-              new vscode.Range(doc.positionAt(t.start), doc.positionAt(t.end)),
-              target
-            )
-          );
+          const target = defs[0].uri.with({ fragment: `L${defs[0].range.start.line + 1}` });
+          links.push(new vscode.DocumentLink(new vscode.Range(doc.positionAt(t.start), doc.positionAt(t.end)), target));
         }
         return links;
       },
@@ -315,7 +437,10 @@ async function activate(context) {
       {
         provideCompletionItems(doc, position) {
           const f = fieldAt(doc.getText(), doc.offsetAt(position), docTokens(doc));
-          if (!f) return [];
+          if (!f || f.kind === 'scene') {
+            // 场景名（key）自身即定义，不是引用位置，不给候选
+            return [];
+          }
           const items = [];
           const add = (name) => {
             const it = new vscode.CompletionItem(name, vscode.CompletionItemKind.Reference);
@@ -340,12 +465,22 @@ async function activate(context) {
   // 手动刷新索引
   context.subscriptions.push(
     vscode.commands.registerCommand('maak-scene-jump.refreshIndex', async () => {
-      await rebuildIndex();
+      await runRebuild('手动刷新');
       vscode.window.setStatusBarMessage('SceneJump 节点索引已刷新', 3000);
     })
   );
+
+  // provider 先就位，首建索引放在最后：即使索引失败也保留跳转/补全与手动刷新
+  await runRebuild('激活');
 }
 
-function deactivate() {}
+function deactivate() {
+  if (rebuildTimer) {
+    clearTimeout(rebuildTimer);
+    rebuildTimer = null;
+  }
+  for (const w of watchers) w.dispose();
+  watchers = [];
+}
 
 module.exports = { activate, deactivate };

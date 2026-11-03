@@ -14,6 +14,10 @@
         "workspaceContains:**/agent/custom/action/scene_jump_map.json"
     ],
     "main": "./extension.js",
+    "license": "AGPL-3.0",
+    "scripts": {
+        "test": "node lib/test.js"
+    },
     "contributes": {
         "commands": [
             {
