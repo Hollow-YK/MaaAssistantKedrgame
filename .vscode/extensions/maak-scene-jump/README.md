@@ -20,6 +20,9 @@
 - **`to` 多候选**：`to` 支持场景名列表，数组元素同样按场景引用处理。
 - **组合 `detect`**：`{"type":"And","all_of":[...]}` / `{"type":"Or","any_of":[...]}` 内的节点名同样按节点引用处理（跳转/悬停/补全）。
 - **`parent` 多父**：`parent` 支持场景名列表，数组元素同样按场景引用处理。
+- **内联提示**：场景引用（`from`/`to`/`parent`/`via`）旁以灰字显示目标场景的 `desc`；
+  `detect`/`jump` 旁显示 pipeline 节点的 `desc`（节点没有 `desc` 时不显示）。文本过长时省略、
+  完整内容放在悬停里；受 `editor.inlayHints.enabled` 总开关控制。
 - **引用诊断**（`Problems` 面板 + 波浪线）：只校验 JSON Schema 表达不了的**跨文件一致性**——
   节点引用能否在 pipeline 资源中解析到、场景引用是否在 `scenes` 中定义、场景名是否重复定义
   （重复时跳转只会到后一处）。规则与 `tools/validate_scene_map.py` 一致，消息来源标记为

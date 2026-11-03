@@ -6,7 +6,8 @@
  *   - 场景引用（scenes 场景名 key、parent、from、to、via）→ 跳到 scenes.<name> 定义
  *   - 节点引用（detect、jump）→ 跳到 pipeline 资源中的节点定义
  * 并提供：悬停提示、查找引用（Shift+F12）、文档链接（下划线可点击）、节点名补全、
- * 引用诊断（Problems 面板 + 波浪线，规则与 tools/validate_scene_map.py 一致）。
+ * 引用诊断（Problems 面板 + 波浪线，规则与 tools/validate_scene_map.py 一致）、
+ * 内联提示（引用处灰色显示对应场景/节点的 desc，同 maa-support 的任务文档提示）。
  *
  * 能力与 nekosu.maa-support 的 Pipeline 语义分析同源（建立节点索引并解析引用），
  * 因 maa-support 未暴露公共 API，此处独立实现其等价逻辑（见 lib/sceneMap.js）。
@@ -30,6 +31,7 @@ const {
   buildNodeIndex,
   offsetToPosition,
   collectDiagnostics,
+  collectInlayHints,
 } = require('./lib/sceneMap');
 
 const MAP_PATTERN = '**/agent/custom/action/scene_jump_map.json';
@@ -61,6 +63,7 @@ let rebuildAgain = false;
 let output = null;
 let statusItem = null;
 let diagnostics = null;
+let inlayHints = null; // 索引变化后通知 VS Code 重算内联提示
 let indexReady = false; // 首建索引完成前不出诊断，避免把未索引误报为“找不到节点”
 let indexIncomplete = false; // 走兜底目录或触顶时，节点类诊断降级为 warning
 const diagTimers = new Map(); // uri -> 诊断防抖定时器
@@ -227,6 +230,8 @@ async function rebuildIndex(reason) {
   }
   // 索引变化后重算已打开地图的诊断（此前可能因索引缺失而误报/漏报）
   refreshAllDiagnostics();
+  // 节点 desc 来自索引，索引变化后要让内联提示重算
+  if (inlayHints) inlayHints.fire();
 }
 
 /**
@@ -400,6 +405,30 @@ async function activate(context) {
   );
 
   const selector = MAP_SELECTOR;
+
+  // 内联提示：引用处灰色显示对应的 desc
+  // （同 maa-support 的 PipelineInlayHintsProvider：位置取字面量末尾、按可见 range 过滤）
+  inlayHints = new vscode.EventEmitter();
+  context.subscriptions.push(inlayHints);
+  context.subscriptions.push(
+    vscode.languages.registerInlayHintsProvider(MAP_SELECTOR, {
+      onDidChangeInlayHints: inlayHints.event,
+      provideInlayHints(doc, range) {
+        const sceneDescs = new Map();
+        for (const [name, info] of buildSceneInfo(doc).defs) sceneDescs.set(name, info.desc);
+        const begin = doc.offsetAt(range.start);
+        const end = doc.offsetAt(range.end);
+        return collectInlayHints(doc.getText(), { sceneDescs, nodeIndex })
+          .filter((h) => h.position >= begin && h.position <= end)
+          .map((h) => {
+            const hint = new vscode.InlayHint(doc.positionAt(h.position), h.text);
+            hint.paddingLeft = true;
+            if (h.tooltip) hint.tooltip = h.tooltip;
+            return hint;
+          });
+      },
+    })
+  );
 
   // 定义跳转（Ctrl+Click / F12）
   context.subscriptions.push(

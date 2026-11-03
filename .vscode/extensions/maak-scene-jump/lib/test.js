@@ -16,6 +16,7 @@ const {
   parseJsonc,
   resourceDirsFromInterface,
   collectDiagnostics,
+  collectInlayHints,
 } = require('./sceneMap');
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const MAP_FILE = path.join(REPO_ROOT, 'agent', 'custom', 'action', 'scene_jump_map.json');
@@ -116,6 +117,46 @@ function main() {
 
   console.log(`✓ 全部 ${refCount} 处引用均能解析（场景引用→scenes，节点引用→pipeline）`);
   console.log('✓ 引用诊断在真实 map 上无告警（与 CLI 结论一致）');
+
+  // 内联提示：真实 map 上，每个场景引用都应拿到 desc（schema 要求每个场景都有 desc）
+  const sceneDescs = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    const v = toks.find(
+      (x) => !x.isKey && x.segments.length === 3 && x.segments[0] === 'scenes' && x.segments[1] === t.value && x.segments[2] === 'desc'
+    );
+    if (v) sceneDescs.set(t.value, v.value);
+  }
+  const hints = collectInlayHints(mapText, { sceneDescs, nodeIndex: index });
+  const hintedOffsets = new Set(hints.map((h) => h.position));
+  const sceneRefToks = toks.filter((t) => {
+    const k = refKind(t);
+    return !!k && k !== 'scene' && isSceneRef(k); // 场景 key 自身即定义，不提示
+  });
+  const unhinted = sceneRefToks.filter((t) => !hintedOffsets.has(t.end));
+  if (unhinted.length) {
+    for (const t of unhinted.slice(0, 5)) console.log(`  ❌ ${segPath(t.segments)} = ${t.value} 未生成内联提示`);
+    console.log(`❌ ${unhinted.length} 处场景引用缺少内联提示`);
+    process.exit(1);
+  }
+  const nodeRefToks = toks.filter((t) => {
+    const k = refKind(t);
+    return k === 'detect' || k === 'jump';
+  });
+  const nodeWithDesc = nodeRefToks.filter((t) => {
+    const defs = index.get(t.value);
+    return !!defs && defs.length > 0 && !!defs[0].desc;
+  });
+  const missingNodeHints = nodeWithDesc.filter((t) => !hintedOffsets.has(t.end));
+  if (missingNodeHints.length) {
+    for (const t of missingNodeHints.slice(0, 5)) console.log(`  ❌ ${segPath(t.segments)} = ${t.value} 未生成内联提示`);
+    console.log(`❌ ${missingNodeHints.length} 处节点引用缺少内联提示`);
+    process.exit(1);
+  }
+  console.log(
+    `✓ 内联提示：${hints.length} 条（场景引用 ${sceneRefToks.length} 处全部覆盖；` +
+      `${nodeWithDesc.length}/${nodeRefToks.length} 处节点引用有 desc 并显示）`
+  );
 }
 
 function segPath(segs) {
@@ -237,6 +278,72 @@ function testDiagnosticsRules() {
   console.log('✓ 引用诊断规则测试通过');
 }
 testDiagnosticsRules();
+
+// ── 内联提示（灰色 desc）自测 ─────────────────────────────────────────
+function testInlayHints() {
+  const nodeIndex = new Map([
+    ['UI_Known', [{ desc: '通用UI-已知节点' }]],
+    ['UI_NoDesc', [{ desc: '' }]],
+  ]);
+  const text = [
+    '{',
+    '  "scenes": {',
+    '    "Home": { "desc": "主页", "detect": "UI_Known" },',
+    '    "Shop": { "desc": "商店", "detect": "UI_NoDesc" }',
+    '  },',
+    '  "edges": [',
+    '    { "from": "Home", "to": "Shop", "jump": ["UI_Known"], "via": ["Home"] }',
+    '  ]',
+    '}',
+  ].join('\n');
+  const toks = scanJsoncStrings(text);
+  const sceneDescs = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    const v = toks.find((x) => !x.isKey && x.segments.length === 3 && x.segments[0] === 'scenes' && x.segments[1] === t.value && x.segments[2] === 'desc');
+    if (v) sceneDescs.set(t.value, v.value);
+  }
+
+  const hints = collectInlayHints(text, { sceneDescs, nodeIndex });
+  const pairs = hints.map((h) => `${h.text}@${text.slice(0, h.position).split('\n').pop().slice(-12)}`);
+  const expects = [
+    ['UI_Known', '通用UI-已知节点', 'detect'],
+    ['Home', '主页', 'from'],
+    ['Shop', '商店', 'to'],
+    ['UI_Known', '通用UI-已知节点', 'jump'],
+    ['Home', '主页', 'via'],
+  ];
+  if (hints.length !== expects.length) {
+    throw new Error(`内联提示数量应为 ${expects.length}，实际 ${hints.length}：\n  ${pairs.join('\n  ')}`);
+  }
+  for (const [name, desc] of expects) {
+    const t = toks.find((x) => !x.isKey && x.value === name);
+    const hit = hints.find((h) => h.position === t.end && h.text === desc);
+    if (!hit) throw new Error(`缺少 ${name} 的提示「${desc}」：\n  ${pairs.join('\n  ')}`);
+  }
+  // 提示位置在字面量末尾（引号之后），与 maa-support 的 offset + length 一致
+  const homeTok = toks.find((x) => !x.isKey && x.value === 'Home');
+  if (hints.find((h) => h.text === '主页').position !== homeTok.end) {
+    throw new Error('提示位置应为字面量末尾');
+  }
+  // 无 desc 的节点 / 场景名本身都不提示；省略阈值生效
+  if (hints.some((h) => h.text === '')) throw new Error('空的 desc 不应产生提示');
+  if (collectInlayHints(text, { sceneDescs, nodeIndex, maxLength: 3 })[1].text !== '主页') {
+    throw new Error('短 desc 不应被省略');
+  }
+  const longText = '很长的描述'.repeat(10);
+  const longHints = collectInlayHints(text, { sceneDescs: new Map([['Home', longText]]), nodeIndex });
+  const sceneHints = longHints.filter((h) => h.text !== '通用UI-已知节点');
+  if (
+    sceneHints.length !== 2 || // from / via 两处 Home
+    sceneHints.some((h) => h.text.length > 40 || !/…$/.test(h.text) || h.tooltip !== longText)
+  ) {
+    throw new Error(`长 desc 应被省略并带 tooltip：${JSON.stringify(sceneHints)}`);
+  }
+
+  console.log('✓ 内联提示（灰色 desc）测试通过');
+}
+testInlayHints();
 
 // ── fieldAt（补全定位）自测 ───────────────────────────────────────────
 function testFieldAt() {

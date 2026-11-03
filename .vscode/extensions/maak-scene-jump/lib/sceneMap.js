@@ -300,6 +300,17 @@ function buildNodeIndex(files) {
   for (const f of files) {
     let tokens;
     try { tokens = scanJsoncStrings(f.text); } catch { continue; }
+    // 节点自身的 desc（pipeline 写法：{ "<节点名>": { "desc": "…", … } }），用于内联提示
+    const descNodes = new Set();
+    for (const t of tokens) {
+      if (t.isKey && t.value === 'desc' && t.segments.length === 1) descNodes.add(t.segments[0]);
+    }
+    const descs = new Map();
+    for (const t of tokens) {
+      if (t.isKey || t.segments.length !== 2 || t.segments[1] !== 'desc') continue;
+      if (!descNodes.has(t.segments[0]) || descs.has(t.segments[0])) continue;
+      descs.set(t.segments[0], t.value);
+    }
     for (const t of tokens) {
       if (t.isKey && t.segments.length === 0) {
         if (!index.has(t.value)) index.set(t.value, []);
@@ -309,6 +320,7 @@ function buildNodeIndex(files) {
           // 定义范围应指向节点名本身，而不是它两侧的引号
           valueStart: t.valueStart,
           valueEnd: t.valueEnd,
+          desc: descs.get(t.value) || '',
           text: f.text,
         });
       }
@@ -522,6 +534,52 @@ function collectDiagnostics(text, opts = {}) {
   return out;
 }
 
+// ── 内联提示（引用处的灰色 desc，同 maa-support 的任务文档提示）──────────
+
+/** 内联提示默认最大长度（超出部分省略，完整内容放 tooltip）。 */
+const INLAY_HINT_MAX_CHARS = 40;
+
+/**
+ * 为 scene_jump_map 引用收集内联提示（纯逻辑，不依赖 vscode）。
+ *
+ *   - 场景引用（from / to / parent / via）→ scenes.<name>.desc
+ *   - 节点引用（detect / detect.all_of|any_of[i] / jump）→ pipeline 节点的 desc
+ *   - 场景名（scenes key）本身不提示：其 desc 就在紧邻的字段里，重复显示只会变吵
+ *
+ * 位置取被注解字面量的末尾（与 maa-support 的 location.offset + location.length 一致），
+ * 由调用方按可见 range 过滤。
+ * opts:
+ *   sceneDescs  Map<场景名, desc>
+ *   nodeIndex   Map<节点名, 定义数组>（缺省则不给节点提示）
+ *   maxLength   省略阈值，缺省 INLAY_HINT_MAX_CHARS
+ * 返回 [{ position, text, tooltip }]，position 为字面量结束处的偏移。
+ */
+function collectInlayHints(text, opts = {}) {
+  const toks = scanJsoncStrings(text);
+  const sceneDescs = opts.sceneDescs instanceof Map ? opts.sceneDescs : new Map();
+  const nodeIndex = opts.nodeIndex instanceof Map ? opts.nodeIndex : null;
+  const max = typeof opts.maxLength === 'number' ? opts.maxLength : INLAY_HINT_MAX_CHARS;
+  const out = [];
+  for (const t of toks) {
+    const kind = refKind(t);
+    if (!kind || kind === 'scene') continue;
+    let desc = '';
+    if (isSceneRef(kind)) {
+      desc = sceneDescs.get(t.value) || '';
+    } else if (nodeIndex) {
+      const defs = nodeIndex.get(t.value);
+      desc = defs && defs.length ? defs[0].desc || '' : '';
+    }
+    if (!desc) continue;
+    out.push({
+      position: t.end,
+      text: desc.length > max ? `${desc.slice(0, max - 1)}…` : desc,
+      tooltip: desc.length > max ? desc : '',
+    });
+  }
+  return out;
+}
+
 module.exports = {
   stripJsonc,
   parseJsonc,
@@ -537,4 +595,6 @@ module.exports = {
   fieldAt,
   collectSceneNames,
   collectDiagnostics,
+  collectInlayHints,
+  INLAY_HINT_MAX_CHARS,
 };
