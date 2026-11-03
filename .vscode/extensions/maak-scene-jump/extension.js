@@ -5,7 +5,8 @@
  * 为 agent/custom/action/scene_jump_map.json 提供两类引用的跳转：
  *   - 场景引用（scenes 场景名 key、parent、from、to、via）→ 跳到 scenes.<name> 定义
  *   - 节点引用（detect、jump）→ 跳到 pipeline 资源中的节点定义
- * 并提供：悬停提示、查找引用（Shift+F12）、文档链接（下划线可点击）、节点名补全。
+ * 并提供：悬停提示、查找引用（Shift+F12）、文档链接（下划线可点击）、节点名补全、
+ * 引用诊断（Problems 面板 + 波浪线，规则与 tools/validate_scene_map.py 一致）。
  *
  * 能力与 nekosu.maa-support 的 Pipeline 语义分析同源（建立节点索引并解析引用），
  * 因 maa-support 未暴露公共 API，此处独立实现其等价逻辑（见 lib/sceneMap.js）。
@@ -28,9 +29,15 @@ const {
   fieldAt,
   buildNodeIndex,
   offsetToPosition,
+  collectDiagnostics,
 } = require('./lib/sceneMap');
 
 const MAP_PATTERN = '**/agent/custom/action/scene_jump_map.json';
+/** 地图已关联为 jsonc（支持注释），同时覆盖 json/jsonc 以兼容不同编辑器设置。 */
+const MAP_SELECTOR = [
+  { language: 'jsonc', pattern: MAP_PATTERN },
+  { language: 'json', pattern: MAP_PATTERN },
+];
 /** 找不到 assets/interface.json 时的兜底资源目录（与 Maa 插件默认一致）。 */
 const FALLBACK_RESOURCE_DIRS = [
   'assets/resource',
@@ -41,6 +48,8 @@ const FALLBACK_RESOURCE_DIRS = [
 const MAX_INDEX_FILES = 8000;
 /** 文件变更后的重建合并窗口（同 maa-support 的 100ms）。 */
 const REBUILD_DEBOUNCE_MS = 100;
+/** 诊断刷新防抖（按文档）。 */
+const DIAG_DEBOUNCE_MS = 200;
 
 let nodeIndex = new Map(); // pipeline 节点名 -> 定义位置（资源文件变更时重建）
 let watchers = [];
@@ -51,6 +60,10 @@ let rebuilding = false;
 let rebuildAgain = false;
 let output = null;
 let statusItem = null;
+let diagnostics = null;
+let indexReady = false; // 首建索引完成前不出诊断，避免把未索引误报为“找不到节点”
+let indexIncomplete = false; // 走兜底目录或触顶时，节点类诊断降级为 warning
+const diagTimers = new Map(); // uri -> 诊断防抖定时器
 
 function log(message) {
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -92,6 +105,7 @@ async function resolveResourceUris() {
   const dirs = [];
   const ifaces = [];
   const seen = new Set();
+  let usedFallback = false;
   const push = async (uri) => {
     const key = uri.toString();
     if (seen.has(key)) return;
@@ -115,19 +129,21 @@ async function resolveResourceUris() {
 
   if (!dirs.length) {
     log('未从 assets/interface.json 解析到可用资源目录，回退到默认资源目录');
+    usedFallback = true;
     for (const folder of vscode.workspace.workspaceFolders || []) {
       for (const d of FALLBACK_RESOURCE_DIRS) {
         await push(vscode.Uri.joinPath(folder.uri, d));
       }
     }
   }
-  return { dirs, ifaces };
+  return { dirs, ifaces, usedFallback };
 }
 
 /** 收集 pipeline/tasks 下的 JSON/JSONC 文本（含资源根目录的 default_pipeline.json）。 */
 async function collectIndexFiles(dirs) {
   const files = [];
   const seen = new Set();
+  let capped = false;
   const add = async (uri) => {
     const key = uri.fsPath;
     if (seen.has(key)) return;
@@ -145,6 +161,7 @@ async function collectIndexFiles(dirs) {
         MAX_INDEX_FILES
       );
       if (uris.length >= MAX_INDEX_FILES) {
+        capped = true;
         log(`⚠ ${dir.fsPath} 下 ${sub} 文件数达到上限 ${MAX_INDEX_FILES}，索引可能不完整`);
       }
       for (const uri of uris) await add(uri);
@@ -152,7 +169,7 @@ async function collectIndexFiles(dirs) {
     // 与 Maa 插件一致，额外收录资源根目录下的 default_pipeline.json
     await add(vscode.Uri.joinPath(dir, 'default_pipeline.json'));
   }
-  return files;
+  return { files, capped };
 }
 
 function setupWatchers(dirs, ifaces) {
@@ -187,25 +204,29 @@ function scheduleRebuild(delay = REBUILD_DEBOUNCE_MS, reason = '文件变更') {
 
 async function rebuildIndex(reason) {
   const started = Date.now();
-  const { dirs, ifaces } = await resolveResourceUris();
+  const { dirs, ifaces, usedFallback } = await resolveResourceUris();
   const key = [...dirs, ...ifaces].map((u) => u.toString()).join('|');
   if (key !== watchKey) {
     watchKey = key;
     setupWatchers(dirs, ifaces);
   }
 
-  const files = await collectIndexFiles(dirs);
+  const { files, capped } = await collectIndexFiles(dirs);
   nodeIndex = buildNodeIndex(files);
+  indexIncomplete = usedFallback || capped;
+  indexReady = true;
 
   const ms = Date.now() - started;
   log(
     `${reason}：索引 ${nodeIndex.size} 个节点 / ${files.length} 个文件` +
-      `（${dirs.length} 个资源目录，用时 ${ms}ms）`
+      `（${dirs.length} 个资源目录，用时 ${ms}ms${indexIncomplete ? '，索引可能不完整' : ''}）`
   );
   if (statusItem) {
     statusItem.text = `$(symbol-namespace) SceneJump ${nodeIndex.size}`;
     statusItem.tooltip = `SceneJump 已索引 ${nodeIndex.size} 个 pipeline 节点（${files.length} 个文件，${ms}ms）\n点击刷新索引`;
   }
+  // 索引变化后重算已打开地图的诊断（此前可能因索引缺失而误报/漏报）
+  refreshAllDiagnostics();
 }
 
 /**
@@ -305,6 +326,54 @@ function defsFor(token, kind, sceneInfo) {
   });
 }
 
+/* ── 引用诊断（Problems / 波浪线）─────────────────────────────────── */
+
+/** 是否为本扩展关心的 scene_jump_map 文档。 */
+function isMapDoc(doc) {
+  return vscode.languages.match(MAP_SELECTOR, doc) > 0;
+}
+
+/** 按文档防抖刷新诊断。 */
+function scheduleDiagnostics(doc) {
+  if (!diagnostics || !indexReady || !isMapDoc(doc)) return;
+  const key = doc.uri.toString();
+  clearTimeout(diagTimers.get(key));
+  diagTimers.set(
+    key,
+    setTimeout(() => {
+      diagTimers.delete(key);
+      publishDiagnostics(doc);
+    }, DIAG_DEBOUNCE_MS)
+  );
+}
+
+function publishDiagnostics(doc) {
+  if (!diagnostics) return;
+  const list = collectDiagnostics(doc.getText(), {
+    nodeIndex,
+    incompleteIndex: indexIncomplete,
+  }).map((d) => {
+    const diag = new vscode.Diagnostic(
+      new vscode.Range(doc.positionAt(d.start), doc.positionAt(d.end)),
+      d.message,
+      d.severity === 'warning' ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error
+    );
+    diag.source = 'SceneJump';
+    return diag;
+  });
+  diagnostics.set(doc.uri, list);
+}
+
+/** 索引变化后重算所有已打开地图的诊断。 */
+function refreshAllDiagnostics() {
+  if (!diagnostics) return;
+  for (const doc of vscode.workspace.textDocuments) {
+    if (!isMapDoc(doc)) continue;
+    if (indexReady) publishDiagnostics(doc);
+    else diagnostics.delete(doc.uri);
+  }
+}
+
 async function activate(context) {
   output = vscode.window.createOutputChannel('SceneJump');
   context.subscriptions.push(output);
@@ -316,11 +385,21 @@ async function activate(context) {
   statusItem.show();
   context.subscriptions.push(statusItem);
 
-  // 地图已关联为 jsonc（支持注释），同时覆盖 json/jsonc 以兼容不同编辑器设置
-  const selector = [
-    { language: 'jsonc', pattern: MAP_PATTERN },
-    { language: 'json', pattern: MAP_PATTERN },
-  ];
+  // 引用诊断集合（单独命名，与 maa-support 的 "maa" 集合互不干扰）
+  diagnostics = vscode.languages.createDiagnosticCollection('scenejump');
+  context.subscriptions.push(diagnostics);
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((doc) => scheduleDiagnostics(doc)),
+    vscode.workspace.onDidChangeTextDocument((e) => scheduleDiagnostics(e.document)),
+    vscode.workspace.onDidCloseTextDocument((doc) => {
+      const key = doc.uri.toString();
+      clearTimeout(diagTimers.get(key));
+      diagTimers.delete(key);
+      if (diagnostics) diagnostics.delete(doc.uri);
+    })
+  );
+
+  const selector = MAP_SELECTOR;
 
   // 定义跳转（Ctrl+Click / F12）
   context.subscriptions.push(
@@ -479,6 +558,8 @@ function deactivate() {
     clearTimeout(rebuildTimer);
     rebuildTimer = null;
   }
+  for (const timer of diagTimers.values()) clearTimeout(timer);
+  diagTimers.clear();
   for (const w of watchers) w.dispose();
   watchers = [];
 }

@@ -15,6 +15,7 @@ const {
   fieldAt,
   parseJsonc,
   resourceDirsFromInterface,
+  collectDiagnostics,
 } = require('./sceneMap');
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const MAP_FILE = path.join(REPO_ROOT, 'agent', 'custom', 'action', 'scene_jump_map.json');
@@ -104,7 +105,17 @@ function main() {
     console.log(`❌ ${missing.length} 处引用错误`);
     process.exit(1);
   }
-    console.log(`✓ 全部 ${refCount} 处引用均能解析（场景引用→scenes，节点引用→pipeline）`);
+
+  // 引用诊断规则在真实 map 上应与 CLI 结论一致：无诊断
+  const diags = collectDiagnostics(mapText, { nodeIndex: index });
+  if (diags.length) {
+    for (const d of diags) console.log(`  ❌ 诊断 ${d.severity}: ${d.message}`);
+    console.log(`❌ 真实 map 上产生了 ${diags.length} 条诊断`);
+    process.exit(1);
+  }
+
+  console.log(`✓ 全部 ${refCount} 处引用均能解析（场景引用→scenes，节点引用→pipeline）`);
+  console.log('✓ 引用诊断在真实 map 上无告警（与 CLI 结论一致）');
 }
 
 function segPath(segs) {
@@ -171,6 +182,61 @@ function testTokenSpans() {
   console.log('✓ 字符串值范围（定义跳转 Range）测试通过');
 }
 testTokenSpans();
+
+// ── 引用诊断规则自测（与 tools/validate_scene_map.py 同一套规则）────────
+function testDiagnosticsRules() {
+  const nodeIndex = new Map([['UI_Known', []]]);
+  // 注意：重复场景名无法用对象字面量构造（后者覆盖前者），这里手写文本
+  const text = [
+    '{',
+    '  "scenes": {',
+    '    "A": { "desc": "a", "detect": "UI_Known" },',
+    '    "B": { "desc": "b", "detect": { "type": "And", "all_of": ["UI_Known", "UI_Missing"] } },',
+    '    "A": { "desc": "重复定义" }',
+    '  },',
+    '  "edges": [',
+    '    { "from": "A", "to": "NoSuchScene", "jump": ["UI_Missing2"] },',
+    '    { "from": "B", "to": "A" }',
+    '  ]',
+    '}',
+  ].join('\n');
+
+  const diags = collectDiagnostics(text, { nodeIndex });
+  const msgs = diags.map((d) => `${d.severity} ${d.message}`);
+  const want = [
+    'error detect 引用的节点未在 pipeline 资源中找到：UI_Missing',
+    'error jump 引用的节点未在 pipeline 资源中找到：UI_Missing2',
+    'error to 引用的场景未在 scenes 中定义：NoSuchScene',
+    'warning 场景名 A 重复定义；跳转只会到后一处',
+  ];
+  for (const w of want) {
+    if (!msgs.includes(w)) throw new Error(`缺少诊断「${w}」：\n  ${msgs.join('\n  ')}`);
+  }
+  // 已定义的场景（from=A、to=A）与已索引的节点（UI_Known）不应报
+  if (diags.length !== want.length) {
+    throw new Error(`诊断数量应为 ${want.length}，实际 ${diags.length}：\n  ${msgs.join('\n  ')}`);
+  }
+
+  // 索引不完整时：节点类诊断降级为 warning 并注明
+  const soft = collectDiagnostics(text, { nodeIndex, incompleteIndex: true });
+  const nodeDiags = soft.filter((d) => /引用的节点未在 pipeline/.test(d.message));
+  if (nodeDiags.length !== 2 || nodeDiags.some((d) => d.severity !== 'warning' || !/（索引可能不完整）/.test(d.message))) {
+    throw new Error(`索引不完整时的降级不正确：${JSON.stringify(nodeDiags)}`);
+  }
+  if (soft.some((d) => /引用的场景未在 scenes/.test(d.message) && d.severity !== 'error')) {
+    throw new Error('场景类诊断不应随索引完整性降级');
+  }
+
+  // 诊断区间必须落在字符串字面量上（含引号），与波浪线/查找引用一致
+  const tok = scanJsoncStrings(text).find((t) => t.value === 'NoSuchScene');
+  const d0 = diags.find((d) => /NoSuchScene/.test(d.message));
+  if (!d0 || d0.start !== tok.start || d0.end !== tok.end) {
+    throw new Error(`诊断区间与字面量不一致：${JSON.stringify(d0)} vs ${tok.start}..${tok.end}`);
+  }
+
+  console.log('✓ 引用诊断规则测试通过');
+}
+testDiagnosticsRules();
 
 // ── fieldAt（补全定位）自测 ───────────────────────────────────────────
 function testFieldAt() {

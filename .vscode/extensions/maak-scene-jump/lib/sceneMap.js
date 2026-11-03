@@ -447,6 +447,81 @@ function fieldAt(text, offset, toks) {
   return null;
 }
 
+// ── 引用诊断（跨文件一致性校验，与 tools/validate_scene_map.py 同一套规则）──
+
+/** 收集 scenes 下的场景名（key）。 */
+function collectSceneNames(tokens) {
+  const names = new Set();
+  for (const t of tokens) {
+    if (t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes') names.add(t.value);
+  }
+  return names;
+}
+
+/**
+ * 对 scene_jump_map 文本产出引用诊断（纯逻辑，不依赖 vscode）。
+ *
+ * 只覆盖 JSON Schema 表达不了的跨文件一致性（形态类错误交给内置 JSON 校验，不重复报）：
+ *   - 节点引用（detect / detect.all_of|any_of[i] / jump）能否在 pipeline 索引中解析到；
+ *   - 场景引用（from / to / parent / via）是否在 scenes 中定义；
+ *   - 场景名是否重复定义（重复时跳转只会到后一处）。
+ *
+ * opts:
+ *   nodeIndex       Map<节点名, 定义位置数组>（pipeline 索引）
+ *   sceneNames      Set<string>（可选，缺省从文本现算）
+ *   incompleteIndex boolean，索引不完整时节点类诊断降级为 warning 并注明
+ * 返回 [{ start, end, message, severity: 'error' | 'warning' }]，
+ * start/end 为字符串字面量的范围（含两侧引号），与波浪线/查找引用的区间一致。
+ */
+function collectDiagnostics(text, opts = {}) {
+  const toks = scanJsoncStrings(text);
+  const names = opts.sceneNames instanceof Set ? opts.sceneNames : collectSceneNames(toks);
+  const nodeIndex = opts.nodeIndex instanceof Map ? opts.nodeIndex : new Map();
+  const incomplete = !!opts.incompleteIndex;
+  const nodeSeverity = incomplete ? 'warning' : 'error';
+  const nodeSuffix = incomplete ? '（索引可能不完整）' : '';
+  const out = [];
+
+  // 场景名重复定义：buildSceneInfo / 查找引用会静默覆盖前者
+  const defined = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    if (defined.has(t.value)) {
+      out.push({
+        start: t.start,
+        end: t.end,
+        message: `场景名 ${t.value} 重复定义；跳转只会到后一处`,
+        severity: 'warning',
+      });
+    } else {
+      defined.set(t.value, t.start);
+    }
+  }
+
+  for (const t of toks) {
+    const kind = refKind(t);
+    if (!kind || kind === 'scene') continue;
+    if (isSceneRef(kind)) {
+      if (!names.has(t.value)) {
+        out.push({
+          start: t.start,
+          end: t.end,
+          message: `${kind} 引用的场景未在 scenes 中定义：${t.value}`,
+          severity: 'error',
+        });
+      }
+    } else if (!nodeIndex.has(t.value)) {
+      out.push({
+        start: t.start,
+        end: t.end,
+        message: `${kind} 引用的节点未在 pipeline 资源中找到：${t.value}${nodeSuffix}`,
+        severity: nodeSeverity,
+      });
+    }
+  }
+  return out;
+}
+
 module.exports = {
   stripJsonc,
   parseJsonc,
@@ -460,4 +535,6 @@ module.exports = {
   offsetToPosition,
   tokenAt,
   fieldAt,
+  collectSceneNames,
+  collectDiagnostics,
 };
