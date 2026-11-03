@@ -1,4 +1,16 @@
 {
+    "UI_Combat_StageDetails": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Combat_StageDetails_Close",
+                    "UI_Combat_StageDetails_Quit",
+                    "UI_Combat_StageDetails_Start"
+                ]
+            }
+        }
+    },
     "UI_Combat_StageDetails_Close": {
         "recognition": {
             "type": "TemplateMatch",
@@ -11,6 +23,39 @@
                     31,
                     54,
                     55
+                ]
+            }
+        }
+    },
+    "UI_Combat_StageDetails_Quit": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "取消"
+                ],
+                "roi": [
+                    325,
+                    620,
+                    110,
+                    50
+                ]
+            }
+        }
+    },
+    "UI_Combat_StageDetails_Start": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "准备快速战斗",
+                    "准备战斗"
+                ],
+                "roi": [
+                    800,
+                    620,
+                    190,
+                    50
                 ]
             }
         }

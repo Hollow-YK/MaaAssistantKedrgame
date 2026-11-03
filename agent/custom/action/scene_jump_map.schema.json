@@ -91,8 +91,19 @@
                         ]
                     },
                     "parent": {
-                        "type": "string",
-                        "description": "父场景名。处于该场景时，也视为满足父场景（如 Status_In_Combat_MainStory 的 parent 为 Status_In_Combat）"
+                        "description": "父场景名，支持单个场景名或场景名数组（多父）。处于该场景时，也视为满足所有父场景（如 Status_In_Combat_MainStory 的 parent 为 Status_In_Combat）",
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
                     }
                 },
                 "additionalProperties": false

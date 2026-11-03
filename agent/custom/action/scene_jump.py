@@ -76,7 +76,7 @@ class SceneJump(CustomAction):
     规划最短路径，并通过多次“一步跳转”最终到达目标场景。
 
     数据文件（scene_jump_map.json）格式：
-      - scenes: 场景名 → { desc, detect(用于识别该场景的识别条件，可选；缺省表示仅作 parent 的抽象场景，不直接识别), parent(父场景,可选) }
+      - scenes: 场景名 → { desc, detect(用于识别该场景的识别条件，可选；缺省表示仅作 parent 的抽象场景，不直接识别), parent(父场景,可选；可为单个场景名或场景名数组) }
         detect 支持两种写法：
           1. 字符串：单个 pipeline 节点名，命中即视为处于该场景；
           2. 组合识别对象：{"type": "And", "all_of": [节点名, ...]} 或
@@ -84,6 +84,7 @@ class SceneJump(CustomAction):
              （And 需全部命中，Or 命中任一即可）。列表元素只支持 pipeline 节点名。
              例如商店各子页共用同一父界面节点时：
              {"type": "And", "all_of": ["UI_Shop_VipShop", "UI_Shop_OCRSelected_1"]}
+
       - edges:  跳转关系 { from, to, cost(该一步跳转的成本,缺省1,数值越小越优先), jump(一步跳转要执行的 pipeline 节点名或列表，可为空), via(中间场景列表) }
         to 可为单个场景名或场景名列表：列表表示执行 jump 后有概率进入其中任意一个场景（例如
         进游戏可能落到主界面或签到页）；落到非目标候选时，会沿该候选继续规划下一步。
@@ -96,6 +97,8 @@ class SceneJump(CustomAction):
 
     父场景（parent）不仅参与“是否已到目标”的判断，规划时处于子场景也可使用父场景的出边
     （例如 MainMenu → Combat_MainStory，再借 Combat 的出边到达 Combat_SkillMaterial）。
+    parent 可写成数组表示多父：子场景同时视为处于所有父场景，祖先与出边均按并集继承
+    （父场景可再各自有 parent，允许菱形结构；成环会去重，不会死循环）。
 
     识别性能：一次检测周期（一次截屏）内，各 pipeline 节点最多识别一次（节点级 memo），
     且组合 detect 保留短路（And 遇假即停、Or 遇真即停）。因此共用节点只识别一次、
@@ -134,6 +137,8 @@ class SceneJump(CustomAction):
     def __init__(self) -> None:
         super().__init__()  # 初始化基类 _handle（AgentServer 注册时需要 c_handle）
         self.scenes: dict[str, dict[str, Any]] = {}
+        self._parents: dict[str, tuple[str, ...]] = {}
+        self._ancestors_cache: dict[str, tuple[str, ...]] = {}
         self._adj: dict[str, list[dict[str, Any]]] = {}
         self._descendants_cache: dict[str, set[str]] = {}
 
@@ -348,6 +353,11 @@ class SceneJump(CustomAction):
                 f"[SceneJump] 场景 {name} 的 detect 格式无法识别，已忽略："
                 f'{detect!r}（仅支持节点名字符串或 {{"type":"And"/"Or", ...}}）'
             )
+        self._parents = {
+            name: self._normalize_parents(name, info, scenes)
+            for name, info in scenes.items()
+        }
+        self._build_ancestors_cache()
         self._adj = {}
         for edge in data.get("edges", []):
             if not isinstance(edge, dict):
@@ -372,8 +382,54 @@ class SceneJump(CustomAction):
         self._build_descendants_cache()
         return True
 
+    @staticmethod
+    def _normalize_parents(
+        name: str, info: Any, scenes: dict[str, Any]
+    ) -> tuple[str, ...]:
+        """把场景的 parent 归一化为父场景名元组（兼容字符串与数组两种写法）。
+
+        忽略非法值、自身、重复项以及未在 scenes 中定义的父场景（后者本身也提供不了出边）。
+        """
+        raw = info.get("parent") if isinstance(info, dict) else None
+        if isinstance(raw, str):
+            candidates: list[Any] = [raw]
+        elif isinstance(raw, list):
+            candidates = raw
+        else:
+            return ()
+        parents: list[str] = []
+        for p in candidates:
+            if not isinstance(p, str) or not p or p == name or p in parents:
+                continue
+            if p in scenes:
+                parents.append(p)
+        return tuple(parents)
+
+    def _build_ancestors_cache(self) -> None:
+        """构建 场景 -> 自身及所有祖先（父场景传递闭包）的映射。
+
+        用迭代 DFS 并去重，多父与成环都不会死循环。祖先顺序为 自身 → 父场景 → 祖先。
+        """
+        self._ancestors_cache = {}
+        for name in self.scenes:
+            ancestors: list[str] = []
+            seen: set[str] = set()
+            stack = [name]
+            while stack:
+                cur = stack.pop()
+                if cur in seen:
+                    continue
+                seen.add(cur)
+                ancestors.append(cur)
+                stack.extend(self._parents.get(cur, ()))
+            self._ancestors_cache[name] = tuple(ancestors)
+
+    def _ancestors(self, scene: str) -> tuple[str, ...]:
+        """scene 自身及其所有祖先场景（父场景闭包，已去重）。"""
+        return self._ancestors_cache.get(scene, (scene,))
+
     def _build_descendants_cache(self) -> None:
-        """构建父场景 -> 所有具有 detect 的后代场景 的映射"""
+        """构建 父场景 -> 所有具有 detect 的后代场景 的映射"""
         self._descendants_cache = {}
         # 先收集所有有 detect 的场景（即实际可识别的场景）
         # 注意：detect 写错（非法）的场景不参与识别，与 _detect_* 行为保持一致
@@ -385,15 +441,9 @@ class SceneJump(CustomAction):
         }
 
         for name in detectable:
-            # 向上遍历父链，将自身加入每个父节点的后代集合
-            cur = name
-            while cur:
-                parent = self.scenes.get(cur, {}).get("parent")
-                if parent:
-                    self._descendants_cache.setdefault(parent, set()).add(name)
-                cur = parent
-            # 自身也加入自己的缓存（方便直接查）
-            self._descendants_cache.setdefault(name, set()).add(name)
+            # 向上遍历父场景闭包，将自身加入每个祖先（含自身）的后代集合
+            for anc in self._ancestors(name):
+                self._descendants_cache.setdefault(anc, set()).add(name)
 
     def _desc(self, name: str) -> str:
         scene = self.scenes.get(name) or {}
@@ -494,16 +544,10 @@ class SceneJump(CustomAction):
         return self._eval_detect(context, image, detect, memo)
 
     def _satisfies(self, scene: str | None, target: str) -> bool:
-        """scene 是否满足目标 target：scene 自身，或 scene 的父场景链上存在 target。"""
+        """scene 是否满足目标 target：scene 自身，或其祖先（父场景闭包）中存在 target。"""
         if scene is None:
             return False
-        cur: str | None = scene
-        while cur:
-            if cur == target:
-                return True
-            node = self.scenes.get(cur) or {}
-            cur = node.get("parent")
-        return False
+        return target in self._ancestors(scene)
 
     def _satisfies_any(self, scene: str | None, targets: list[str]) -> bool:
         """scene 是否满足 targets 中的任意一个目标（to 为列表时使用）。"""
@@ -520,18 +564,14 @@ class SceneJump(CustomAction):
             return 1.0
 
     def _adj_edges(self, scene: str) -> list[dict[str, Any]]:
-        """scene 可用的出边 = 自身出边 + 所有父场景（parent 链）的出边。
+        """scene 可用的出边 = 自身出边 + 所有祖先场景的出边（多父时取并集）。
 
         处于子场景（如 Combat_MainStory）即视为处于父场景（Combat），因此可执行父场景的
         任意出边（例如在出击页任意 Tab 上都能点击技能演练 Tab）。
         """
-        edges: list[dict[str, Any]] = list(self._adj.get(scene, []))
-        node = self.scenes.get(scene) or {}
-        parent = node.get("parent")
-        while parent:
-            edges.extend(self._adj.get(parent, []))
-            node = self.scenes.get(parent) or {}
-            parent = node.get("parent")
+        edges: list[dict[str, Any]] = []
+        for name in self._ancestors(scene):
+            edges.extend(self._adj.get(name, []))
         return edges
 
     def _plan(self, start: str, target: str) -> list[dict[str, Any]] | None:

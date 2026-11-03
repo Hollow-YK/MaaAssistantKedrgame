@@ -7,7 +7,17 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { scanJsoncStrings, refKind, isSceneRef, buildNodeIndex, fieldAt, parseJsonc } = require('./sceneMap');
+const {
+  scanJsoncStrings,
+  refKind,
+  isSceneRef,
+  buildNodeIndex,
+  fieldAt,
+  parseJsonc,
+  resourceDirsFromInterface,
+  collectDiagnostics,
+  collectInlayHints,
+} = require('./sceneMap');
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const MAP_FILE = path.join(REPO_ROOT, 'agent', 'custom', 'action', 'scene_jump_map.json');
 const mapText = fs.readFileSync(MAP_FILE, 'utf-8');
@@ -23,27 +33,26 @@ function rglob(dir, exts, out = []) {
 }
 
 function resolveResourceDirs() {
-  // 与扩展的 resolveResourcePaths 一致：从 assets/interface.json 的 resource[].path 推导
-  const dirs = new Set();
+  // 与扩展的 resolveResourceUris 一致：共用 sceneMap.resourceDirsFromInterface 解析
+  // assets/interface.json（JSONC，含注释）的 resource[].path + controller[].attach_resource_path。
   const ifacePath = path.join(REPO_ROOT, 'assets', 'interface.json');
+  const dirs = [];
   if (fs.existsSync(ifacePath)) {
-    try {
-      const iface = parseJsonc(fs.readFileSync(ifacePath, 'utf-8'));
-      for (const res of iface.resource || []) {
-        for (const p of res.path || []) {
-          dirs.add(path.resolve(path.dirname(ifacePath), p));
-        }
-      }
-    } catch (e) {
-      console.warn(`解析 interface.json 失败: ${e}`);
+    const text = fs.readFileSync(ifacePath, 'utf-8');
+    for (const rel of resourceDirsFromInterface(text)) {
+      const clean = rel.replace(/^\.\//, '').replace(/\/+$/, '');
+      if (!clean || clean.startsWith('/')) continue;
+      const dir = path.resolve(path.dirname(ifacePath), clean);
+      if (fs.existsSync(dir) && !dirs.includes(dir)) dirs.push(dir);
     }
   }
-  if (!dirs.size) {
+  if (!dirs.length) {
     for (const d of ['assets/resource', 'assets/resource_bilibili', 'assets/resource_taptap']) {
-      dirs.add(path.join(REPO_ROOT, d));
+      const dir = path.join(REPO_ROOT, d);
+      if (fs.existsSync(dir)) dirs.push(dir);
     }
   }
-  return [...dirs];
+  return dirs;
 }
 
 function main() {
@@ -97,12 +106,244 @@ function main() {
     console.log(`❌ ${missing.length} 处引用错误`);
     process.exit(1);
   }
-    console.log(`✓ 全部 ${refCount} 处引用均能解析（场景引用→scenes，节点引用→pipeline）`);
+
+  // 引用诊断规则在真实 map 上应与 CLI 结论一致：无诊断
+  const diags = collectDiagnostics(mapText, { nodeIndex: index });
+  if (diags.length) {
+    for (const d of diags) console.log(`  ❌ 诊断 ${d.severity}: ${d.message}`);
+    console.log(`❌ 真实 map 上产生了 ${diags.length} 条诊断`);
+    process.exit(1);
+  }
+
+  console.log(`✓ 全部 ${refCount} 处引用均能解析（场景引用→scenes，节点引用→pipeline）`);
+  console.log('✓ 引用诊断在真实 map 上无告警（与 CLI 结论一致）');
+
+  // 内联提示：真实 map 上，每个场景引用都应拿到 desc（schema 要求每个场景都有 desc）
+  const sceneDescs = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    const v = toks.find(
+      (x) => !x.isKey && x.segments.length === 3 && x.segments[0] === 'scenes' && x.segments[1] === t.value && x.segments[2] === 'desc'
+    );
+    if (v) sceneDescs.set(t.value, v.value);
+  }
+  const hints = collectInlayHints(mapText, { sceneDescs, nodeIndex: index });
+  const hintedOffsets = new Set(hints.map((h) => h.position));
+  const sceneRefToks = toks.filter((t) => {
+    const k = refKind(t);
+    return !!k && k !== 'scene' && isSceneRef(k); // 场景 key 自身即定义，不提示
+  });
+  const unhinted = sceneRefToks.filter((t) => !hintedOffsets.has(t.end));
+  if (unhinted.length) {
+    for (const t of unhinted.slice(0, 5)) console.log(`  ❌ ${segPath(t.segments)} = ${t.value} 未生成内联提示`);
+    console.log(`❌ ${unhinted.length} 处场景引用缺少内联提示`);
+    process.exit(1);
+  }
+  const nodeRefToks = toks.filter((t) => {
+    const k = refKind(t);
+    return k === 'detect' || k === 'jump';
+  });
+  const nodeWithDesc = nodeRefToks.filter((t) => {
+    const defs = index.get(t.value);
+    return !!defs && defs.length > 0 && !!defs[0].desc;
+  });
+  const missingNodeHints = nodeWithDesc.filter((t) => !hintedOffsets.has(t.end));
+  if (missingNodeHints.length) {
+    for (const t of missingNodeHints.slice(0, 5)) console.log(`  ❌ ${segPath(t.segments)} = ${t.value} 未生成内联提示`);
+    console.log(`❌ ${missingNodeHints.length} 处节点引用缺少内联提示`);
+    process.exit(1);
+  }
+  console.log(
+    `✓ 内联提示：${hints.length} 条（场景引用 ${sceneRefToks.length} 处全部覆盖；` +
+      `${nodeWithDesc.length}/${nodeRefToks.length} 处节点引用有 desc 并显示）`
+  );
 }
 
 function segPath(segs) {
   return segs.map((s, i) => (typeof s === 'number' ? `[${s}]` : i === 0 ? s : `.${s}`)).join('');
 }
+
+// ── 资源目录解析（JSONC interface.json）自测 ───────────────────────────
+function testResourceDirs() {
+  // 1) 真实 interface.json 是 JSONC（Maa 模板自带注释），必须能解析出渠道目录
+  const real = fs.readFileSync(path.join(REPO_ROOT, 'assets', 'interface.json'), 'utf-8');
+  let strictFailed = false;
+  try { JSON.parse(real); } catch { strictFailed = true; }
+  if (!strictFailed) throw new Error('assets/interface.json 已无注释，本用例前提失效（请复核资源目录解析路径）');
+  const fromReal = resourceDirsFromInterface(real);
+  for (const want of ['./resource', './resource_bilibili', './resource_taptap']) {
+    if (!fromReal.includes(want)) {
+      throw new Error(`interface.json 未解析出 ${want}：${JSON.stringify(fromReal)}`);
+    }
+  }
+
+  // 2) 注释 + controller.attach_resource_path（{PROJECT_DIR} 归一化为 .）；重复路径去重
+  const fixture = `{
+    // 带注释
+    "resource": [{ "name": "a", "path": ["./resource", "./resource_b"] }],
+    "controller": [{ "name": "adb", "attach_resource_path": ["{PROJECT_DIR}/resource_c", "./resource"] }]
+  }`;
+  const got = resourceDirsFromInterface(fixture);
+  const want = ['./resource', './resource_b', './resource_c'];
+  if (JSON.stringify(got) !== JSON.stringify(want)) {
+    throw new Error(`资源目录解析错误：${JSON.stringify(got)} != ${JSON.stringify(want)}`);
+  }
+
+  // 3) 解析失败返回空数组，而不是抛出
+  if (resourceDirsFromInterface('{ 坏 JSON').length !== 0) {
+    throw new Error('无法解析的 interface 应返回空数组');
+  }
+  console.log('✓ 资源目录解析（JSONC interface）测试通过');
+}
+testResourceDirs();
+
+// ── 字符串值范围（定义跳转 Range 用）自测 ─────────────────────────────
+function testTokenSpans() {
+  const text = '{\n    "UI_X": "UI_Y"\n}';
+  const toks = scanJsoncStrings(text);
+  if (!toks.length) throw new Error('扫描不到 token');
+  for (const t of toks) {
+    const sliced = text.slice(t.valueStart, t.valueEnd);
+    if (sliced !== t.value) throw new Error(`值范围不含引号断言失败：${JSON.stringify(sliced)} != ${JSON.stringify(t.value)}`);
+    if (!(t.start < t.valueStart && t.valueEnd < t.end)) throw new Error(`值范围未落在字面量内部：${JSON.stringify(t)}`);
+  }
+  // 未闭合字符串不应把范围算到负方向
+  for (const t of scanJsoncStrings('{"a": "unterminated')) {
+    if (!(t.valueEnd >= t.valueStart)) throw new Error(`未闭合字符串值范围异常：${JSON.stringify(t)}`);
+  }
+  // 索引里的定义范围应正好是节点名本身（此前会多带一个左引号）
+  const idx = buildNodeIndex([{ path: 'p.json', text }]);
+  const d = idx.get('UI_X')[0];
+  if (text.slice(d.valueStart, d.valueEnd) !== 'UI_X') {
+    throw new Error(`定义范围未指向节点名：${JSON.stringify(text.slice(d.valueStart, d.valueEnd))}`);
+  }
+  if (d.valueStart !== text.indexOf('UI_X') || d.valueEnd !== d.valueStart + 4) {
+    throw new Error(`定义范围偏移错误：${d.valueStart}..${d.valueEnd}`);
+  }
+  console.log('✓ 字符串值范围（定义跳转 Range）测试通过');
+}
+testTokenSpans();
+
+// ── 引用诊断规则自测（与 tools/validate_scene_map.py 同一套规则）────────
+function testDiagnosticsRules() {
+  const nodeIndex = new Map([['UI_Known', []]]);
+  // 注意：重复场景名无法用对象字面量构造（后者覆盖前者），这里手写文本
+  const text = [
+    '{',
+    '  "scenes": {',
+    '    "A": { "desc": "a", "detect": "UI_Known" },',
+    '    "B": { "desc": "b", "detect": { "type": "And", "all_of": ["UI_Known", "UI_Missing"] } },',
+    '    "A": { "desc": "重复定义" }',
+    '  },',
+    '  "edges": [',
+    '    { "from": "A", "to": "NoSuchScene", "jump": ["UI_Missing2"] },',
+    '    { "from": "B", "to": "A" }',
+    '  ]',
+    '}',
+  ].join('\n');
+
+  const diags = collectDiagnostics(text, { nodeIndex });
+  const msgs = diags.map((d) => `${d.severity} ${d.message}`);
+  const want = [
+    'error detect 引用的节点未在 pipeline 资源中找到：UI_Missing',
+    'error jump 引用的节点未在 pipeline 资源中找到：UI_Missing2',
+    'error to 引用的场景未在 scenes 中定义：NoSuchScene',
+    'warning 场景名 A 重复定义；跳转只会到后一处',
+  ];
+  for (const w of want) {
+    if (!msgs.includes(w)) throw new Error(`缺少诊断「${w}」：\n  ${msgs.join('\n  ')}`);
+  }
+  // 已定义的场景（from=A、to=A）与已索引的节点（UI_Known）不应报
+  if (diags.length !== want.length) {
+    throw new Error(`诊断数量应为 ${want.length}，实际 ${diags.length}：\n  ${msgs.join('\n  ')}`);
+  }
+
+  // 索引不完整时：节点类诊断降级为 warning 并注明
+  const soft = collectDiagnostics(text, { nodeIndex, incompleteIndex: true });
+  const nodeDiags = soft.filter((d) => /引用的节点未在 pipeline/.test(d.message));
+  if (nodeDiags.length !== 2 || nodeDiags.some((d) => d.severity !== 'warning' || !/（索引可能不完整）/.test(d.message))) {
+    throw new Error(`索引不完整时的降级不正确：${JSON.stringify(nodeDiags)}`);
+  }
+  if (soft.some((d) => /引用的场景未在 scenes/.test(d.message) && d.severity !== 'error')) {
+    throw new Error('场景类诊断不应随索引完整性降级');
+  }
+
+  // 诊断区间必须落在字符串字面量上（含引号），与波浪线/查找引用一致
+  const tok = scanJsoncStrings(text).find((t) => t.value === 'NoSuchScene');
+  const d0 = diags.find((d) => /NoSuchScene/.test(d.message));
+  if (!d0 || d0.start !== tok.start || d0.end !== tok.end) {
+    throw new Error(`诊断区间与字面量不一致：${JSON.stringify(d0)} vs ${tok.start}..${tok.end}`);
+  }
+
+  console.log('✓ 引用诊断规则测试通过');
+}
+testDiagnosticsRules();
+
+// ── 内联提示（灰色 desc）自测 ─────────────────────────────────────────
+function testInlayHints() {
+  const nodeIndex = new Map([
+    ['UI_Known', [{ desc: '通用UI-已知节点' }]],
+    ['UI_NoDesc', [{ desc: '' }]],
+  ]);
+  const text = [
+    '{',
+    '  "scenes": {',
+    '    "Home": { "desc": "主页", "detect": "UI_Known" },',
+    '    "Shop": { "desc": "商店", "detect": "UI_NoDesc" }',
+    '  },',
+    '  "edges": [',
+    '    { "from": "Home", "to": "Shop", "jump": ["UI_Known"], "via": ["Home"] }',
+    '  ]',
+    '}',
+  ].join('\n');
+  const toks = scanJsoncStrings(text);
+  const sceneDescs = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    const v = toks.find((x) => !x.isKey && x.segments.length === 3 && x.segments[0] === 'scenes' && x.segments[1] === t.value && x.segments[2] === 'desc');
+    if (v) sceneDescs.set(t.value, v.value);
+  }
+
+  const hints = collectInlayHints(text, { sceneDescs, nodeIndex });
+  const pairs = hints.map((h) => `${h.text}@${text.slice(0, h.position).split('\n').pop().slice(-12)}`);
+  const expects = [
+    ['UI_Known', '通用UI-已知节点', 'detect'],
+    ['Home', '主页', 'from'],
+    ['Shop', '商店', 'to'],
+    ['UI_Known', '通用UI-已知节点', 'jump'],
+    ['Home', '主页', 'via'],
+  ];
+  if (hints.length !== expects.length) {
+    throw new Error(`内联提示数量应为 ${expects.length}，实际 ${hints.length}：\n  ${pairs.join('\n  ')}`);
+  }
+  for (const [name, desc] of expects) {
+    const t = toks.find((x) => !x.isKey && x.value === name);
+    const hit = hints.find((h) => h.position === t.end && h.text === desc);
+    if (!hit) throw new Error(`缺少 ${name} 的提示「${desc}」：\n  ${pairs.join('\n  ')}`);
+  }
+  // 提示位置在字面量末尾（引号之后），与 maa-support 的 offset + length 一致
+  const homeTok = toks.find((x) => !x.isKey && x.value === 'Home');
+  if (hints.find((h) => h.text === '主页').position !== homeTok.end) {
+    throw new Error('提示位置应为字面量末尾');
+  }
+  // 无 desc 的节点 / 场景名本身都不提示；省略阈值生效
+  if (hints.some((h) => h.text === '')) throw new Error('空的 desc 不应产生提示');
+  if (collectInlayHints(text, { sceneDescs, nodeIndex, maxLength: 3 })[1].text !== '主页') {
+    throw new Error('短 desc 不应被省略');
+  }
+  const longText = '很长的描述'.repeat(10);
+  const longHints = collectInlayHints(text, { sceneDescs: new Map([['Home', longText]]), nodeIndex });
+  const sceneHints = longHints.filter((h) => h.text !== '通用UI-已知节点');
+  if (
+    sceneHints.length !== 2 || // from / via 两处 Home
+    sceneHints.some((h) => h.text.length > 40 || !/…$/.test(h.text) || h.tooltip !== longText)
+  ) {
+    throw new Error(`长 desc 应被省略并带 tooltip：${JSON.stringify(sceneHints)}`);
+  }
+
+  console.log('✓ 内联提示（灰色 desc）测试通过');
+}
+testInlayHints();
 
 // ── fieldAt（补全定位）自测 ───────────────────────────────────────────
 function testFieldAt() {
@@ -211,6 +452,22 @@ function testDetectComposite() {
   console.log('✓ detect 组合写法（And/Or）引用分类与补全测试通过');
 }
 testDetectComposite();
+
+// ── parent 数组（多父）场景引用分类自测 ───────────────────────────────
+function testParentArray() {
+  const snip =
+    '{"scenes":{"A":{},"B":{},"C":{},"D":{"parent":["A","B"]}},"edges":[]}';
+  const toks = scanJsoncStrings(snip);
+  const kinds = toks
+    .filter((t) => !t.isKey && t.segments[0] === 'scenes')
+    .filter((t) => refKind(t))
+    .map((t) => `${t.value}:${refKind(t)}`);
+  if (kinds.indexOf('A:parent') < 0 || kinds.indexOf('B:parent') < 0) {
+    throw new Error(`parent 数组分类错误: ${kinds.join(',')}`);
+  }
+  console.log('✓ parent 数组场景引用分类测试通过');
+}
+testParentArray();
 
 // ── 残缺 JSON 不死循环自测 ────────────────────────────────────────────
 function testMalformed() {

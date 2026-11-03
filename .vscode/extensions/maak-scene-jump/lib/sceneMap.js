@@ -47,14 +47,52 @@ function parseJsonc(text) {
   return JSON.parse(stripJsonc(text));
 }
 
+/**
+ * 从 interface.json（JSONC，允许注释）中提取资源目录的相对路径。
+ *
+ * 与 maa-support 推导 Bundle 根目录的方式保持一致：
+ *   - resource[].path
+ *   - controller[].attach_resource_path（其中 {PROJECT_DIR} 表示 interface.json 所在目录）
+ * interface.json 一律是 JSONC（Maa 官方模板自带注释），因此必须走 parseJsonc；
+ * 用严格 JSON.parse 会解析失败并静默退化。
+ *
+ * 返回按出现顺序去重的相对路径数组；解析失败返回 []。
+ */
+function resourceDirsFromInterface(text) {
+  let obj;
+  try {
+    obj = parseJsonc(text);
+  } catch {
+    return [];
+  }
+  const out = [];
+  const seen = new Set();
+  const add = (p) => {
+    if (typeof p !== 'string') return;
+    const norm = p.replace(/\{PROJECT_DIR\}/g, '.').replace(/\\/g, '/');
+    if (!norm || seen.has(norm)) return;
+    seen.add(norm);
+    out.push(norm);
+  };
+  const asArray = (v) => (Array.isArray(v) ? v : typeof v === 'string' ? [v] : []);
+  for (const res of asArray(obj && obj.resource)) {
+    for (const p of asArray(res && res.path)) add(p);
+  }
+  for (const ctrl of asArray(obj && obj.controller)) {
+    for (const p of asArray(ctrl && ctrl.attach_resource_path)) add(p);
+  }
+  return out;
+}
+
 // ── 字符串扫描（带 JSON 路径与偏移）──────────────────────────────────
 
 /**
  * 扫描文本中所有字符串字面量，返回 token 数组：
- *   { segments: Array<string|number>, isKey?: boolean, value: string, start: number, end: number }
+ *   { segments, isKey?, value, start, end, valueStart, valueEnd }
  * segments 为从根到该字符串的 JSON 路径段（对象键为字符串，数组下标为数字）。
  * 对于对象键 token：segments 为该键所属对象的路径（不含键本身），isKey=true。
- * start/end 为字节偏移（不含注释，偏移与原文一致）。
+ * start/end 为字节偏移（不含注释，偏移与原文一致）；valueStart/valueEnd 为字面量
+ * 去掉两侧引号后的内容范围，用于定义跳转/悬停的精确 Range。
  */
 function scanJsoncStrings(text) {
   const tokens = [];
@@ -88,10 +126,15 @@ function scanJsoncStrings(text) {
       else if (c === '"') { i++; break; }
       else i++;
     }
-    const raw = text.slice(start, i);
+    const end = i; // 结束引号之后（字符串未闭合时等于 n）
+    // 值范围（不含两侧引号）：跳转/悬停用它定位，避免把引号算进定义范围。
+    // 与 maa-support 用 jsonc-parser 节点 offset/length 时的 +1 / -2 修正同源。
+    const valueStart = start + 1;
+    const valueEnd = end > valueStart && text[end - 1] === '"' ? end - 1 : end;
+    const raw = text.slice(start, end);
     let value;
     try { value = JSON.parse(raw); } catch { value = raw.slice(1, -1); }
-    return { start, end: i, value };
+    return { start, end, valueStart, valueEnd, value };
   }
 
   function skipPrimitive() {
@@ -108,7 +151,14 @@ function scanJsoncStrings(text) {
     const c = text[i];
     if (c === '"') {
       const tok = parseStringToken();
-      tokens.push({ segments: path.slice(), value: tok.value, start: tok.start, end: tok.end });
+      tokens.push({
+        segments: path.slice(),
+        value: tok.value,
+        start: tok.start,
+        end: tok.end,
+        valueStart: tok.valueStart,
+        valueEnd: tok.valueEnd,
+      });
       return;
     }
     if (c === '{') {
@@ -119,7 +169,15 @@ function scanJsoncStrings(text) {
         skipWs();
         if (i >= n || text[i] !== '"') { skipPrimitive(); break; }
         const keyTok = parseStringToken();
-        tokens.push({ segments: path.slice(), isKey: true, value: keyTok.value, start: keyTok.start, end: keyTok.end });
+        tokens.push({
+          segments: path.slice(),
+          isKey: true,
+          value: keyTok.value,
+          start: keyTok.start,
+          end: keyTok.end,
+          valueStart: keyTok.valueStart,
+          valueEnd: keyTok.valueEnd,
+        });
         skipWs();
         if (text[i] === ':') i++;
         path.push(keyTok.value);
@@ -171,7 +229,7 @@ function scanJsoncStrings(text) {
  * 返回引用类型字符串，非引用返回 null：
  *   场景引用（指向 scenes 中同名场景定义）:
  *     'scene'   —— scenes 下的场景名（key）
- *     'parent'  —— 场景的父场景
+ *     'parent'  —— 场景的父场景（可为字符串或数组）
  *     'from' / 'to' —— 边的当前/目标场景
  *     'via'     —— 边的中间场景
  *   节点引用（指向 pipeline 中的节点定义）:
@@ -188,8 +246,10 @@ function refKind(tok) {
     const last = s[s.length - 1];
     if (last === 'detect' || last === 'parent') return last;
     if (typeof last === 'number') {
-      // detect 组合写法中的子识别节点：scenes.<场景>.detect.all_of[i] / .any_of[i]
       const field = s[s.length - 2];
+      // parent 数组中的元素（多父）
+      if (field === 'parent') return 'parent';
+      // detect 组合写法中的子识别节点：scenes.<场景>.detect.all_of[i] / .any_of[i]
       if ((field === 'all_of' || field === 'any_of') && s[s.length - 3] === 'detect') {
         return 'detect';
       }
@@ -240,10 +300,29 @@ function buildNodeIndex(files) {
   for (const f of files) {
     let tokens;
     try { tokens = scanJsoncStrings(f.text); } catch { continue; }
+    // 节点自身的 desc（pipeline 写法：{ "<节点名>": { "desc": "…", … } }），用于内联提示
+    const descNodes = new Set();
+    for (const t of tokens) {
+      if (t.isKey && t.value === 'desc' && t.segments.length === 1) descNodes.add(t.segments[0]);
+    }
+    const descs = new Map();
+    for (const t of tokens) {
+      if (t.isKey || t.segments.length !== 2 || t.segments[1] !== 'desc') continue;
+      if (!descNodes.has(t.segments[0]) || descs.has(t.segments[0])) continue;
+      descs.set(t.segments[0], t.value);
+    }
     for (const t of tokens) {
       if (t.isKey && t.segments.length === 0) {
         if (!index.has(t.value)) index.set(t.value, []);
-        index.get(t.value).push({ path: f.path, offset: t.start, text: f.text });
+        index.get(t.value).push({
+          path: f.path,
+          offset: t.start,
+          // 定义范围应指向节点名本身，而不是它两侧的引号
+          valueStart: t.valueStart,
+          valueEnd: t.valueEnd,
+          desc: descs.get(t.value) || '',
+          text: f.text,
+        });
       }
     }
   }
@@ -380,9 +459,131 @@ function fieldAt(text, offset, toks) {
   return null;
 }
 
+// ── 引用诊断（跨文件一致性校验，与 tools/validate_scene_map.py 同一套规则）──
+
+/** 收集 scenes 下的场景名（key）。 */
+function collectSceneNames(tokens) {
+  const names = new Set();
+  for (const t of tokens) {
+    if (t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes') names.add(t.value);
+  }
+  return names;
+}
+
+/**
+ * 对 scene_jump_map 文本产出引用诊断（纯逻辑，不依赖 vscode）。
+ *
+ * 只覆盖 JSON Schema 表达不了的跨文件一致性（形态类错误交给内置 JSON 校验，不重复报）：
+ *   - 节点引用（detect / detect.all_of|any_of[i] / jump）能否在 pipeline 索引中解析到；
+ *   - 场景引用（from / to / parent / via）是否在 scenes 中定义；
+ *   - 场景名是否重复定义（重复时跳转只会到后一处）。
+ *
+ * opts:
+ *   nodeIndex       Map<节点名, 定义位置数组>（pipeline 索引）
+ *   sceneNames      Set<string>（可选，缺省从文本现算）
+ *   incompleteIndex boolean，索引不完整时节点类诊断降级为 warning 并注明
+ * 返回 [{ start, end, message, severity: 'error' | 'warning' }]，
+ * start/end 为字符串字面量的范围（含两侧引号），与波浪线/查找引用的区间一致。
+ */
+function collectDiagnostics(text, opts = {}) {
+  const toks = scanJsoncStrings(text);
+  const names = opts.sceneNames instanceof Set ? opts.sceneNames : collectSceneNames(toks);
+  const nodeIndex = opts.nodeIndex instanceof Map ? opts.nodeIndex : new Map();
+  const incomplete = !!opts.incompleteIndex;
+  const nodeSeverity = incomplete ? 'warning' : 'error';
+  const nodeSuffix = incomplete ? '（索引可能不完整）' : '';
+  const out = [];
+
+  // 场景名重复定义：buildSceneInfo / 查找引用会静默覆盖前者
+  const defined = new Map();
+  for (const t of toks) {
+    if (!(t.isKey && t.segments.length === 1 && t.segments[0] === 'scenes')) continue;
+    if (defined.has(t.value)) {
+      out.push({
+        start: t.start,
+        end: t.end,
+        message: `场景名 ${t.value} 重复定义；跳转只会到后一处`,
+        severity: 'warning',
+      });
+    } else {
+      defined.set(t.value, t.start);
+    }
+  }
+
+  for (const t of toks) {
+    const kind = refKind(t);
+    if (!kind || kind === 'scene') continue;
+    if (isSceneRef(kind)) {
+      if (!names.has(t.value)) {
+        out.push({
+          start: t.start,
+          end: t.end,
+          message: `${kind} 引用的场景未在 scenes 中定义：${t.value}`,
+          severity: 'error',
+        });
+      }
+    } else if (!nodeIndex.has(t.value)) {
+      out.push({
+        start: t.start,
+        end: t.end,
+        message: `${kind} 引用的节点未在 pipeline 资源中找到：${t.value}${nodeSuffix}`,
+        severity: nodeSeverity,
+      });
+    }
+  }
+  return out;
+}
+
+// ── 内联提示（引用处的灰色 desc，同 maa-support 的任务文档提示）──────────
+
+/** 内联提示默认最大长度（超出部分省略，完整内容放 tooltip）。 */
+const INLAY_HINT_MAX_CHARS = 40;
+
+/**
+ * 为 scene_jump_map 引用收集内联提示（纯逻辑，不依赖 vscode）。
+ *
+ *   - 场景引用（from / to / parent / via）→ scenes.<name>.desc
+ *   - 节点引用（detect / detect.all_of|any_of[i] / jump）→ pipeline 节点的 desc
+ *   - 场景名（scenes key）本身不提示：其 desc 就在紧邻的字段里，重复显示只会变吵
+ *
+ * 位置取被注解字面量的末尾（与 maa-support 的 location.offset + location.length 一致），
+ * 由调用方按可见 range 过滤。
+ * opts:
+ *   sceneDescs  Map<场景名, desc>
+ *   nodeIndex   Map<节点名, 定义数组>（缺省则不给节点提示）
+ *   maxLength   省略阈值，缺省 INLAY_HINT_MAX_CHARS
+ * 返回 [{ position, text, tooltip }]，position 为字面量结束处的偏移。
+ */
+function collectInlayHints(text, opts = {}) {
+  const toks = scanJsoncStrings(text);
+  const sceneDescs = opts.sceneDescs instanceof Map ? opts.sceneDescs : new Map();
+  const nodeIndex = opts.nodeIndex instanceof Map ? opts.nodeIndex : null;
+  const max = typeof opts.maxLength === 'number' ? opts.maxLength : INLAY_HINT_MAX_CHARS;
+  const out = [];
+  for (const t of toks) {
+    const kind = refKind(t);
+    if (!kind || kind === 'scene') continue;
+    let desc = '';
+    if (isSceneRef(kind)) {
+      desc = sceneDescs.get(t.value) || '';
+    } else if (nodeIndex) {
+      const defs = nodeIndex.get(t.value);
+      desc = defs && defs.length ? defs[0].desc || '' : '';
+    }
+    if (!desc) continue;
+    out.push({
+      position: t.end,
+      text: desc.length > max ? `${desc.slice(0, max - 1)}…` : desc,
+      tooltip: desc.length > max ? desc : '',
+    });
+  }
+  return out;
+}
+
 module.exports = {
   stripJsonc,
   parseJsonc,
+  resourceDirsFromInterface,
   scanJsoncStrings,
   refKind,
   isSceneRef,
@@ -392,4 +593,8 @@ module.exports = {
   offsetToPosition,
   tokenAt,
   fieldAt,
+  collectSceneNames,
+  collectDiagnostics,
+  collectInlayHints,
+  INLAY_HINT_MAX_CHARS,
 };
