@@ -150,15 +150,6 @@ def install_resource():
         dirs_exist_ok=True,
     )
 
-    for resource_name in ["resource_bilibili", "resource_taptap"]:
-        source = working_dir / "assets" / resource_name
-        if source.exists():
-            shutil.copytree(
-                source,
-                install_path / resource_name,
-                dirs_exist_ok=True,
-            )
-
     shutil.copy2(working_dir / "assets" / "interface.json", install_path)
 
     interface = load_json_with_comments(install_path / "interface.json")

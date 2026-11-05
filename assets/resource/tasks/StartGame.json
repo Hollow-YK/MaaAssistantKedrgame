@@ -6,7 +6,8 @@
             "entry": "StartGameMain",
             "description": "$task.StartGame.desc",
             "option": [
-                "StartGame_DailyAward"
+                "StartGame_DailyAward",
+                "ClientVersion"
             ],
             "group": [
                 "Daily"

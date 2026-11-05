@@ -29,23 +29,10 @@
     ],
     "resource": [
         {
-            "name": "官服",
+            "name": "default",
+            "label": "$resource.default.label",
             "path": [
                 "./resource"
-            ]
-        },
-        {
-            "name": "B 服",
-            "path": [
-                "./resource",
-                "./resource_bilibili"
-            ]
-        },
-        {
-            "name": "TapTap",
-            "path": [
-                "./resource",
-                "./resource_taptap"
             ]
         }
     ],
@@ -70,6 +57,7 @@
     ],
     "task": [],
     "import": [
+        "resource/tasks/Global.json",
         "resource/tasks/StartGame.json",
         "resource/tasks/Award.json",
         "resource/tasks/AutoBattle.json",
@@ -81,5 +69,19 @@
         // "resource/tasks/Activity/1/Shop.json"
     ],
     "option": {},
+    "global_option": [
+        "ClientVersion"
+    ],
+    "setting": [
+        {
+            "name": "ClientVersion",
+            "label": "$setting.ClientVersion.label",
+            "description": "$setting.ClientVersion.description",
+            "option": [
+                "ClientVersion"
+            ],
+            "default_expand": true
+        }
+    ],
     "title": "MAK v325.799 | 雪松小助手"
 }

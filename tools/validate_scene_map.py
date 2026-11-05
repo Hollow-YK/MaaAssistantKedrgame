@@ -123,8 +123,6 @@ def main():
     else:
         resource_dirs = [
             REPO_ROOT / "assets" / "resource",
-            REPO_ROOT / "assets" / "resource_bilibili",
-            REPO_ROOT / "assets" / "resource_taptap",
         ]
 
     index = scan_node_definitions(resource_dirs)
