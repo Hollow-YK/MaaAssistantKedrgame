@@ -107,6 +107,7 @@ export default hopeTheme({
               "award.md",
               "auto-battle.md",
               "auto-sweep.md",
+              "shop.md",
             ],
           },
         ],
@@ -141,6 +142,7 @@ export default hopeTheme({
                   "award.md",
                   "auto-battle.md",
                   "auto-sweep.md",
+                  "shop.md",
                 ],
               },
               {
@@ -150,6 +152,7 @@ export default hopeTheme({
                 children: [
                   "scene-jump.md",
                   "stage-select.md",
+                  "shop-manager-VIP.md",
                 ],
               },
             ],
