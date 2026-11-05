@@ -105,7 +105,7 @@
         // -----
         // MARK: 商店
         // -----
-        "Shop": {
+        "Shop_Shop": {
             "desc": "常驻商店",
             "detect": "UI_Shop_VipShop"
         },
@@ -122,7 +122,7 @@
                     "UI_Shop_OCRSelected_1"
                 ]
             },
-            "parent": "Shop"
+            "parent": "Shop_Shop"
         },
         "Shop_Shop_2": {
             "desc": "兑换商店",
@@ -133,7 +133,7 @@
                     "UI_Shop_OCRSelected_2"
                 ]
             },
-            "parent": "Shop"
+            "parent": "Shop_Shop"
         },
         "Shop_Shop_3": {
             "desc": "礼包商店",
@@ -144,7 +144,7 @@
                     "UI_Shop_OCRSelected_3"
                 ]
             },
-            "parent": "Shop"
+            "parent": "Shop_Shop"
         },
         "Shop_Shop_4": {
             "desc": "服装商店",
@@ -155,7 +155,7 @@
                     "UI_Shop_OCRSelected_4"
                 ]
             },
-            "parent": "Shop"
+            "parent": "Shop_Shop"
         },
         "Shop_Shop_5": {
             "desc": "充值商店",
@@ -166,7 +166,11 @@
                     "UI_Shop_OCRSelected_5"
                 ]
             },
-            "parent": "Shop"
+            "parent": "Shop_Shop"
+        },
+        "Shop_Detail": {
+            "desc": "商店-商品详情",
+            "detect": "SceneDo_Shop_CloseInfo"
         },
         // -----
         // MARK: 对话框 Alert
@@ -452,14 +456,14 @@
         },
         {
             "from": "VIP_Shop",
-            "to": "Shop",
+            "to": "Shop_Shop",
             "cost": 1,
             "jump": [
                 "SceneDo_Click_Shop_Shop"
             ]
         },
         {
-            "from": "Shop",
+            "from": "Shop_Shop",
             "to": "VIP_Shop",
             "cost": 1,
             "jump": [
@@ -467,7 +471,7 @@
             ]
         },
         {
-            "from": "Shop",
+            "from": "Shop_Shop",
             "to": "MainMenu",
             "cost": 1,
             "jump": [
@@ -475,7 +479,7 @@
             ]
         },
         {
-            "from": "Shop",
+            "from": "Shop_Shop",
             "to": "MainMenu",
             "cost": 1,
             "jump": [
@@ -489,6 +493,15 @@
             "jump": [
                 "SceneDo_PauseBackButton"
             ]
+        },
+        {
+            "from": "Shop_Detail",
+            "to": [
+                "Shop_Shop",
+                "VIP_Shop"
+            ],
+            "cost": 1,
+            "jump": "SceneDo_Shop_CloseInfo"
         },
         // -----
         // MARK: 对话框 Alert

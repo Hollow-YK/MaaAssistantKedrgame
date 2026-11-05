@@ -65,7 +65,7 @@
         {
             "name": "Activity",
             "label": "$group.Activity.label",
-            "default_expand": true
+            "default_expand": false
         }
     ],
     "task": [],
@@ -75,9 +75,10 @@
         "resource/tasks/AutoBattle.json",
         "resource/tasks/AutoSweep.json",
         "resource/tasks/PVP.json",
+        "resource/tasks/Shop.json"
         // "resource/tasks/Activity/1/Award.json",
         // "resource/tasks/Activity/1/AutoSweep.json",
-        "resource/tasks/Activity/1/Shop.json"
+        // "resource/tasks/Activity/1/Shop.json"
     ],
     "option": {},
     "title": "MAK v325.799 | 雪松小助手"
