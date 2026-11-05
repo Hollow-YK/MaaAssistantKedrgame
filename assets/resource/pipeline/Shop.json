@@ -1,0 +1,57 @@
+{
+    // 自动购物：高账商店（VIP_Shop）
+    // 流程：任意界面 --SceneJump--> 高账商店 --Shop_VIP_Manager--> 按选项购买商品
+    "Shop_Main": {
+        "desc": "自动购物-入口：先跳转到高账商店，再购买选项选中的商品",
+        "next": [
+            "Shop_Do:JumpToVipShop"
+        ],
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "正在前往高账商店……",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "Shop_Do:JumpToVipShop": {
+        "desc": "跳转至高账商店",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SceneJump",
+                "custom_action_param": {
+                    "target": "VIP_Shop"
+                }
+            }
+        },
+        "next": [
+            "Shop_Buy"
+        ],
+        "post_delay": 1000
+    },
+    "Shop_Buy": {
+        "desc": "高账商店购物管理器",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "Shop_VIP_Manager"
+            }
+        },
+        "next": [
+            "Shop_Finish"
+        ]
+    },
+    "Shop_Finish": {
+        "desc": "自动购物结束",
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "任务完成！",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    }
+}

@@ -31,5 +31,141 @@
             }
         },
         "action": "Click"
+    },
+    "SceneDo_Shop_Swipe_Next": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    1150,
+                    325,
+                    80,
+                    100
+                ],
+                "end": [
+                    430,
+                    325,
+                    80,
+                    100
+                ],
+                "end_hold": 500
+            }
+        }
+    },
+    "SceneDo_Shop_Swipe_Last": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    430,
+                    325,
+                    80,
+                    100
+                ],
+                "end": [
+                    1150,
+                    325,
+                    80,
+                    100
+                ],
+                "end_hold": 500
+            }
+        }
+    },
+    "SceneDo_Shop_CloseInfo": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "点击空白区域关闭弹窗",
+                    "关闭弹窗"
+                ],
+                "roi": [
+                    550,
+                    610,
+                    180,
+                    40
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SceneDo_Shop_Detail_Click_Max": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/Detail/Max.png" // [989,354,82,45]
+                ],
+                "roi": [
+                    984,
+                    349,
+                    92,
+                    55
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SceneDo_Shop_Detail_Click_Min": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/Detail/Min.png" // [562,354,82,45]
+                ],
+                "roi": [
+                    557,
+                    349,
+                    92,
+                    55
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SceneDo_Shop_Detail_Click_Plus": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/Detail/Plus.png" // [928,354,60,45]
+                ],
+                "roi": [
+                    923,
+                    349,
+                    70,
+                    55
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SceneDo_Shop_Detail_Click_Minus": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "UI/Shop/Detail/Minus.png" // [645,354,60,45]
+                ],
+                "roi": [
+                    640,
+                    349,
+                    70,
+                    55
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     }
 }

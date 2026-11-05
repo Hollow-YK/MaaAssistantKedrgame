@@ -1,0 +1,204 @@
+{
+    "task": [
+        {
+            "name": "Shop",
+            "label": "$task.Shop.label",
+            "entry": "Shop_Main",
+            "description": "$task.Shop.desc",
+            "option": [
+                "VIPShop_FreeAll",
+                "VIPShop_PaidAll"
+            ],
+            "group": [
+                "Daily"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ],
+    "option": {
+        "VIPShop_FreeAll": {
+            "label": "$option.VIPShop_FreeAll.label",
+            "description": "$option.VIPShop_FreeAll.description",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "军用单兵口粮": "MAX",
+                                "淡海糖果": "MAX",
+                                "第二版能元": "MAX",
+                                "训练用器材": "MAX",
+                                "载具研发公式": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "option": [
+                        "VIPShop_FreeItems"
+                    ]
+                }
+            ]
+        },
+        "VIPShop_FreeItems": {
+            "label": "$option.VIPShop_FreeItems.label",
+            "description": "$option.VIPShop_FreeItems.description",
+            "type": "checkbox",
+            "default_case": [],
+            "cases": [
+                {
+                    "name": "1",
+                    "label": "$option.VIPShop_FreeItems_1.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "军用单兵口粮": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "2",
+                    "label": "$option.VIPShop_FreeItems_2.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "淡海糖果": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "3",
+                    "label": "$option.VIPShop_FreeItems_3.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "第二版能元": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "4",
+                    "label": "$option.VIPShop_FreeItems_4.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "训练用器材": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "5",
+                    "label": "$option.VIPShop_FreeItems_5.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "载具研发公式": "MAX"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "VIPShop_PaidAll": {
+            "label": "$option.VIPShop_PaidAll.label",
+            "description": "$option.VIPShop_PaidAll.description",
+            "type": "switch",
+            "default_case": "No",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "定期发射计划": "MAX",
+                                "高级考核材料组合包": "MAX",
+                                "中级考核材料组合包": "MAX",
+                                "低级考核材料组合包": "MAX",
+                                "技能升级材料组合包": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "option": [
+                        "VIPShop_PaidItems"
+                    ]
+                }
+            ]
+        },
+        "VIPShop_PaidItems": {
+            "label": "$option.VIPShop_PaidItems.label",
+            "description": "$option.VIPShop_PaidItems.description",
+            "type": "checkbox",
+            "default_case": [],
+            "cases": [
+                {
+                    "name": "1",
+                    "label": "$option.VIPShop_PaidItems_1.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "定期发射计划": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "2",
+                    "label": "$option.VIPShop_PaidItems_2.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "高级考核材料组合包": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "3",
+                    "label": "$option.VIPShop_PaidItems_3.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "中级考核材料组合包": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "4",
+                    "label": "$option.VIPShop_PaidItems_4.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "低级考核材料组合包": "MAX"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "5",
+                    "label": "$option.VIPShop_PaidItems_5.label",
+                    "pipeline_override": {
+                        "Shop_Buy": {
+                            "attach": {
+                                "技能升级材料组合包": "MAX"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

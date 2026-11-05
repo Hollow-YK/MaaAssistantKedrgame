@@ -146,5 +146,44 @@
                 "color_filter": "UI_Shop_OCRSelectedMask"
             }
         }
+    },
+    "UI_Shop_Sold": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Shop/sold.png", // [942,248,194,88]
+                "roi": [
+                    330,
+                    180,
+                    925,
+                    430
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Shop_Confirm:Money": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    740,
+                    525,
+                    110,
+                    35
+                ],
+                "upper": [
+                    255,
+                    60,
+                    10
+                ],
+                "lower": [
+                    200,
+                    0,
+                    0
+                ],
+                "count": 100
+            }
+        }
     }
 }
