@@ -8,8 +8,6 @@ agent/ 又在仓库根。Android/profile.yaml 的 assets 指向 Android/pi，本
     Android/pi/
     ├── interface.json          ← assets/interface.json
     ├── resource/               ← assets/resource/
-    ├── resource_bilibili/      ← assets/resource_bilibili/
-    ├── resource_taptap/        ← assets/resource_taptap/
     ├── agent/                  ← agent/
     └── LICENSE                 ← LICENSE
 

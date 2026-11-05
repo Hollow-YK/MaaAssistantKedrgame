@@ -1,0 +1,55 @@
+{
+    "option": {
+        // 游戏渠道版本。不同渠道的游戏包名不同，这里统一覆盖启动游戏时使用的包名
+        "ClientVersion": {
+            "label": "$option.ClientVersion.label",
+            "description": "$option.ClientVersion.description",
+            "type": "select",
+            "default_case": "Official",
+            "cases": [
+                {
+                    "name": "Official",
+                    "label": "$option.ClientVersion_Official.label",
+                    "pipeline_override": {
+                        "StartGameApp": {
+                            "action": {
+                                "type": "StartApp",
+                                "param": {
+                                    "package": "com.phxh.official.nld"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Bilibili",
+                    "label": "$option.ClientVersion_Bilibili.label",
+                    "pipeline_override": {
+                        "StartGameApp": {
+                            "action": {
+                                "type": "StartApp",
+                                "param": {
+                                    "package": "com.phxh.nlddev.bilibili"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "TapTap",
+                    "label": "$option.ClientVersion_TapTap.label",
+                    "pipeline_override": {
+                        "StartGameApp": {
+                            "action": {
+                                "type": "StartApp",
+                                "param": {
+                                    "package": "com.phxh.taptap.nld"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
