@@ -30,6 +30,7 @@ On the MAK home screen, click **添加任务** (“Add Task”) in the task list
 | 领取奖励 (Claim Rewards) | Automatically claims daily task, weekly task, achievement, dispatch, and other rewards | [View details](/en/guide/features/award.md) |
 | 自动战斗 (Auto Battle) | Automatically enters and farms stages, including 资源收集 (Resource Collection) stages | [View details](/en/guide/features/auto-battle.md) |
 | 自动刷本 (Auto Sweep) | Sweeps stages quickly using the in-game 自动战斗 (Auto Battle) feature, with stamina-drain support | [View details](/en/guide/features/auto-sweep.md) |
+| 赠送礼物 (Send Gift) | Sends gifts to friends one by one from the friend list until the daily limit is reached | [View details](/en/guide/features/send-gift.md) |
 
 ---
 

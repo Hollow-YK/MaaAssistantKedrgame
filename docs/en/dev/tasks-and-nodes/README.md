@@ -18,3 +18,4 @@ Current contents:
 4. [Claim Rewards (领取奖励)](/en/dev/tasks-and-nodes/tasks/award)
 5. [Auto Battle (自动战斗)](/en/dev/tasks-and-nodes/tasks/auto-battle)
 6. [Auto Sweep (自动刷本)](/en/dev/tasks-and-nodes/tasks/auto-sweep)
+7. [Send Gift (赠送礼物)](/en/dev/tasks-and-nodes/tasks/send-gift)
