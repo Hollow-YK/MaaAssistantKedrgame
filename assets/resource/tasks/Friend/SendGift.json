@@ -1,0 +1,18 @@
+{
+    "task": [
+        {
+            "name": "SendGift",
+            "label": "$task.SendGift.label",
+            "entry": "SendGiftMain",
+            "description": "$task.SendGift.desc",
+            "option": [],
+            "group": [
+                "Daily",
+                "Friend"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ]
+}

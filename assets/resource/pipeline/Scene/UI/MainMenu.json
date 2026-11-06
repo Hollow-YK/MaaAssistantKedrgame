@@ -1,19 +1,4 @@
 {
-    "UI_MainMenu_repo": {
-        "desc": "主界面-仓库",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": "UI/homepage/repo.png",
-                "roi": [
-                    1140,
-                    25,
-                    65,
-                    45
-                ]
-            }
-        }
-    },
     "UI_MainMenu_event": {
         "desc": "主界面-活动",
         "recognition": "Or",
@@ -27,6 +12,22 @@
             "type": "TemplateMatch",
             "param": {
                 "template": "UI/homepage/event_withredpoint.png",
+                "roi": [
+                    1020,
+                    20,
+                    60,
+                    50
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_MainMenu_friend": {
+        "desc": "主界面-好友",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/homepage/friend.png", // [1085,29,40,38]
                 "roi": [
                     1080,
                     20,
@@ -70,21 +71,6 @@
                     1140,
                     25,
                     65,
-                    45
-                ]
-            }
-        }
-    },
-    "UI_MainMenu_setting": {
-        "desc": "主界面-设置",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": "UI/homepage/setting.png",
-                "roi": [
-                    1210,
-                    25,
-                    55,
                     45
                 ]
             }

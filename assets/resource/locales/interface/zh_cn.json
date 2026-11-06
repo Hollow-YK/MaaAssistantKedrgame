@@ -2,6 +2,9 @@
     "interface.description": "基于 MaaFramework 的《雪松》小助手。",
     "interface.welcome.file": "resource/locales/interface/WELCOME/WELCOME_zh_cn.md",
     "interface.contact": "GitHub 仓库: [Hollow-YK/MaaAssistantKedrgame](https://github.com/Hollow-YK/MaaAssistantKedrgame/)<br>文档站: https://hollow-yk.github.io/MaaAssistantKedrgame/<br>QQ群: 253843401",
+    // -----
+    // MARK: 设置
+    // -----
     "controller.ADB.label": "ADB控制器",
     "resource.default.label": "国服",
     "setting.ClientVersion.label": "游戏客户端",
@@ -11,7 +14,15 @@
     "option.ClientVersion_Official.label": "官服",
     "option.ClientVersion_Bilibili.label": "BiliBili 服",
     "option.ClientVersion_TapTap.label": "TapTap 服",
+    // -----
+    // MARK: 分组
+    // -----
     "group.Daily.label": "日常",
+    "group.Friend.label": "好友",
+    "group.Activity.label": "活动",
+    // -----
+    // MARK: 日常
+    // -----
     "task.StartGame.label": "启动游戏",
     "task.StartGame.desc": "打开雪松",
     "option.StartGame_DailyAward.label": "强制领取每日登录奖励",
@@ -84,7 +95,11 @@
     "option.VIPShop_PaidItems_3.label": "中级考核材料组合包*1 ×2",
     "option.VIPShop_PaidItems_4.label": "低级考核材料组合包*1 ×2",
     "option.VIPShop_PaidItems_5.label": "技能升级材料组合包*1",
-    "group.Activity.label": "活动",
+    "task.SendGift.label": "赠送礼物",
+    "task.SendGift.desc": "给好友赠送友情点<br>会赠送直到达到本日上限。默认按登录时间顺序赠送。",
+    // -----
+    // MARK: 活动
+    // -----
     "task.Award_Activity_1.label": "耀斑领取奖励",
     "task.Award_Activity_1.desc": "领取耀斑活动的奖励",
     "option.Award_Activity_1_DailyAward.label": "“秘密集合”每日签到",
@@ -105,7 +120,13 @@
     "option.Shop_Activity_1_option.label": "购买范围",
     "option.Shop_Activity_1_option_1.label": "强行保障",
     "option.Shop_Activity_1_option_2.label": "定额保障",
+    // -----
+    // MARK: 文本
+    // -----
     "text.MAK.Auto": "自动",
+    // -----
+    // MARK: 游戏文本
+    // -----
     "text.combat.MainStory": "主线任务",
     "text.combat.MaterialQuests": "资源收集",
     "text.combat.MaterialQuests_1": "特别军费行动",

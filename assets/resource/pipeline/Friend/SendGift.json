@@ -1,0 +1,157 @@
+{
+    "SendGiftMain": {
+        "desc": "赠送礼物-入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SceneJump",
+                "custom_action_param": {
+                    "target": "Friend_FriendList"
+                }
+            }
+        },
+        "next": [
+            "SendGiftLoop"
+        ],
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "正在前往好友列表……",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "SendGiftLoop": {
+        "next": [
+            "SendGiftQuotaFull",
+            "[JumpBack]SendGiftStep",
+            "SendGiftFinish"
+        ]
+    },
+    "SendGiftQuotaFull": {
+        "desc": "赠送礼物-今日赠礼已达上限",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                // 命中 “20/20” 即视为今日额度用尽；每日上限不是 20 时改这两个数字。
+                // 也可换成 "计数/总数相等" 的通用写法： "(\\d+)\\s*[/／]\\s*\\1"
+                "expected": [
+                    "20\\s*[/／]\\s*20"
+                ],
+                "roi": [
+                    1120,
+                    665,
+                    135,
+                    25
+                ]
+            }
+        },
+        "next": [
+            "SendGiftFinish"
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "今日赠礼已达上限",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "SendGiftStep": {
+        "desc": "赠送礼物-一轮",
+        "next": [
+            "SendGiftDo",
+            "SendGiftSwipe"
+        ],
+        "max_hit": 50
+    },
+    "SendGiftDo": {
+        "desc": "赠送礼物-点最靠上且可赠送的那一个",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "Common_AllOfIntersect",
+                "custom_recognition_param": {
+                    // 两个子识别“同时命中”的框才算候选（交集），再按 order_by 取最靠上的
+                    "all_of": [
+                        {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "template": "UI/Friend/sendgift.png",
+                                "roi": [
+                                    970,
+                                    110,
+                                    125,
+                                    595
+                                ],
+                                "green_mask": true
+                            }
+                        },
+                        {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    970,
+                                    110,
+                                    125,
+                                    595
+                                ],
+                                "lower": [
+                                    235,
+                                    235,
+                                    80
+                                ],
+                                "upper": [
+                                    255,
+                                    255,
+                                    115
+                                ],
+                                "connected": true,
+                                "count": 600
+                            }
+                        }
+                    ],
+                    "order_by": "Vertical",
+                    "index": 0
+                }
+            }
+        },
+        "action": "Click",
+        "next": [
+            "SendGiftSwipe"
+        ],
+        "max_hit": 20
+    },
+    "SendGiftSwipe": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    680,
+                    420,
+                    200,
+                    10
+                ],
+                "end": [
+                    680,
+                    270,
+                    200,
+                    10
+                ],
+                "end_hold": 1000
+            }
+        }
+    },
+    "SendGiftFinish": {
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "赠送礼物完成！",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    }
+}

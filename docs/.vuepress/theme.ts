@@ -108,6 +108,7 @@ export default hopeTheme({
               "auto-battle.md",
               "auto-sweep.md",
               "shop.md",
+              "send-gift.md",
             ],
           },
         ],
@@ -143,6 +144,7 @@ export default hopeTheme({
                   "auto-battle.md",
                   "auto-sweep.md",
                   "shop.md",
+                  "send-gift.md",
                 ],
               },
               {
@@ -153,6 +155,7 @@ export default hopeTheme({
                   "scene-jump.md",
                   "stage-select.md",
                   "shop-manager-VIP.md",
+                  "allof-intersect.md",
                 ],
               },
             ],
@@ -290,6 +293,7 @@ export default hopeTheme({
               "award.md",
               "auto-battle.md",
               "auto-sweep.md",
+              "send-gift.md",
             ],
           },
         ],
@@ -324,6 +328,7 @@ export default hopeTheme({
                   "award.md",
                   "auto-battle.md",
                   "auto-sweep.md",
+                  "send-gift.md",
                 ],
               },
               {
@@ -333,6 +338,7 @@ export default hopeTheme({
                 children: [
                   "scene-jump.md",
                   "stage-select.md",
+                  "allof-intersect.md",
                 ],
               },
             ],

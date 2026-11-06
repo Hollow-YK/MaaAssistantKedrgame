@@ -1,0 +1,553 @@
+{
+    "UI_Friend_Card": {
+        "desc": "好友-个人名片",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Friend/friend_card.png", // [1123,22,129,61]
+                "roi": [
+                    1110,
+                    15,
+                    160,
+                    80
+                ]
+            }
+        }
+    },
+    "UI_Friend_SendGift": {
+        "desc": "好友-赠送礼物",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Friend/sendgift.png", // [982,169,100,100]
+                "roi": [
+                    970,
+                    110,
+                    125,
+                    595
+                ],
+                "green_mask": true
+            }
+        }
+    },
+    "UI_Friend_SendedGift": {
+        "desc": "好友-已赠送礼物",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Friend/sendedgift.png", // [982,169,100,100]
+                "roi": [
+                    970,
+                    110,
+                    125,
+                    595
+                ]
+            }
+        }
+    },
+    "UI_Friend_FriendList": {
+        "desc": "好友-好友列表",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "好友列表"
+                ],
+                "roi": [
+                    1120,
+                    195,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_FriendList_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_FriendList",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    140,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    220,
+                                    220,
+                                    70
+                                ],
+                                "upper": [
+                                    250,
+                                    250,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_FriendList_UnSelected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_FriendList",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    140,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    75,
+                                    75,
+                                    75
+                                ],
+                                "upper": [
+                                    85,
+                                    85,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_AddFriend": {
+        "desc": "好友-添加好友",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "添加好友"
+                ],
+                "roi": [
+                    1120,
+                    285,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_AddFriend_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_AddFriend",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    230,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    220,
+                                    220,
+                                    70
+                                ],
+                                "upper": [
+                                    250,
+                                    250,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_AddFriend_UnSelected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_AddFriend",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    230,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    75,
+                                    75,
+                                    75
+                                ],
+                                "upper": [
+                                    85,
+                                    85,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_PendingRequests": {
+        "desc": "好友-待处理申请",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "待处理申请"
+                ],
+                "roi": [
+                    1120,
+                    375,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_PendingRequests_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_PendingRequests",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    325,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    220,
+                                    220,
+                                    70
+                                ],
+                                "upper": [
+                                    250,
+                                    250,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_PendingRequests_UnSelected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_PendingRequests",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    325,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    75,
+                                    75,
+                                    75
+                                ],
+                                "upper": [
+                                    85,
+                                    85,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_Store": {
+        "desc": "好友-友情商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "友情商店"
+                ],
+                "roi": [
+                    1120,
+                    465,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_Store_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Store",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    415,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    220,
+                                    220,
+                                    70
+                                ],
+                                "upper": [
+                                    250,
+                                    250,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_Store_UnSelected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Store",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    415,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    75,
+                                    75,
+                                    75
+                                ],
+                                "upper": [
+                                    85,
+                                    85,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_Blocklist": {
+        "desc": "好友-黑名单",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "黑名单"
+                ],
+                "roi": [
+                    1120,
+                    560,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_Blocklist_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Blocklist",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    505,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    220,
+                                    220,
+                                    70
+                                ],
+                                "upper": [
+                                    250,
+                                    250,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_Blocklist_UnSelected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Blocklist",
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    1120,
+                                    505,
+                                    135,
+                                    85
+                                ],
+                                "lower": [
+                                    75,
+                                    75,
+                                    75
+                                ],
+                                "upper": [
+                                    85,
+                                    85,
+                                    85
+                                ],
+                                "connected": true,
+                                "count": 5000
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_InteractionHistory": {
+        "desc": "好友-互动履历",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "互动履历"
+                ],
+                "roi": [
+                    1120,
+                    630,
+                    135,
+                    30
+                ]
+            }
+        }
+    },
+    "UI_Friend_InteractionHistory_Selected": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "template": "UI/Common/alert_signal.png",
+                                "roi": [
+                                    170,
+                                    115,
+                                    60,
+                                    55
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "互动履历"
+                                ],
+                                "roi": [
+                                    220,
+                                    115,
+                                    120,
+                                    55
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "UI_Friend_InteractionHistory_Close": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "UI/Common/alert_close.png",
+                "roi": [
+                    1050,
+                    115,
+                    60,
+                    55
+                ]
+            }
+        }
+    }
+}

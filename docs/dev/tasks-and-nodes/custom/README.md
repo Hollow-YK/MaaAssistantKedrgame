@@ -13,3 +13,4 @@ title: Custom
 1. [SceneJump 通用场景跳转](./scene-jump)
 2. [Stage_Select 通用选关](./stage-select)
 3. [Shop_VIP_Manager 高账商店购物](./shop-manager-VIP)
+4. [Common_AllOfIntersect 组合识别取交集](./allof-intersect)

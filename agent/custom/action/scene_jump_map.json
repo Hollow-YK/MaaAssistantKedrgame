@@ -173,6 +173,42 @@
             "detect": "SceneDo_Shop_CloseInfo"
         },
         // -----
+        // MARK: 好友
+        // -----
+        "Friend": {
+            "desc": "好友界面",
+            "detect": "UI_Friend_Card"
+        },
+        "Friend_FriendList": {
+            "desc": "好友界面-好友列表",
+            "detect": "UI_Friend_FriendList_Selected",
+            "parent": "Friend"
+        },
+        "Friend_AddFriend": {
+            "desc": "好友界面-添加好友",
+            "detect": "UI_Friend_AddFriend_Selected",
+            "parent": "Friend"
+        },
+        "Friend_PendingRequests": {
+            "desc": "好友界面-待处理申请",
+            "detect": "UI_Friend_PendingRequests_Selected",
+            "parent": "Friend"
+        },
+        "Friend_Store": {
+            "desc": "好友界面-友情商店",
+            "detect": "UI_Friend_Store_Selected",
+            "parent": "Friend"
+        },
+        "Friend_Blocklist": {
+            "desc": "好友界面-黑名单",
+            "detect": "UI_Friend_Blocklist_Selected",
+            "parent": "Friend"
+        },
+        "Friend_InteractionHistory": {
+            "desc": "好友界面-互动履历",
+            "detect": "UI_Friend_InteractionHistory_Selected"
+        },
+        // -----
         // MARK: 对话框 Alert
         // -----
         "Alert": {
@@ -504,6 +540,297 @@
             "jump": "SceneDo_Shop_CloseInfo"
         },
         // -----
+        // MARK: 好友
+        // -----
+        {
+            "from": "MainMenu",
+            "to": "Friend_FriendList",
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend"
+            ]
+        },
+        {
+            "from": "Friend",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseHomeButton"
+            ]
+        },
+        {
+            "from": "Friend",
+            "to": "MainMenu",
+            "cost": 1,
+            "jump": [
+                "SceneDo_PauseBackButton"
+            ]
+        },
+        {
+            "from": "Friend_FriendList",
+            "to": [
+                "Friend_AddFriend"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_AddFriend"
+            ]
+        },
+        {
+            "from": "Friend_FriendList",
+            "to": [
+                "Friend_PendingRequests"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_PendingRequests"
+            ]
+        },
+        {
+            "from": "Friend_FriendList",
+            "to": [
+                "Friend_Store"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Store"
+            ]
+        },
+        {
+            "from": "Friend_FriendList",
+            "to": [
+                "Friend_Blocklist"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Blocklist"
+            ]
+        },
+        {
+            "from": "Friend_FriendList",
+            "to": [
+                "Friend_InteractionHistory"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_InteractionHistory"
+            ]
+        },
+        {
+            "from": "Friend_AddFriend",
+            "to": [
+                "Friend_FriendList"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_FriendList"
+            ]
+        },
+        {
+            "from": "Friend_AddFriend",
+            "to": [
+                "Friend_PendingRequests"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_PendingRequests"
+            ]
+        },
+        {
+            "from": "Friend_AddFriend",
+            "to": [
+                "Friend_Store"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Store"
+            ]
+        },
+        {
+            "from": "Friend_AddFriend",
+            "to": [
+                "Friend_Blocklist"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Blocklist"
+            ]
+        },
+        {
+            "from": "Friend_AddFriend",
+            "to": [
+                "Friend_InteractionHistory"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_InteractionHistory"
+            ]
+        },
+        {
+            "from": "Friend_PendingRequests",
+            "to": [
+                "Friend_FriendList"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_FriendList"
+            ]
+        },
+        {
+            "from": "Friend_PendingRequests",
+            "to": [
+                "Friend_AddFriend"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_AddFriend"
+            ]
+        },
+        {
+            "from": "Friend_PendingRequests",
+            "to": [
+                "Friend_Store"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Store"
+            ]
+        },
+        {
+            "from": "Friend_PendingRequests",
+            "to": [
+                "Friend_Blocklist"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Blocklist"
+            ]
+        },
+        {
+            "from": "Friend_PendingRequests",
+            "to": [
+                "Friend_InteractionHistory"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_InteractionHistory"
+            ]
+        },
+        {
+            "from": "Friend_Store",
+            "to": [
+                "Friend_FriendList"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_FriendList"
+            ]
+        },
+        {
+            "from": "Friend_Store",
+            "to": [
+                "Friend_AddFriend"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_AddFriend"
+            ]
+        },
+        {
+            "from": "Friend_Store",
+            "to": [
+                "Friend_PendingRequests"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_PendingRequests"
+            ]
+        },
+        {
+            "from": "Friend_Store",
+            "to": [
+                "Friend_Blocklist"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Blocklist"
+            ]
+        },
+        {
+            "from": "Friend_Store",
+            "to": [
+                "Friend_InteractionHistory"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_InteractionHistory"
+            ]
+        },
+        {
+            "from": "Friend_Blocklist",
+            "to": [
+                "Friend_FriendList"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_FriendList"
+            ]
+        },
+        {
+            "from": "Friend_Blocklist",
+            "to": [
+                "Friend_AddFriend"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_AddFriend"
+            ]
+        },
+        {
+            "from": "Friend_Blocklist",
+            "to": [
+                "Friend_PendingRequests"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_PendingRequests"
+            ]
+        },
+        {
+            "from": "Friend_Blocklist",
+            "to": [
+                "Friend_Store"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_Store"
+            ]
+        },
+        {
+            "from": "Friend_Blocklist",
+            "to": [
+                "Friend_InteractionHistory"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_InteractionHistory"
+            ]
+        },
+        {
+            "from": "Friend_InteractionHistory",
+            "to": [
+                "Friend_FriendList",
+                "Friend_AddFriend",
+                "Friend_PendingRequests",
+                "Friend_Store",
+                "Friend_Blocklist"
+            ],
+            "cost": 1,
+            "jump": [
+                "SceneDo_Click_Friend_FriendList"
+            ]
+        },
+        // -----
         // MARK: 对话框 Alert
         // -----
         {
@@ -512,11 +839,14 @@
             "cost": 1,
             "jump": [
                 "SceneDo_Alert_Close_safe_ReconnectFailed"
+            ],
+            "via": [
+                "Loading_Screen"
             ]
         },
         {
             "from": "Alert_MaintenanceArea_Again",
-            "to": "StartGame",
+            "to": "MainMenu_MaintenanceArea",
             "cost": 1,
             "jump": [
                 "SceneDo_Alert_Close_safe_MaintenanceArea_Again"

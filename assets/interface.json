@@ -50,6 +50,11 @@
             "default_expand": true
         },
         {
+            "name": "Friend",
+            "label": "$group.Friend.label",
+            "default_expand": true
+        },
+        {
             "name": "Activity",
             "label": "$group.Activity.label",
             "default_expand": false
@@ -63,7 +68,8 @@
         "resource/tasks/AutoBattle.json",
         "resource/tasks/AutoSweep.json",
         "resource/tasks/PVP.json",
-        "resource/tasks/Shop.json"
+        "resource/tasks/Shop.json",
+        "resource/tasks/Friend/SendGift.json"
         // "resource/tasks/Activity/1/Award.json",
         // "resource/tasks/Activity/1/AutoSweep.json",
         // "resource/tasks/Activity/1/Shop.json"
