@@ -1,0 +1,96 @@
+{
+    "SceneDo_Click_Friend": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_MainMenu_friend"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_FriendList": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_FriendList_UnSelected"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_AddFriend": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_AddFriend_UnSelected"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_PendingRequests": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_PendingRequests_UnSelected"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_Store": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Store_UnSelected"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_Blocklist": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_Blocklist_UnSelected"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Click_Friend_InteractionHistory": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_InteractionHistory"
+                ]
+            }
+        },
+        "action": "Click"
+    },
+    "SceneDo_Close_Friend_InteractionHistory": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UI_Friend_InteractionHistory_Selected",
+                    "UI_Friend_InteractionHistory_Close"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "UI_Friend_InteractionHistory_Close"
+            }
+        }
+    }
+}
