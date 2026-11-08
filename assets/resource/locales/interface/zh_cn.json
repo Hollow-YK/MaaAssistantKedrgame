@@ -97,6 +97,17 @@
     "option.VIPShop_PaidItems_5.label": "技能升级材料组合包*1",
     "task.SendGift.label": "赠送礼物",
     "task.SendGift.desc": "给好友赠送友情点<br>会赠送直到达到本日上限。默认按登录时间顺序赠送。",
+    "task.ReturnGift.label": "自动回礼",
+    "task.ReturnGift.desc": "扫描好友“互动履历”里获赠的友情点，按时间先后给赠送者回礼<br>直到今日赠礼次数用完或全部回礼完毕。",
+    "option.ReturnGift_Day.label": "回礼日期",
+    "option.ReturnGift_Day.description": "选择要为哪一天给自己送礼的人回礼<br>按游戏日计算（北京时间凌晨 5 点跨日）<br>由于游戏内仅能保留 7 天内的 100 条记录，建议不要选择超过三天前的日期。",
+    "option.ReturnGift_Day_0.label": "今天",
+    "option.ReturnGift_Day_1.label": "昨天",
+    "option.ReturnGift_Day_2.label": "前天",
+    "option.ReturnGift_Day_3.label": "3 天前",
+    "option.ReturnGift_Day_4.label": "4 天前",
+    "option.ReturnGift_Day_5.label": "5 天前",
+    "option.ReturnGift_Day_6.label": "6 天前",
     // -----
     // MARK: 活动
     // -----

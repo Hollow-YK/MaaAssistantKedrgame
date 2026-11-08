@@ -109,6 +109,7 @@ export default hopeTheme({
               "auto-sweep.md",
               "shop.md",
               "send-gift.md",
+              "return-gift.md",
             ],
           },
         ],
@@ -145,6 +146,7 @@ export default hopeTheme({
                   "auto-sweep.md",
                   "shop.md",
                   "send-gift.md",
+                  "return-gift.md",
                 ],
               },
               {
@@ -155,6 +157,7 @@ export default hopeTheme({
                   "scene-jump.md",
                   "stage-select.md",
                   "shop-manager-VIP.md",
+                  "friend-return-gift.md",
                   "allof-intersect.md",
                 ],
               },

@@ -1,0 +1,107 @@
+{
+    "task": [
+        {
+            "name": "ReturnGift",
+            "label": "$task.ReturnGift.label",
+            "entry": "ReturnGiftMain",
+            "description": "$task.ReturnGift.desc",
+            "option": [
+                "ReturnGift_Day"
+            ],
+            "group": [
+                "Daily",
+                "Friend"
+            ],
+            "controller": [
+                "ADB"
+            ]
+        }
+    ],
+    "option": {
+        "ReturnGift_Day": {
+            "label": "$option.ReturnGift_Day.label",
+            "description": "$option.ReturnGift_Day.description",
+            "type": "select",
+            "default_case": "Yesterday",
+            "cases": [
+                {
+                    "name": "Today",
+                    "label": "$option.ReturnGift_Day_0.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yesterday",
+                    "label": "$option.ReturnGift_Day_1.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "BeforeYesterday",
+                    "label": "$option.ReturnGift_Day_2.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "ThreeDaysAgo",
+                    "label": "$option.ReturnGift_Day_3.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "FourDaysAgo",
+                    "label": "$option.ReturnGift_Day_4.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 4
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "FiveDaysAgo",
+                    "label": "$option.ReturnGift_Day_5.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 5
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "SixDaysAgo",
+                    "label": "$option.ReturnGift_Day_6.label",
+                    "pipeline_override": {
+                        "ReturnGift_Do:ReturnGift": {
+                            "attach": {
+                                "day": 6
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
