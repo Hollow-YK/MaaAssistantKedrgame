@@ -1,0 +1,166 @@
+{
+    // 自动回礼：扫描“互动履历”里获赠的友情点，按时间先后给赠送者回礼
+    // 流程：任意界面 --SceneJump--> 好友列表 --Friend_ReturnGift--> 扫描互动履历 --逐个回礼--> 结束
+    "ReturnGiftMain": {
+        "desc": "自动回礼-入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SceneJump",
+                "custom_action_param": {
+                    "target": "Friend_FriendList"
+                }
+            }
+        },
+        "next": [
+            "ReturnGift_Do:ReturnGift"
+        ],
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "正在前往好友列表……",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "ReturnGift_Do:ReturnGift": {
+        "desc": "自动回礼-扫描互动履历，按时间先后给获赠友情点的好友回礼",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "Friend_ReturnGift"
+            }
+        },
+        "next": [
+            "ReturnGiftFinish"
+        ]
+    },
+    "ReturnGiftFinish": {
+        "desc": "自动回礼结束",
+        "focus": {
+            "Node.Recognition.Starting": {
+                "content": "自动回礼完成！",
+                "display": [
+                    "log"
+                ]
+            }
+        }
+    },
+    "ReturnGiftQuota": {
+        "desc": "自动回礼-今日赠礼次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                // 命中 “今日赠礼0/20” 里的 “0/20” 即可；Custom 里再解析出 X 与 Y
+                "expected": [
+                    "\\d+\\s*[/／]\\s*\\d+"
+                ],
+                "roi": [
+                    1120,
+                    660,
+                    140,
+                    32
+                ]
+            }
+        }
+    },
+    "ReturnGiftFriend_Sendable": {
+        "desc": "自动回礼-“赠送”按钮",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "Common_AllOfIntersect",
+                "custom_recognition_param": {
+                    // 与 SendGiftDo 同一套判据：模板与金色连通块“同时命中”才算可赠送，
+                    // 已赠送的灰色按钮自然被跳过。
+                    // 这里的 roi 是整列赠送按钮区域；Custom 会把它整体平移到
+                    // 当前扫描到的名片格子再识别。
+                    "all_of": [
+                        {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "template": "UI/Friend/sendgift.png",
+                                "roi": [
+                                    970,
+                                    110,
+                                    125,
+                                    595
+                                ],
+                                "green_mask": true
+                            }
+                        },
+                        {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    970,
+                                    110,
+                                    125,
+                                    595
+                                ],
+                                "lower": [
+                                    235,
+                                    235,
+                                    80
+                                ],
+                                "upper": [
+                                    255,
+                                    255,
+                                    115
+                                ],
+                                "connected": true,
+                                "count": 600
+                            }
+                        }
+                    ],
+                    "order_by": "Vertical",
+                    "index": 0
+                }
+            }
+        },
+        "action": "Click"
+    },
+    "ReturnGiftHistory_SwipeNext": {
+        "desc": "自动回礼-滚动互动履历",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    226,
+                    563,
+                    828,
+                    3
+                ],
+                "end": [
+                    226,
+                    286,
+                    828,
+                    3
+                ],
+                "end_hold": 1000
+            }
+        }
+    },
+    "ReturnGiftFriend_SwipeNext": {
+        "desc": "自动回礼-滚动好友列表",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    226,
+                    585,
+                    700,
+                    3
+                ],
+                "end": [
+                    226,
+                    138,
+                    700,
+                    3
+                ],
+                "end_hold": 1000
+            }
+        }
+    }
+}

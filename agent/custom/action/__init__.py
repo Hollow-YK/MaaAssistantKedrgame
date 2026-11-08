@@ -7,6 +7,7 @@ ACTION_MODULES = (
     "stage_select",
     "pvp",
     "vip_shop",
+    "friend",
     "activity.1_sweep",
     "activity.1_shop",
     "activity.stage_select",

@@ -69,7 +69,8 @@
         "resource/tasks/AutoSweep.json",
         "resource/tasks/PVP.json",
         "resource/tasks/Shop.json",
-        "resource/tasks/Friend/SendGift.json"
+        "resource/tasks/Friend/SendGift.json",
+        "resource/tasks/Friend/ReturnGift.json"
         // "resource/tasks/Activity/1/Award.json",
         // "resource/tasks/Activity/1/AutoSweep.json",
         // "resource/tasks/Activity/1/Shop.json"
