@@ -1,7 +1,3 @@
-# Mirror酱为第三方分发服务，新项目默认关闭
-# 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-# https://mirrorchyan.com/
-#
 # 供应链安全：本文件 actions 固定到 commit SHA，SHA 后注释为对应版本 tag（未启用 dependabot，需手动更新）。
 
 name: mirrorchyan_release_note
@@ -13,25 +9,28 @@ on:
         default: ''
         required: false
   release:
-    types: [edited] # [edited, published]
+    types: [edited]
+
+permissions:
+  contents: read
 
 jobs:
   mirrorchyan:
+    if: ${{ github.repository_owner == 'Hollow-YK' }}
     runs-on: macos-latest
-    # Mirror酱为第三方分发服务，新项目默认关闭
-    # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-    # https://mirrorchyan.com/
-    if: false
-    # if: ${{ github.repository_owner == 'MaaXYZ' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [MAK, MAK-MXU]
 
     steps:
       - id: uploading
         uses: MirrorChyan/release-note-action@f392b50c411981ee6d33c8ed5e91d66d84d56202 # v1 (branch tip)
         with:
-          mirrorchyan_rid: MaaXXX
-          version_name: ${{ inputs.tag }}
+          mirrorchyan_rid: ${{ matrix.rid }}
+          version_name: ${{ inputs.tag || github.event.release.tag_name }}
 
-          owner: MaaXYZ
-          repo: MaaXXX
+          owner: Hollow-YK
+          repo: MaaAssistantKedrgame
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}

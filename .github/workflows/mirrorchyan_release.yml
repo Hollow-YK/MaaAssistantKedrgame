@@ -1,7 +1,3 @@
-# Mirror酱为第三方分发服务，新项目默认关闭
-# 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-# https://mirrorchyan.com/
-#
 # 供应链安全：本文件 actions 固定到 commit SHA，SHA 后注释为对应版本 tag（未启用 dependabot，需手动更新）。
 
 name: mirrorchyan_release
@@ -12,34 +8,50 @@ on:
       tag:
         default: ''
         required: false
-#   release:
-#     types: [published]
+
+permissions:
+  contents: read
 
 jobs:
   mirrorchyan:
+    if: ${{ github.repository_owner == 'Hollow-YK' }}
     runs-on: macos-latest
-    # Mirror酱为第三方分发服务，新项目默认关闭
-    # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-    # https://mirrorchyan.com/
-    if: false
-    # if: ${{ github.repository_owner == 'MaaXYZ' }}
     strategy:
       fail-fast: false
       matrix:
-        os: [win, macos, linux]
-        arch: [aarch64, x86_64]
+        include:
+          - rid: MAK
+            os: win
+            arch: x86_64
+            filename: 'MAK-win-x86_64-*-MFAA.zip'
+          - rid: MAK
+            os: android
+            arch: arm64
+            filename: 'MAK-android-arm64-v8a-*.apk'
+          - rid: MAK
+            os: android
+            arch: amd64
+            filename: 'MAK-android-x86_64-*.apk'
+          - rid: MAK
+            os: android
+            arch: ''
+            filename: 'MAK-android-universal-*.apk'
+          - rid: MAK-MXU
+            os: win
+            arch: x86_64
+            filename: 'MAK-win-x86_64-*-MXU.zip'
     steps:
       - uses: MirrorChyan/uploading-action@ea9a0f6f516fafb6b0a3046a1fe4b0dccb29eca8 # v1 (branch tip)
         with:
           filetype: latest-release
-          filename: ${{ format('MaaXXX-{0}-{1}-*', matrix.os, matrix.arch) }}
-          mirrorchyan_rid: MaaXXX
+          filename: ${{ matrix.filename }}
+          mirrorchyan_rid: ${{ matrix.rid }}
           tag: ${{ inputs.tag }}
 
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
 
-          owner: MaaXYZ
-          repo: MaaXXX
+          owner: Hollow-YK
+          repo: MaaAssistantKedrgame
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
