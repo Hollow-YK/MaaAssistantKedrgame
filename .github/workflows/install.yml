@@ -365,7 +365,7 @@ jobs:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
-  # Android APK 与桌面包同 tag 发布；本仓库暂未接入 Mirror 酱，只进 GitHub Release。
+  # Android APK 与桌面包同 tag 发布，Release 产物全部就绪后同步到 Mirror 酱。
   android:
     if: ${{ needs.meta.outputs.is_release == 'true' }}
     needs: [meta]
@@ -445,3 +445,11 @@ jobs:
           draft: false
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
 
+      - name: Trigger MirrorChyanUploading
+        shell: bash
+        run: |
+          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_release.yml -f tag="$RELEASE_TAG"
+          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_release_note.yml -f tag="$RELEASE_TAG"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.meta.outputs.tag }}

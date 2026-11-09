@@ -86,6 +86,7 @@ def install_resource():
     interface = load_json_with_comments(install_path / "interface.json")
 
     interface["version"] = version.lstrip("v")
+    interface["mirrorchyan_rid"] = "MAK-MXU"
     interface["title"] = f"MAK {version} | 雪松小助手"
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
