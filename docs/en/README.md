@@ -10,6 +10,9 @@ actions:
   - text: GitHub
     link: https://github.com/Hollow-YK/MaaAssistantKedrgame
     type: secondary
+  - text: Download (MirrorChyan)
+    link: https://mirrorchyan.com/en/projects?rid=MAK
+    type: secondary
 highlights:
   - header: Advanced Framework, Reliable Operation
     description: MAK is built on <a href="https://maafw.com/">MaaFramework</a> and implements its features through image recognition and simulated input.<br>Unlike traditional recorded scripts, it will not cause disasters such as “unexpectedly leaving a screen and spending all your resources.”
@@ -33,6 +36,18 @@ highlights:
         icon: mdi:sword-cross
         details: Automatically selects stages and fights battles<br>Easily farm stages that have not yet been cleared with three stars
         link: /en/guide/features/auto-battle
+      - title: Auto Sweep (自动刷本)
+        icon: mdi:motion-play
+        details: Automatically selects stages and fights battles<br>Automatically completes daily stage farming
+        link: /en/guide/features/auto-sweep
+      - title: Send Gift (赠送礼物)
+        icon: fa7-solid:heart
+        details: Sends friendship points to your friends<br>
+        link: /en/guide/features/send-gift
+      - title: Return Gift (自动回礼)
+        icon: bi:search-heart-fill
+        details: Scans your interaction history and returns gifts to friends<br>One good turn deserves another~
+        link: /en/guide/features/return-gift
       - title: All Features
         icon: fa7-solid:list-squares
         details: Click here to view all features

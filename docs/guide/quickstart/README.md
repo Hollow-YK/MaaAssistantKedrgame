@@ -15,6 +15,12 @@ MAK（雪松小助手）同时提供电脑端与安卓端两种运行方式，�
 
 <QuickStartWizard />
 
+## 下载
+
+[GitHub Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases)
+
+[Mirror 酱下载](https://mirrorchyan.com/zh/projects?rid=MAK)
+
 ## 对比
 
 当然，您也可以根据下面的内容，自行选择合适的方案。

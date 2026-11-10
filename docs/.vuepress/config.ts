@@ -23,7 +23,15 @@ export default defineUserConfig({
   bundler: viteBundler(),
 
   // 排除旧版 zh_cn 目录，避免被 VitePress 改版前的文件干扰
-  pagePatterns: ["**/*.md", "!zh_cn/**", "!node_modules/**", "!.vuepress/**"],
+  // 同时排除仓库根 README 的多语言副本，它们仅供 GitHub 展示，不作为文档页面发布
+  pagePatterns: [
+    "**/*.md",
+    "!zh_cn/**",
+    "!node_modules/**",
+    "!.vuepress/**",
+    "!README_en.md",
+    "!README_zh-tw.md",
+  ],
 
   theme,
 });

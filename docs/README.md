@@ -10,6 +10,9 @@ actions:
   - text: GitHub
     link: https://github.com/Hollow-YK/MaaAssistantKedrgame
     type: secondary
+  - text: Mirror 酱下载
+    link: https://mirrorchyan.com/zh/projects?rid=MAK
+    type: secondary
 highlights:
   - header: 框架先进，稳定无忧
     description: MAK 基于 <a href="https://maafw.com/">MaaFramework</a> 开发，通过图像识别与模拟输入技术实现功能。<br>区别于传统脚本录制，不会出现录制脚本的"意外退出界面导致被花光资源"惨案。
@@ -33,6 +36,18 @@ highlights:
         icon: mdi:sword-cross
         details: 自动选关，自动打架<br>让没有三星通过的关卡也能轻松刷取
         link: /guide/features/auto-battle
+      - title: 自动刷本
+        icon: mdi:motion-play
+        details: 自动选关，自动战斗<br>自动完成每日刷本
+        link: /guide/features/auto-sweep
+      - title: 赠送礼物
+        icon: fa7-solid:heart
+        details: 为好友送上友情点<br>
+        link: /guide/features/send-gift
+      - title: 自动回礼
+        icon: bi:search-heart-fill
+        details: 扫描互动记录，并为好友回礼<br>礼尚往来~
+        link: /guide/features/return-gift
       - title: 全部功能
         icon: fa7-solid:list-squares
         details: 点此查看全部功能
