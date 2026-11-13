@@ -30,6 +30,12 @@ Shizuku 是一个让应用在无需 root 的情况下获得部分系统权限的
 
 ## 第二步：下载 MAK
 
+::: tip 使用 MirrorChyan 下载（第三方）
+也可以用第三方分发平台 MirrorChyan（Mirror 酱）下载安卓版：[Android / MaaFwApp 下载入口](https://mirrorchyan.com/zh/projects?channel=stable&os=android&arch=x64&rid=MAK)
+
+MirrorChyan 并非 MAK 官方服务，下载通常需要填写 CDK 密钥（付费订阅获取），请自行评估后使用。
+:::
+
 1. 打开浏览器
 2. 在地址栏输入以下网址，然后按回车键：
 

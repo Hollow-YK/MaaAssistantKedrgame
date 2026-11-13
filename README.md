@@ -7,19 +7,20 @@
   <p align="center">
     MaaAssistantKedrgame
     <br/>
-    <a href="./docs/eng/README_en.md">English</a> | <a href="./docs/README_zh-tw.md">繁體中文</a> | <a href="https://github.com/Hollow-YK/MaaAssistantKedrgame/issues">报告 Bug</a>
+    <a href="./docs/README_en.md">English</a> | <a href="./docs/README_zh-tw.md">繁體中文</a> | <a href="https://github.com/Hollow-YK/MaaAssistantKedrgame/issues">报告 Bug</a>
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/Platform-Windows-0078D7?style=flat-square&logo=Windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Language-Python%20%2F%20PipeLine-blue?style=flat-square&logo=Python" alt="Language" />
+    <img alt="Platform" src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android-0078D7?style=flat-square">
+    <img alt="Language" src="https://img.shields.io/badge/Language-Python%20%2F%20PipeLine-blue?style=flat-square&logo=Python">
     <img alt="license" src="https://img.shields.io/github/license/Hollow-YK/MaaAssistantKedrgame?style=flat-square">
     <br>
-    <a href="https://maafw.com/" target="_blank"><img alt="website" src="https://raw.githubusercontent.com/MaaXYZ/MaaFramework/refs/heads/main/docs/static/maafw.svg"></a>
-    <a href="https://space.bilibili.com/1572457623" target="_blank"><img alt="Bilibili" src="https://img.shields.io/badge/Bilibili-域空Hollow-00A1D6?logo=bilibili"></a>
-    <a href="https://hollow-yk.github.io/MaaAssistantKedrgame/" target="_blank"><img alt="Bilibili" src="https://img.shields.io/badge/文档站（GitHub Pages）-%234285F4"></a>
+    <a href="https://maafw.com/" target="_blank"><img alt="MaaFramework" src="./docs/static/badges/maafw.svg"></a>
+    <a href="https://mirrorchyan.com/zh/projects?rid=MAK" target="_blank"><img alt="mirrorc" src="./docs/static/badges/mirrorc-zh.svg"></a>
+    <a href="https://space.bilibili.com/1572457623" target="_blank"><img alt="Bilibili" src="https://img.shields.io/badge/Bilibili-域空Hollow-00A1D6?logo=bilibili&style=flat-square"></a>
+    <a href="https://hollow-yk.github.io/MaaAssistantKedrgame/" target="_blank"><img alt="Docs" src="https://img.shields.io/badge/文档站（GitHub Pages）-%234285F4?style=flat-square"></a>
     <br/>
-    <img alt="commit" src="https://img.shields.io/github/commit-activity/m/Hollow-YK/MaaAssistantKedrgame?style=flat-square&color=darkgreen">
-    <img src="https://img.shields.io/github/stars/Hollow-YK/MaaAssistantKedrgame?style=flat-square&logo=github&color=darkgreen" alt="Stars" />
+    <img alt="Commit" src="https://img.shields.io/github/commit-activity/m/Hollow-YK/MaaAssistantKedrgame?style=flat-square&color=darkgreen">
+    <img alt="Stars" src="https://img.shields.io/github/stars/Hollow-YK/MaaAssistantKedrgame?style=flat-square&logo=github&color=darkgreen">
   </p>
 
 由 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 强力驱动！
@@ -62,13 +63,18 @@
 - 领取奖励
 - 自动战斗（仅限部分关卡）
 - 玩家对战（PVP 自动战斗，自动选择等级最低的对手，支持多场次循环）
+- 自动送礼/回礼
 - 更多功能正在开发，敬请期待
 
 ## 常见问题
 
 ### 如何开始使用？
 
-请前往 [Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases) 选择合适的版本下载。更多内容见文档 [快速开始](https://hollow-yk.github.io/MaaAssistantKedrgame/guide/quickstart.html) 部分。
+请前往 [Release](https://github.com/Hollow-YK/MaaAssistantKedrgame/releases) 选择合适的版本下载。
+
+也可以通过第三方分发平台 [MirrorChyan](https://mirrorchyan.com/zh/projects?rid=MAK) 下载（其 Windows 入口提供的是 MXU 版，MFAA 请仍从 Release 下载）。
+
+更多内容见文档 [快速开始](https://hollow-yk.github.io/MaaAssistantKedrgame/guide/quickstart.html) 部分。
 
 ## 开发指南
 

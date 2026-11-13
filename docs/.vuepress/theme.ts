@@ -297,6 +297,7 @@ export default hopeTheme({
               "auto-battle.md",
               "auto-sweep.md",
               "send-gift.md",
+              "return-gift.md",
             ],
           },
         ],
