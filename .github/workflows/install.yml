@@ -26,8 +26,8 @@ on:
 
 env:
   MAA_FRAMEWORK_VERSION: "v5.14.0"
-  MFAA_VERSION: "v2.16.2"
-  MXU_VERSION: "v2.7.0"
+  MFAA_VERSION: "v2.16.4"
+  MXU_VERSION: "v2.10.0"
 
 permissions:
   contents: write
@@ -141,7 +141,7 @@ jobs:
         id: download_mxu
         uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
         with:
-          repository: MistEO/MXU
+          repository: MaaXYZ/MXU
           fileName: "MXU-${{ matrix.os }}-${{ matrix.arch }}*"
           tag: ${{ env.MXU_VERSION }}
           out-file-path: "MXU"
