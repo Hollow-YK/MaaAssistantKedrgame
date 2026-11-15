@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 import traceback
 from typing import Any
 
@@ -9,7 +8,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from .general import parse_params
+from .general import interruptible_sleep, parse_params, stop_requested
 
 
 @AgentServer.custom_action("AutoSweepManager")
@@ -51,9 +50,14 @@ class AutoSweepManager(CustomAction):
         params = parse_params(argv.custom_action_param)
         batch_size = params.get("batch_size", "auto")
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         # ── 0. 等待关卡详情界面加载完成（能识别到扫荡开关即视为就绪）──
         # 避免在加载动画中过早执行 Check_unlock 导致误判
         if not self._wait_stage_ready(context):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             # 长时间识别不到扫荡开关：可能关卡未解锁 → 解锁检查确认
             if self._check_unlock(context):
                 context.run_task("AutoSweepFailed_lock")
@@ -70,6 +74,10 @@ class AutoSweepManager(CustomAction):
         reduced = 0
 
         while True:
+            if stop_requested(context):
+                print("[AutoSweepManager] 收到停止请求，结束扫荡循环")
+                return CustomAction.RunResult(success=False)
+
             # ── 2. 开启扫荡选项 ──
             if not self._ensure_sweep_enabled(context):
                 return CustomAction.RunResult(success=False)
@@ -79,10 +87,14 @@ class AutoSweepManager(CustomAction):
                 context, batch_size, batch_inited, reduced
             )
             if not ok:
+                if stop_requested(context):
+                    return CustomAction.RunResult(success=False)
                 # 体力不足且无法继续 → 成功完成任务
                 return CustomAction.RunResult(success=True)
 
             # ── 4. 开始扫荡（进入编队界面；若体力不足则由弹窗拦截）──
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             context.run_task("AutoSweep_Click_Start")
             # 点击后等待界面响应：进入编队界面 → 点击开始战斗走完结算；
             # 出现体力不足弹窗 → 关掉弹窗回到步骤 2 降次重试。
@@ -94,7 +106,8 @@ class AutoSweepManager(CustomAction):
                     break
                 if self._in_team_screen(context):
                     break  # 已进入编队界面，体力充足
-                time.sleep(self.WAIT_INTERVAL)
+                if not interruptible_sleep(context, self.WAIT_INTERVAL):
+                    return CustomAction.RunResult(success=False)
 
             if stamina_hit:
                 # 保底确认到体力不足弹窗 → 关闭后按模式处理
@@ -109,6 +122,8 @@ class AutoSweepManager(CustomAction):
                 continue
 
             # 体力充足 → 编队 → 结算 → 物品（由 pipeline 处理）
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             context.run_task("AutoSweep_Click_Start2")
 
             # ── 5. 回到步骤 2 继续下一轮 ──
@@ -170,6 +185,8 @@ class AutoSweepManager(CustomAction):
         在加载动画期间 OCR 识别不到开关，会持续重试；避免过早执行后续检查。
         """
         for _ in range(10):
+            if stop_requested(context):
+                return False
             state = self._read_sweep_switch(context)
             if state is not None:
                 return True  # 已识别到开关 → 界面就绪
@@ -178,6 +195,8 @@ class AutoSweepManager(CustomAction):
     def _ensure_sweep_enabled(self, context: Context) -> bool:
         """确保扫荡开关已开启；识别到"打开"则点击，识别到"关闭"则返回 True"""
         for _ in range(5):
+            if stop_requested(context):
+                return False
             state = self._read_sweep_switch(context)
             if state is None:
                 continue  # 未识别到，重试
@@ -215,6 +234,8 @@ class AutoSweepManager(CustomAction):
                 context.run_task("AutoSweep_Click_Sweep_max")
                 batch_inited = True
             while self._check_stamina(context):
+                if stop_requested(context):
+                    return False, batch_inited, reduced
                 if reduced >= self.MAX_REDUCE_TIMES:
                     return False, batch_inited, reduced  # 已减到下限仍不足 → 结束
                 context.run_task("AutoSweep_Click_Sweep_minus")
@@ -226,11 +247,15 @@ class AutoSweepManager(CustomAction):
             # 从最大开始减
             context.run_task("AutoSweep_Click_Sweep_max")
             for _ in range(self.MAX_REDUCE_TIMES - target):
+                if stop_requested(context):
+                    return False, batch_inited, reduced
                 context.run_task("AutoSweep_Click_Sweep_minus")
         else:
             # 从最小开始加
             context.run_task("AutoSweep_Click_Sweep_min")
             for _ in range(target - 1):
+                if stop_requested(context):
+                    return False, batch_inited, reduced
                 context.run_task("AutoSweep_Click_Sweep_plus")
 
         if self._check_stamina(context):

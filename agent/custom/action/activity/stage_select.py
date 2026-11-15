@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 import traceback
 from typing import Any
 
@@ -10,7 +9,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from ..general import parse_params
+from ..general import interruptible_sleep, parse_params, stop_requested
 
 
 @AgentServer.custom_action("Activity_Stage_Select")
@@ -72,6 +71,9 @@ class ActivityStageSelect(CustomAction):
         load_wait = float(params.get("load_wait", 5))
         max_swipes = int(params.get("max_swipes", 50))
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         target_norm = self._normalize(stage)
         target_ep = self._stage_ep(stage)
         if target_ep is None:
@@ -83,6 +85,8 @@ class ActivityStageSelect(CustomAction):
 
             返回 None 表示目标不在本屏（未点击）；否则返回点击+校验的结果。
             """
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             for s in stages:
                 if s["norm"] == target_norm:
                     box = s.get("box")
@@ -107,6 +111,8 @@ class ActivityStageSelect(CustomAction):
                         return CustomAction.RunResult(success=True)
                     # 未出现耗尽提示 → 校验进入的关卡（成功/关卡不符/失败 三态）
                     verify = self._verify_stage(context, target_norm)
+                    if stop_requested(context):
+                        return CustomAction.RunResult(success=False)
                     if verify == "success":
                         print(f"[Activity_Stage_Select] 校验通过：已进入关卡 {stage}")
                         return CustomAction.RunResult(success=True)
@@ -127,16 +133,20 @@ class ActivityStageSelect(CustomAction):
             return None
 
         # ── 1. 等待地图加载完成 ──
-        time.sleep(load_wait)
+        if not interruptible_sleep(context, load_wait):
+            return CustomAction.RunResult(success=False)
 
         # ── 2. 获取初始有效位置（至少识别到一个关卡）；信息不足则向前（回退到开头）划动 ──
         stages = None
         for _ in range(max_swipes):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             stages = self._scan(context, roi)
             if stages is not None:
                 break
             self._swipe_twice(context, swipe_begin)
-            time.sleep(self.SWIPE_SETTLE_SECONDS)
+            if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                return CustomAction.RunResult(success=False)
         if stages is None:
             print("[Activity_Stage_Select] 始终未识别到有效关卡，无法定位")
             return CustomAction.RunResult(success=False)
@@ -154,10 +164,13 @@ class ActivityStageSelect(CustomAction):
             first_norm = self._normalize("1-1")
             prev_norms: list[str] | None = None
             for _ in range(max_swipes):
+                if stop_requested(context):
+                    return CustomAction.RunResult(success=False)
                 stages = self._scan(context, roi)
                 if stages is None:
                     self._swipe_twice(context, swipe_begin)
-                    time.sleep(self.SWIPE_SETTLE_SECONDS)
+                    if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                        return CustomAction.RunResult(success=False)
                     continue
                 click_result = try_click(stages)
                 if click_result is not None:
@@ -167,16 +180,20 @@ class ActivityStageSelect(CustomAction):
                     break  # 已到最左侧
                 prev_norms = norms
                 self._swipe_twice(context, swipe_begin)
-                time.sleep(self.SWIPE_SETTLE_SECONDS)
+                if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                    return CustomAction.RunResult(success=False)
         else:
             # 目标 EP 开头 = (EP(target_ep-1), EP(target_ep)) 交界
             for _ in range(max_swipes):
+                if stop_requested(context):
+                    return CustomAction.RunResult(success=False)
                 stages = self._scan(context, roi)
                 if stages is None:
                     self._swipe_twice(
                         context, swipe_begin
                     )  # 偶发识别失败 → 向左推进重试
-                    time.sleep(self.SWIPE_SETTLE_SECONDS)
+                    if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                        return CustomAction.RunResult(success=False)
                     continue
                 click_result = try_click(stages)
                 if click_result is not None:
@@ -189,14 +206,18 @@ class ActivityStageSelect(CustomAction):
                     self._swipe_twice(context, swipe_next)  # 目标 EP 在更右侧
                 else:
                     self._swipe_twice(context, swipe_begin)  # 目标 EP 开头在更左侧
-                time.sleep(self.SWIPE_SETTLE_SECONDS)
+                if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                    return CustomAction.RunResult(success=False)
 
         # ── 4. 从目标 EP 开头向后（前进方向）划动寻找目标并点击 ──
         for _ in range(max_swipes):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             stages = self._scan(context, roi)
             if stages is None:
                 self._swipe_twice(context, swipe_next)
-                time.sleep(self.SWIPE_SETTLE_SECONDS)
+                if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                    return CustomAction.RunResult(success=False)
                 continue
             click_result = try_click(stages)
             if click_result is not None:
@@ -208,7 +229,8 @@ class ActivityStageSelect(CustomAction):
                 )
                 return CustomAction.RunResult(success=False)
             self._swipe_twice(context, swipe_next)
-            time.sleep(self.SWIPE_SETTLE_SECONDS)
+            if not interruptible_sleep(context, self.SWIPE_SETTLE_SECONDS):
+                return CustomAction.RunResult(success=False)
 
         print(
             f"[Activity_Stage_Select] 超过最大滑动次数 {max_swipes}，仍未找到关卡 {stage}"
@@ -236,13 +258,16 @@ class ActivityStageSelect(CustomAction):
           - "mismatch" 识别到关卡名（1-1 / EX1-1 格式）但非目标 → 进错关卡
           - "failed"   未识别到任何关卡名（可能未进入详情或仍在加载）
         """
-        time.sleep(self.VERIFY_WAIT_SECONDS)
+        if not interruptible_sleep(context, self.VERIFY_WAIT_SECONDS):
+            return "failed"
 
         candidates = {target_norm}
         if target_norm.startswith("EX"):
             candidates.add(target_norm[2:])  # 去掉 EX 前缀再比对
 
         for _ in range(3):
+            if stop_requested(context):
+                return "failed"
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
@@ -260,7 +285,8 @@ class ActivityStageSelect(CustomAction):
                     if any(c in norm for norm in norms for c in candidates):
                         return "success"
                     return "mismatch"
-            time.sleep(0.5)
+            if not interruptible_sleep(context, 0.5):
+                return "failed"
         return "failed"
 
     def _check_times_exhausted(self, context: Context) -> bool:
@@ -293,6 +319,8 @@ class ActivityStageSelect(CustomAction):
     ) -> bool:
         """识别指定节点并点击其中心，返回是否成功点击"""
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition(node_name, image)
             if detail and detail.hit and detail.box:
@@ -303,7 +331,8 @@ class ActivityStageSelect(CustomAction):
                     "",
                 )
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False
 
     def _scan(self, context: Context, roi: Any) -> list[dict[str, Any]] | None:

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 import traceback
 from dataclasses import dataclass
 from typing import Any
@@ -11,7 +10,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from .general import parse_params
+from .general import interruptible_sleep, parse_params, stop_requested
 
 # 商品名归一化：去掉空白、标点，只保留中英文与数字
 _NON_WORD = re.compile(r"[\W_]+", re.UNICODE)
@@ -218,6 +217,9 @@ class ShopVipManager(CustomAction):
     def _run(
         self, context: Context, argv: CustomAction.RunArg
     ) -> CustomAction.RunResult:
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         attach = self._read_attach(context, argv)
         legacy = parse_params(argv.custom_action_param)
 
@@ -299,6 +301,8 @@ class ShopVipManager(CustomAction):
             return CustomAction.RunResult(success=False)
 
         if not self._ensure_page(context):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             print("[Shop_VIP_Manager] 当前不在 VIP 商店页面，退出")
             return CustomAction.RunResult(success=False)
 
@@ -312,13 +316,17 @@ class ShopVipManager(CustomAction):
 
         try:
             for _ in range(max_rounds):
+                if stop_requested(context):
+                    print("[Shop_VIP_Manager] 收到停止请求，中断购买")
+                    return CustomAction.RunResult(success=False)
                 if all(key in done for key in pending):
                     break
 
                 cells = self._scan_cells(context)
                 if not cells:
                     # 界面可能仍在加载，稍等后重扫一次
-                    time.sleep(self.OCR_RETRY_INTERVAL)
+                    if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                        return CustomAction.RunResult(success=False)
                     cells = self._scan_cells(context)
                 if not cells:
                     print("[Shop_VIP_Manager] 未识别到商品格子")
@@ -578,9 +586,12 @@ class ShopVipManager(CustomAction):
         self, context: Context, cells: list[_Cell], node: str, label: str
     ) -> bool:
         """执行一次翻页节点并重扫；页面内容没变化说明翻不动，返回 False。"""
+        if stop_requested(context):
+            return False
         before = {cell.key for cell in cells if cell.key}
         context.run_task(node)
-        time.sleep(self.SWIPE_DELAY)
+        if not interruptible_sleep(context, self.SWIPE_DELAY):
+            return False
         after_cells = self._scan_cells(context)
         after = {cell.key for cell in after_cells if cell.key}
         if not after or after == before:
@@ -601,8 +612,11 @@ class ShopVipManager(CustomAction):
             return
         node = self._node_swipe_last if net_pages > 0 else self._node_swipe_next
         for _ in range(abs(net_pages)):
+            if stop_requested(context):
+                return
             context.run_task(node)
-            time.sleep(self.SWIPE_DELAY)
+            if not interruptible_sleep(context, self.SWIPE_DELAY):
+                return
         print(f"[Shop_VIP_Manager] 已把商店还原到首页（{abs(net_pages)} 页）")
 
     def _find_cells(self, image: Any) -> list[_Cell]:
@@ -874,13 +888,17 @@ class ShopVipManager(CustomAction):
 
     def _open_detail(self, context: Context, cell: _Cell) -> bool:
         """点击商品格子进入详情（与活动商店一致：点格子矩形中心）。"""
+        if stop_requested(context):
+            return False
         self._click_box(context, cell.box)
-        time.sleep(self.LOAD_DELAY)
+        if not interruptible_sleep(context, self.LOAD_DELAY):
+            return False
         if self._wait_detail(context):
             return True
         # 美术动画/加载抖动时再点一次
         self._click_box(context, cell.box)
-        time.sleep(self.LOAD_DELAY)
+        if not interruptible_sleep(context, self.LOAD_DELAY):
+            return False
         if self._wait_detail(context):
             return True
         print(f"[Shop_VIP_Manager] 点击格子 {list(cell.box)} 后未进入详情")
@@ -888,10 +906,13 @@ class ShopVipManager(CustomAction):
 
     def _wait_detail(self, context: Context) -> bool:
         for _ in range(self.DETAIL_WAIT_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             if self._detail_visible(context, image):
                 return True
-            time.sleep(self.OCR_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return False
         return False
 
     def _detail_visible(self, context: Context, image: Any) -> bool:
@@ -913,8 +934,11 @@ class ShopVipManager(CustomAction):
 
     def _run_quantity_node(self, context: Context, node: str, action: str) -> None:
         """执行数量控制节点（pipeline 的 TemplateMatch + Click，做法同 AutoSweep）。"""
+        if stop_requested(context):
+            return
         context.run_task(node)
-        time.sleep(self.SET_QTY_DELAY)
+        if not interruptible_sleep(context, self.SET_QTY_DELAY):
+            return
         print(f"[Shop_VIP_Manager] 数量{action}: {node}")
 
     def _set_quantity(self, context: Context, quantity: int | None) -> bool:
@@ -928,10 +952,13 @@ class ShopVipManager(CustomAction):
         parsed_any = False
         min_tried = False
         for _ in range(self.QTY_MAX_ROUNDS):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             parsed = self._read_quantity(context, image)
             if parsed is None:
-                time.sleep(self.OCR_RETRY_INTERVAL)
+                if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                    return False
                 continue
             parsed_any = True
             current, total = parsed
@@ -978,18 +1005,23 @@ class ShopVipManager(CustomAction):
     def _confirm_purchase(self, context: Context) -> bool:
         expected = _normalize(self.CONFIRM_TEXT)
         for _ in range(self.OCR_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             for text, box, _score in self._ocr(context, self._confirm_roi, image):
                 if expected in _normalize(text):
                     self._click_box(context, box)
-                    time.sleep(0.5)
-                    return True
-            time.sleep(self.OCR_RETRY_INTERVAL)
+                    interruptible_sleep(context, 0.5)
+                    return not stop_requested(context)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return False
         return False
 
     def _after_purchase(self, context: Context) -> str:
         stalled = 0
         for _ in range(self.FINISH_RETRY):
+            if stop_requested(context):
+                return self.BUY_UNKNOWN
             # 获得物品/结算弹窗交给 pipeline 的 SceneDo_GetItem 节点
             context.run_task(self._node_get_item)
             image = self._screencap(context)
@@ -1004,11 +1036,13 @@ class ShopVipManager(CustomAction):
                 if stalled >= self.CONFIRM_STALL_RETRY:
                     print("[Shop_VIP_Manager] 详情长时间未变化，停止等待")
                     break
-                time.sleep(0.5)
+                if not interruptible_sleep(context, 0.5):
+                    return self.BUY_UNKNOWN
                 continue
             # 既不在列表也不在详情：可能还有后续弹窗，再让节点处理一轮
             stalled = 0
-            time.sleep(self.OCR_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return self.BUY_UNKNOWN
 
         image = self._screencap(context)
         if self._detail_visible(context, image):
@@ -1027,8 +1061,11 @@ class ShopVipManager(CustomAction):
     def _close_detail(self, context: Context) -> None:
         """关闭商品详情/弹窗：交给 SceneDo_Shop_CloseInfo 节点（点“点击空白区域关闭弹窗”）。"""
         for _ in range(3):
+            if stop_requested(context):
+                return
             context.run_task(self._node_close)
-            time.sleep(self.LOAD_DELAY)
+            if not interruptible_sleep(context, self.LOAD_DELAY):
+                return
             image = self._screencap(context)
             if not self._detail_visible(context, image):
                 return
@@ -1044,12 +1081,15 @@ class ShopVipManager(CustomAction):
 
     def _ensure_page(self, context: Context) -> bool:
         for index in range(3):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             if self._is_page(context, image):
                 return True
             if self._detail_visible(context, image):
                 self._close_detail(context)
-            time.sleep(self.OCR_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return False
             print(f"[Shop_VIP_Manager] 等待商店页面 ({index + 1}/3)")
         return False
 

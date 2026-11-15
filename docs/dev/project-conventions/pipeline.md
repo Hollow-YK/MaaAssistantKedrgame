@@ -263,6 +263,8 @@ custom 中需要注意：
 - 点击前必须有视觉识别或状态判断保护。
 - 关键分支应能从日志中看出判断依据。
 - 失败时应返回可恢复状态，或把失败原因暴露给上层流程。
+- 长时间循环或等待必须响应停止：循环内定期检查 `context.tasker.stopping`（可用 `agent/custom/action/general.py` 的 `stop_requested` / `interruptible_sleep`），收到停止请求后立即返回，不能等循环自然结束。
+- 特别长的固定等待（约 5 秒以上）优先改用 `InterruptibleSleep` custom action（`duration_ms` 参数），不要写成 `pre_delay` / `post_delay`（框架内不可中断）；`Click` + 长等待可用 `ClickAndSleep`（`duration_ms`），它保持原节点与 `[JumpBack]` 跳回目标不变。
 - 不要在 custom 中隐藏大量页面跳转，导致 pipeline 入口看不出真实流程。
 
 如果 custom 与 pipeline 配合使用，PR 中应说明入口、识别条件、点击目标、跳转路径和失败退路。

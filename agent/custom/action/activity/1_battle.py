@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 import traceback
 from typing import Any
 
@@ -12,7 +11,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from ..general import parse_params
+from ..general import interruptible_sleep, parse_params, stop_requested
 
 
 # -----
@@ -61,10 +60,18 @@ class AutoBattleActivity1Manager(CustomAction):
         battle = str(params.get("battle", "") or "").strip()
         max_battles = int(params.get("max_battles", 20))
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         battles_done = 0
         while True:
+            if stop_requested(context):
+                print("[AutoBattle_Activity_1_Manager] 收到停止请求，中断战斗循环")
+                return CustomAction.RunResult(success=False)
             # ── 1. 读取剩余挑战次数 ──
             current, total = self._read_count(context)
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             if current is None:
                 print("[AutoBattle_Activity_1_Manager] 未能识别剩余挑战次数，任务失败")
                 return CustomAction.RunResult(success=False)
@@ -105,6 +112,8 @@ class AutoBattleActivity1Manager(CustomAction):
     def _read_count(self, context: Context) -> tuple[int | None, int | None]:
         """OCR 读取剩余挑战次数，返回 (current, total)；识别不到返回 (None, None)"""
         for _ in range(self.COUNT_RETRY):
+            if stop_requested(context):
+                return None, None
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
@@ -117,7 +126,8 @@ class AutoBattleActivity1Manager(CustomAction):
                     m = self.COUNT_PATTERN.search(text)
                     if m:
                         return int(m.group(1)), int(m.group(2))
-            time.sleep(self.COUNT_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.COUNT_RETRY_INTERVAL):
+                return None, None
         return None, None
 
 
@@ -185,6 +195,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
     def _run(
         self, context: Context, argv: CustomAction.RunArg
     ) -> CustomAction.RunResult:
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         self._yulia_box: tuple | None = None
         self._recon_box: tuple | None = None
         self._target_units: list[tuple] = []  # 暂停后记录的敌方单位位置（unit）
@@ -240,6 +252,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
             return CustomAction.RunResult(success=False)
 
         print("[Battle] 战斗处理完成")
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         return CustomAction.RunResult(success=True)
 
     # ---------- 一、检查编队 ----------
@@ -253,7 +267,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         if not self._ocr_click(context, "编辑", self.TEAM_EDIT_ROI):
             print("[Battle] 未找到'编辑'按钮")
             return False
-        time.sleep(3)
+        if not interruptible_sleep(context, 3):
+            return False
 
         # 1.3 模板匹配：要求命中 尤利娅 + 侦察
         image = self._screencap(context)
@@ -267,8 +282,7 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         if not self._click_node(context, "UI_Common_BackButton"):
             print("[Battle] 未找到返回按钮")
             return False
-        time.sleep(3)
-        return True
+        return interruptible_sleep(context, 3)
 
     # ---------- 二、进入战斗 ----------
     def _enter_battle(self, context: Context) -> bool:
@@ -289,6 +303,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
     def _prep_deck(self, context: Context) -> list[dict[str, Any]] | None:
         """收起除尤利娅+任一侦察外的所有干员，返回最终牌库（按 x 排序）"""
         for _ in range(10):
+            if stop_requested(context):
+                return None
             deck = self._scan_deck(context)
             if not deck:
                 print("[Battle] 牌库识别为空")
@@ -370,14 +386,16 @@ class AutoBattleActivity1BattleEX211(CustomAction):
     def _collapse_operator(self, context: Context, box: tuple) -> bool:
         # 1. 点击干员卡片（选中）
         context.run_action_direct(JActionType.Click, JClick(), tuple(box), "")
-        time.sleep(0.5)
+        if not interruptible_sleep(context, 0.5):
+            return False
         # 2. 识别 Selected 并点击（收起）
         if not self._click_node(
             context, "Combat_InCombat_Operator_Selected", attempts=5, interval=0.5
         ):
             return False
         # 3. 等待 1 秒
-        time.sleep(1.0)
+        if not interruptible_sleep(context, 1.0):
+            return False
         # 4. 确认 Selected 不再命中
         image = self._screencap(context)
         detail = context.run_recognition("Combat_InCombat_Operator_Selected", image)
@@ -403,16 +421,21 @@ class AutoBattleActivity1BattleEX211(CustomAction):
     def _pause_game(self, context: Context) -> bool:
         """暂停游戏：点击 pause，间隔 0.5s，直到 continue 出现"""
         for _ in range(30):
+            if stop_requested(context):
+                return False
             if self._node_hit(context, "UI_Combat_InStage_continue"):
                 print("[Battle] 已暂停（识别到 continue）")
                 return True
             self._click_node(context, "UI_Combat_InStage_pause", attempts=1)
-            time.sleep(0.5)
+            if not interruptible_sleep(context, 0.5):
+                return False
         print("[Battle] 未成功暂停")
         return False
 
     # ---------- 五、前期准备（部署） ----------
     def _early_deployment(self, context: Context) -> bool:
+        if stop_requested(context):
+            return False
         # 5.1 侦察干员部署（地图上方）
         context.run_task("AutoBattle_Activity_1_Battle:Mapw300")
         if self._recon_box is None:
@@ -420,7 +443,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         context.run_action_direct(
             JActionType.Click, JClick(), tuple(self._recon_box), ""
         )
-        time.sleep(0.5)
+        if not interruptible_sleep(context, 0.5):
+            return False
         if not self._click_lowest_bush(context):
             print("[Battle] 部署侦察失败：未找到灌木")
             return False
@@ -433,12 +457,12 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         context.run_action_direct(
             JActionType.Click, JClick(), tuple(self._yulia_box), ""
         )
-        time.sleep(0.5)
+        if not interruptible_sleep(context, 0.5):
+            return False
         if not self._click_upper_right_bush(context):
             print("[Battle] 部署尤利娅失败：未找到右上角草格子")
             return False
-        time.sleep(1.0)
-        return True
+        return interruptible_sleep(context, 1.0)
 
     def _click_lowest_bush(self, context: Context) -> bool:
         boxes = self._bush_boxes(context)
@@ -485,6 +509,9 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         """战斗中主循环：只要还在战斗就反复"等待充能 → 释放技能"；
         战斗结束（active 消失且 OCR 识别到胜利/失败）则返回 True。"""
         for _ in range(self.BATTLE_END_TIMEOUT):
+            if stop_requested(context):
+                print("[Battle] 收到停止请求，中断战斗中循环")
+                return False
             # 战斗结束？
             if self._battle_ended(context):
                 print("[Battle] 战斗结束")
@@ -495,12 +522,15 @@ class AutoBattleActivity1BattleEX211(CustomAction):
                 if not self._release_skill_round(context):
                     return False
                 continue
-            time.sleep(1.0)
+            if not interruptible_sleep(context, 1.0):
+                return False
         print("[Battle] 战斗超时")
         return False
 
     def _release_skill_round(self, context: Context) -> bool:
         """释放一轮尤利娅技能：暂停 → 点尤利娅 → 确认技能 → 点技能图标 → 点释放位置 → 继续"""
+        if stop_requested(context):
+            return False
         # 1.2 暂停游戏
         if not self._pause_game(context):
             return False
@@ -513,7 +543,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         context.run_action_direct(
             JActionType.Click, JClick(), tuple(self._yulia_box), ""
         )
-        time.sleep(1.0)
+        if not interruptible_sleep(context, 1.0):
+            return False
         # 1.4 确保可以释放尤利娅技能（未命中则再次点击尤利娅卡牌）
         if not self._click_until_skill_visible(context):
             return False
@@ -522,7 +553,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
             print("[Battle] 点击技能图标失败")
             return False
         # 1.6 等待 1 秒后点击指定技能释放位置
-        time.sleep(1.0)
+        if not interruptible_sleep(context, 1.0):
+            return False
         self._click_skill_target(context)
         # 1.7 继续游戏
         if not self._resume_game(context):
@@ -556,12 +588,15 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         if self._yulia_box is None:
             return False
         for _ in range(5):
+            if stop_requested(context):
+                return False
             if self._node_hit(context, "Combat_InCombat_Skill_尤利娅"):
                 return True
             context.run_action_direct(
                 JActionType.Click, JClick(), tuple(self._yulia_box), ""
             )
-            time.sleep(0.5)
+            if not interruptible_sleep(context, 0.5):
+                return False
         print("[Battle] 未能确认尤利娅技能可释放")
         return False
 
@@ -665,17 +700,23 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         """战斗结束后：领取"获得物品"（可能有），等待回到关卡详情"""
         # 1. 循环点击"获得物品"直到不再出现
         for _ in range(15):
+            if stop_requested(context):
+                return False
             if not self._click_node(
                 context, "SceneDo_GetItem", attempts=1, interval=1.0
             ):
                 break
-            time.sleep(1.0)
+            if not interruptible_sleep(context, 1.0):
+                return False
         # 2. 等待回到关卡详情（OCR 识别到"剩余挑战次数"）
         for _ in range(self.POST_BATTLE_TIMEOUT):
+            if stop_requested(context):
+                return False
             if self._at_stage_detail(context):
                 print("[Battle] 已回到关卡详情")
                 return True
-            time.sleep(1.0)
+            if not interruptible_sleep(context, 1.0):
+                return False
         print("[Battle] 未回到关卡详情")
         return False
 
@@ -705,15 +746,20 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         self, context, node_name: str, attempts: int = 5, interval: float = 1.0
     ) -> bool:
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             if self._node_hit(context, node_name):
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False
 
     def _click_node(
         self, context, node_name: str, attempts: int = 5, interval: float = 0.5
     ) -> bool:
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition(node_name, image)
             if detail and detail.hit and detail.box:
@@ -721,7 +767,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
                     JActionType.Click, JClick(), tuple(detail.box), ""
                 )
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False
 
     def _ocr_click(
@@ -733,6 +780,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
         interval: float = 1.0,
     ) -> bool:
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR, JOCR(expected=[expected], roi=roi), image
@@ -742,7 +791,8 @@ class AutoBattleActivity1BattleEX211(CustomAction):
                     JActionType.Click, JClick(), tuple(detail.box), ""
                 )
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False
 
     def _boxes_from(self, detail) -> list[tuple]:

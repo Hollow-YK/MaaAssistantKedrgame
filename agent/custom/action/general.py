@@ -1,10 +1,12 @@
 import json
 import sys
+import time
 from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
+from maa.pipeline import JActionType, JClick
 
 
 def strip_jsonc_comments(text: str) -> str:
@@ -78,6 +80,130 @@ def log_message(message: str) -> None:
     显示两条流；stdout 裸 print 在 MFAAvalonia 下不可见。
     """
     print(f"info:{message}", file=sys.stderr)
+
+
+# ---- 停止响应 ----
+# 上层「停止任务」后 MaaTaskerStopping 立刻变 True，但框架只能在一个节点/一次
+# run_task 结束时才检查停止标志；custom 自己的 while/for 循环和 time.sleep 不会
+# 被打断，必须主动查询并尽快返回，否则要等整个循环跑完才真正停下。
+#
+# 轮询粒度对齐 MaaEnd（agent/go-service/autoecofarm/interruptiblesleep.go 的
+# interruptibleSleepChunkMs = 250）：250ms 一次反向查询，停止延迟不超过约 0.3s，
+# 同时避免 agent 模式下过于频繁的 RPC。对停止延迟敏感的短等待可自行减小该值。
+STOP_POLL_INTERVAL = 0.25
+
+
+def stop_requested(context: Context) -> bool:
+    """上层是否已请求停止当前任务。
+
+    在 custom 回调运行期间 tasker 仍处于 running，故停止请求会立即体现在
+    ``context.tasker.stopping`` 上；查询失败时按“未停止”处理，避免探测本身
+    把正常流程打断。
+    """
+    try:
+        return bool(context.tasker.stopping)
+    except Exception:
+        return False
+
+
+def interruptible_sleep(context: Context, seconds: float) -> bool:
+    """可被停止请求打断的 sleep，返回 False 表示期间收到了停止请求。
+
+    长等待应改用本函数而不是 ``time.sleep``：每 ``STOP_POLL_INTERVAL`` 秒
+    查询一次停止标志，使停止延迟不再取决于等待时长本身。
+    """
+    deadline = time.monotonic() + max(0.0, seconds)
+    while not stop_requested(context):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return True
+        time.sleep(min(STOP_POLL_INTERVAL, remaining))
+    return False
+
+
+@AgentServer.custom_action("ClickAndSleep")
+class ClickAndSleep(CustomAction):
+    """点击本节点的识别框，然后做可被停止请求打断的固定时长等待。
+
+    等价于 pipeline 的 ``Click`` + ``post_delay``，但等待可中断；用于带
+    ``[JumpBack]`` 等必须保持原节点结构的场景（拆成独立 sleep 节点会改变跳回目标）。
+
+    Examples:
+        ``custom_action_param``::
+
+            {
+                "duration_ms": 7000
+            }
+    """
+
+    def run(
+        self, context: Context, argv: CustomAction.RunArg
+    ) -> CustomAction.RunResult:
+        params = parse_params(argv.custom_action_param)
+        raw = params.get(
+            "duration_ms", params.get("durationMs", params.get("duration", 0))
+        )
+        try:
+            duration_ms = max(0, int(raw))
+        except (TypeError, ValueError):
+            log_message(f"[ClickAndSleep] duration_ms 必须是整数，得到: {raw!r}")
+            return CustomAction.RunResult(success=False)
+
+        box = argv.box
+        if box is None or box.w <= 0 or box.h <= 0:
+            log_message("[ClickAndSleep] 识别框为空，无法点击")
+            return CustomAction.RunResult(success=False)
+
+        if stop_requested(context):
+            return CustomAction.RunResult(success=True)
+
+        detail = context.run_action_direct(
+            JActionType.Click,
+            JClick(),
+            (box.x, box.y, box.w, box.h),
+            "",
+        )
+        if detail is None or not detail.success:
+            log_message("[ClickAndSleep] 点击失败")
+            return CustomAction.RunResult(success=False)
+
+        if not interruptible_sleep(context, duration_ms / 1000.0):
+            log_message("[ClickAndSleep] 收到停止请求，提前结束等待")
+        return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("InterruptibleSleep")
+class InterruptibleSleep(CustomAction):
+    """可被停止请求打断的固定时长等待。
+
+    pipeline 的 ``pre_delay`` / ``post_delay`` 是框架内不可中断的 sleep：停止请求
+    落在等待中间时，只能等整段等待结束。长等待应改用本动作，停止时最多等一个
+    ``STOP_POLL_INTERVAL`` 就返回。
+
+    Examples:
+        ``custom_action_param``::
+
+            {
+                "duration_ms": 7000
+            }
+    """
+
+    def run(
+        self, context: Context, argv: CustomAction.RunArg
+    ) -> CustomAction.RunResult:
+        params = parse_params(argv.custom_action_param)
+        raw = params.get(
+            "duration_ms", params.get("durationMs", params.get("duration", 0))
+        )
+        try:
+            duration_ms = max(0, int(raw))
+        except (TypeError, ValueError):
+            log_message(f"[InterruptibleSleep] duration_ms 必须是整数，得到: {raw!r}")
+            return CustomAction.RunResult(success=False)
+
+        if not interruptible_sleep(context, duration_ms / 1000.0):
+            log_message("[InterruptibleSleep] 收到停止请求，提前结束等待")
+        return CustomAction.RunResult(success=True)
 
 
 @AgentServer.custom_action("DisableNode")
@@ -190,6 +316,9 @@ class SubTask(CustomAction):
         has_failure = False
 
         for task_name in tasks:
+            if stop_requested(context):
+                log_message("[SubTask] 收到停止请求，中断剩余子任务")
+                return CustomAction.RunResult(success=False)
             if not isinstance(task_name, str) or not task_name:
                 has_failure = True
                 if not continue_on_failure:

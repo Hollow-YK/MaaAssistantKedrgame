@@ -131,7 +131,21 @@
                 "custom_action": "AutoSweep_Activity_1_Manager"
             }
         },
-        "post_delay": 5000
+        "next": [
+            "AutoSweep_Activity_1_WaitFinish"
+        ]
+    },
+    "AutoSweep_Activity_1_WaitFinish": {
+        "desc": "可中断等待结算动画（任务停止时立即退出，替代不可中断的 post_delay）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "InterruptibleSleep",
+                "custom_action_param": {
+                    "duration_ms": 5000
+                }
+            }
+        }
     },
     "AutoSweep_Activity_1_Times0": {
         "focus": {
