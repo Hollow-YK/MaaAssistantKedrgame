@@ -267,6 +267,8 @@ Requirements for custom code:
 - Visual recognition or a state check must guard every click.
 - The basis for key branch decisions should be visible in logs.
 - On failure, return to a recoverable state or expose the reason for failure to the upper-level workflow.
+- Long loops and waits must honor stop requests: periodically check `context.tasker.stopping` (helpers `stop_requested` / `interruptible_sleep` live in `agent/custom/action/general.py`) and return immediately once a stop is requested instead of waiting for the loop to finish naturally.
+- Prefer the `InterruptibleSleep` custom action (`duration_ms`) for very long fixed waits (roughly 5 seconds or more) instead of `pre_delay` / `post_delay`, which are not interruptible inside the framework. For `Click` followed by a long wait, use `ClickAndSleep` (`duration_ms`); it keeps the original node and `[JumpBack]` targets unchanged.
 - Do not hide extensive screen navigation in custom code, making the actual flow impossible to understand from the pipeline entry point.
 
 If custom code is used with a pipeline, the PR should explain the entry point, recognition conditions, click targets, transition paths, and failure fallbacks.

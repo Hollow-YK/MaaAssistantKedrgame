@@ -11,7 +11,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 
-from .general import parse_params
+from .general import interruptible_sleep, parse_params, stop_requested
 
 # 场景跳转关系表（与本模块同目录，不依赖 cwd）
 MAP_FILE = Path(__file__).resolve().parent / "scene_jump_map.json"
@@ -164,6 +164,9 @@ class SceneJump(CustomAction):
             # 兼容直接把目标场景名作为参数传入
             params.setdefault("target", raw.strip())
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         target = self._resolve_target(params)
         if not target:
             print("[SceneJump] 缺少目标场景参数 target（如 Status_In_MainMenu）")
@@ -219,6 +222,9 @@ class SceneJump(CustomAction):
         edges_done = 0
 
         while True:
+            if stop_requested(context):
+                print("[SceneJump] 收到停止请求，中断场景跳转")
+                return CustomAction.RunResult(success=False)
             if time.time() >= deadline:
                 print(f"[SceneJump] 等待超时（超过 {wait_timeout}s），终止")
                 return CustomAction.RunResult(success=False)
@@ -746,8 +752,8 @@ class SceneJump(CustomAction):
         def _left() -> float:
             return max(0.0, deadline - time.time())
 
-        def _nap(seconds: float) -> None:
-            time.sleep(min(seconds, _left()))
+        def _nap(seconds: float) -> bool:
+            return interruptible_sleep(context, min(seconds, _left()))
 
         # ---- 构建定向探测候选集 ----
         base_candidates = set(targets)
@@ -772,6 +778,8 @@ class SceneJump(CustomAction):
         # 2) 轮询等待场景变化（定向探测候选场景及其后代）
         retries = 1 if jumps else 0  # 已执行 jump 的次数
         while time.time() < deadline:
+            if stop_requested(context):
+                return False, None
             # 每轮只截一次屏；image 与 memo 在同一轮内共享，
             # 使「定向未命中 → 回退全量」不再重复截屏与重复识别
             image = self._screencap(context)
@@ -786,7 +794,8 @@ class SceneJump(CustomAction):
                 full_matches = self._detect_scenes_with(context, image, memo)
                 if not full_matches:
                     # 未知界面：等待（可能处于过渡中）
-                    _nap(settle_interval)
+                    if not _nap(settle_interval):
+                        return False, None
                     continue
                 # 返回意外场景，由主循环重新规划
                 return False, full_matches[0]
@@ -799,18 +808,21 @@ class SceneJump(CustomAction):
             if from_scene in matched and jumps:
                 # jump 后仍停留在 from：可能点击丢失 → 等待后重试 jump
                 if retries < max_attempts:
-                    _nap(retry_interval)
+                    if not _nap(retry_interval):
+                        return False, None
                     for node in jumps:
                         self._run_jump_node(context, str(node))
                     retries += 1
                     continue
                 # 重试次数用尽，继续等待到超时
-                _nap(settle_interval)
+                if not _nap(settle_interval):
+                    return False, None
                 continue
 
             if any(s in vias or s == from_scene for s in matched):
                 # 中间场景（via 可能经过也可能略过）或空 jump 的自然过渡等待
-                _nap(settle_interval)
+                if not _nap(settle_interval):
+                    return False, None
                 continue
 
             # 命中了某个场景，但不是目标、不是 via、也不是 from
@@ -843,6 +855,8 @@ class SceneJump(CustomAction):
             probe_candidates.add(stuck_scene)
 
         while time.time() < deadline:
+            if stop_requested(context):
+                return None
             # 每轮只截一次屏，image/memo 在轮内共享
             image = self._screencap(context)
             # 定向探测目标及相关场景
@@ -850,7 +864,10 @@ class SceneJump(CustomAction):
                 context, image, {}, probe_candidates
             )
             if not matched:
-                time.sleep(min(interval, max(0.0, deadline - time.time())))
+                if not interruptible_sleep(
+                    context, min(interval, max(0.0, deadline - time.time()))
+                ):
+                    return None
                 continue
 
             # 如果命中了目标（或其后代）
@@ -861,5 +878,8 @@ class SceneJump(CustomAction):
             if stuck_scene and stuck_scene not in matched:
                 return matched[0]
 
-            time.sleep(min(interval, max(0.0, deadline - time.time())))
+            if not interruptible_sleep(
+                context, min(interval, max(0.0, deadline - time.time()))
+            ):
+                return None
         return None

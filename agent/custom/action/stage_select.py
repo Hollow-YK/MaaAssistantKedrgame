@@ -12,7 +12,12 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from .general import parse_params, strip_jsonc_comments
+from .general import (
+    interruptible_sleep,
+    parse_params,
+    stop_requested,
+    strip_jsonc_comments,
+)
 
 
 class StageKey(NamedTuple):
@@ -140,6 +145,8 @@ class StageSelect(CustomAction):
         params = parse_params(argv.custom_action_param)
         field = str(params.get("field", "") or "").strip()
         stage = str(params.get("stage", "") or "").strip().upper()
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         if not field:
             print("[Stage_Select] 缺少选关地图参数 field")
             return CustomAction.RunResult(success=False)
@@ -214,7 +221,8 @@ class StageSelect(CustomAction):
         )
 
         # ── 2. 等待选关界面加载完成 ──
-        time.sleep(load_wait)
+        if not interruptible_sleep(context, load_wait):
+            return CustomAction.RunResult(success=False)
 
         # ── 3. 逐屏收敛寻找目标 ──
         direction = swipe_begin  # 上一次执行的滑动节点
@@ -226,6 +234,9 @@ class StageSelect(CustomAction):
         blind_scans = 0  # 已识别过地图后，连续扫描不到有效关卡的次数
 
         for step in range(1, max_swipes + 1):
+            if stop_requested(context):
+                print("[Stage_Select] 收到停止请求，中断选关")
+                return CustomAction.RunResult(success=False)
             visible = self._scan(context, roi, order)
             idxs = [v["index"] for v in visible] if visible else []
 
@@ -276,6 +287,8 @@ class StageSelect(CustomAction):
                 verdict = self._verify_stage(
                     context, target_key, verify_roi, verify_wait
                 )
+                if stop_requested(context):
+                    return CustomAction.RunResult(success=False)
                 if verdict == "success":
                     print(f"[Stage_Select] 校验通过：已进入关卡 {stage}")
                     return CustomAction.RunResult(success=True)
@@ -472,7 +485,10 @@ class StageSelect(CustomAction):
         deadline = time.time() + max(0.0, timeout)
         last_key = self._visible_key(context, roi, order)
         while time.time() < deadline:
-            time.sleep(self.SWIPE_POLL_INTERVAL)
+            if stop_requested(context):
+                return
+            if not interruptible_sleep(context, self.SWIPE_POLL_INTERVAL):
+                return
             key = self._visible_key(context, roi, order)
             # 必须确实识别到关卡、且与上次一致，才算稳定。
             # 识别不到关卡（None）时不能视为稳定，否则滑动动画期间 OCR 短暂失败
@@ -498,7 +514,8 @@ class StageSelect(CustomAction):
           - "mismatch" 识别到关卡名但非目标 → 进错关卡
           - "failed"   未识别到任何关卡名（可能未进入详情或仍在加载）
         """
-        time.sleep(verify_wait)
+        if not interruptible_sleep(context, verify_wait):
+            return "failed"
 
         # EX 关卡允许 OCR 漏读 EX 前缀（如 EX2-1 被读成 2-1）
         accepted = {target_key}
@@ -506,6 +523,8 @@ class StageSelect(CustomAction):
             accepted.add(target_key._replace(ex=False))
 
         for _ in range(self.VERIFY_RETRY):
+            if stop_requested(context):
+                return "failed"
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
@@ -524,7 +543,8 @@ class StageSelect(CustomAction):
                     if any(k in accepted for k in keys):
                         return "success"
                     return "mismatch"
-            time.sleep(self.VERIFY_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.VERIFY_RETRY_INTERVAL):
+                return "failed"
         return "failed"
 
     def _click_node(
@@ -536,6 +556,8 @@ class StageSelect(CustomAction):
     ) -> bool:
         """识别指定节点并点击其中心，返回是否成功点击"""
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition(node_name, image)
             if detail and detail.hit and detail.box:
@@ -546,5 +568,6 @@ class StageSelect(CustomAction):
                     "",
                 )
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False

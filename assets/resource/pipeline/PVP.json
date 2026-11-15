@@ -367,8 +367,15 @@
             }
         },
         "pre_delay": 500,
-        "action": "Click",
-        "post_delay": 7000,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ClickAndSleep",
+                "custom_action_param": {
+                    "duration_ms": 7000
+                }
+            }
+        },
         "next": [
             "[JumpBack]Status_Loading_Screen",
             "PVP_Click:BeginCombat"
@@ -513,7 +520,36 @@
                 "threshold": 0.8
             }
         },
-        "post_delay": 5000,
+        "next": [
+            "PVP_Wait:Settlement_End"
+        ]
+    },
+    "PVP_Wait:Settlement_End": {
+        "desc": "可中断等待结算动画（任务停止时立即退出，替代不可中断的 post_delay）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "InterruptibleSleep",
+                "custom_action_param": {
+                    "duration_ms": 5000
+                }
+            }
+        },
+        "next": [
+            "PVP_Wait:ReadResult"
+        ]
+    },
+    "PVP_Wait:ReadResult": {
+        "desc": "可中断等待结算数据加载（任务停止时立即退出，替代不可中断的 pre_delay）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "InterruptibleSleep",
+                "custom_action_param": {
+                    "duration_ms": 5000
+                }
+            }
+        },
         "next": [
             "PVP_Read:Result"
         ]
@@ -558,7 +594,6 @@
                 }
             }
         },
-        "pre_delay": 5000,
         "next": [
             "PVP_Click:ExitResult"
         ],

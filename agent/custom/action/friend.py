@@ -4,7 +4,6 @@ import copy
 import datetime as dt
 import difflib
 import re
-import time
 import traceback
 from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
@@ -16,7 +15,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType
 
-from .general import log_message, parse_params
+from .general import interruptible_sleep, log_message, parse_params, stop_requested
 
 # ---------------------------------------------------------------------------
 # 常量与小工具
@@ -456,6 +455,9 @@ class FriendReturnGift(CustomAction):
     ) -> CustomAction.RunResult:
         self._load_params(context, argv)
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         target_day = self._target_day()
         log_message(
             f"[Friend_ReturnGift] 目标游戏日 {target_day.isoformat()}"
@@ -468,6 +470,9 @@ class FriendReturnGift(CustomAction):
             return CustomAction.RunResult(success=False)
 
         records = self._scan_history(context, target_day)
+        if stop_requested(context):
+            log_message("[Friend_ReturnGift] 收到停止请求，中断回礼任务")
+            return CustomAction.RunResult(success=False)
         if records is None:
             log_message("[Friend_ReturnGift] 打开互动履历失败，任务失败")
             return CustomAction.RunResult(success=False)
@@ -488,6 +493,9 @@ class FriendReturnGift(CustomAction):
             return CustomAction.RunResult(success=True)
 
         success = self._return_gifts(context, records)
+        if stop_requested(context):
+            log_message("[Friend_ReturnGift] 收到停止请求，中断回礼任务")
+            return CustomAction.RunResult(success=False)
         log_message(
             f"[Friend_ReturnGift] 回礼结束：成功赠送 {self._gifted} 人，"
             f"目标 {len(records)} 人"
@@ -677,6 +685,9 @@ class FriendReturnGift(CustomAction):
         stalls = 0
         try:
             for round_index in range(self._max_history_scrolls):
+                if stop_requested(context):
+                    log_message("[Friend_ReturnGift] 收到停止请求，中断互动履历扫描")
+                    return None
                 image = self._screencap(context)
                 rows = self._read_history_rows(context, image)
                 keys = {(row.name, row.raw) for row in rows if row.raw}
@@ -709,13 +720,18 @@ class FriendReturnGift(CustomAction):
                     break
                 last_keys = keys
                 self._run_node(context, "history_swipe_node")
-                time.sleep(self._swipe_delay)
+                if not interruptible_sleep(context, self._swipe_delay):
+                    log_message("[Friend_ReturnGift] 收到停止请求，中断互动履历扫描")
+                    return None
             else:
                 log_message(
                     f"[Friend_ReturnGift] 互动履历滚动达到上限 {self._max_history_scrolls} 次"
                 )
         finally:
-            self._close_history(context)
+            # 收到停止请求时不再做“关闭履历”这类收尾操作：点击本身也会被框架拒绝，
+            # 只会白白拖慢停止。
+            if not stop_requested(context):
+                self._close_history(context)
 
         records = [
             record
@@ -748,18 +764,24 @@ class FriendReturnGift(CustomAction):
     def _open_history(self, context: Context) -> bool:
         self._run_node(context, "history_open_node")
         for _ in range(self.HISTORY_OPEN_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             if self._hit(context, "history_selected_node", image):
                 log_message("[Friend_ReturnGift] 已进入互动履历")
                 return True
-            time.sleep(self._settle_interval)
+            if not interruptible_sleep(context, self._settle_interval):
+                return False
         log_message("[Friend_ReturnGift] 点击互动履历后未能打开列表")
         return False
 
     def _close_history(self, context: Context) -> bool:
         for _ in range(3):
+            if stop_requested(context):
+                return False
             self._run_node(context, "history_close_node")
-            time.sleep(self._settle_interval)
+            if not interruptible_sleep(context, self._settle_interval):
+                return False
             image = self._screencap(context)
             if not self._hit(context, "history_selected_node", image):
                 log_message("[Friend_ReturnGift] 已退出互动履历")
@@ -823,6 +845,9 @@ class FriendReturnGift(CustomAction):
         need_reset = False
         hard_failure = False
         for index, record in enumerate(records):
+            if stop_requested(context):
+                log_message("[Friend_ReturnGift] 收到停止请求，中断回礼")
+                return False
             quota = self._read_quota(context)
             if quota and quota[0] >= quota[1]:
                 log_message(
@@ -869,10 +894,13 @@ class FriendReturnGift(CustomAction):
         stalls = 0
         scrolled = False
         for attempt in range(self._max_friend_swipes + 1):
+            if stop_requested(context):
+                return ("failed", scrolled)
             cells = self._scan_friend_list(context)
             if not cells:
                 log_message("[Friend_ReturnGift] 未识别到好友格子，重试一次")
-                time.sleep(self._settle_interval)
+                if not interruptible_sleep(context, self._settle_interval):
+                    return ("failed", scrolled)
                 cells = self._scan_friend_list(context)
                 if not cells:
                     return ("unreadable" if not scrolled else "not_found", scrolled)
@@ -897,7 +925,8 @@ class FriendReturnGift(CustomAction):
                 break
             self._run_node(context, "friend_swipe_node")
             scrolled = True
-            time.sleep(self._swipe_delay)
+            if not interruptible_sleep(context, self._swipe_delay):
+                return ("failed", scrolled)
         return ("not_found", scrolled)
 
     # ---------------- 好友列表 ----------------
@@ -1018,12 +1047,15 @@ class FriendReturnGift(CustomAction):
             return "sent"
         box = getattr(detail, "box", None)
         before = self._quota_of(context, image)
+        if stop_requested(context):
+            return "failed"
         try:
             context.run_action(self._node("sendable_node"), box, "", override)
         except Exception:
             traceback.print_exc()
             return "failed"
-        time.sleep(self.GIFT_DELAY)
+        if not interruptible_sleep(context, self.GIFT_DELAY):
+            return "failed"
         return "ok" if self._verify_gift(context, cell, before) else "failed"
 
     def _verify_gift(
@@ -1039,7 +1071,10 @@ class FriendReturnGift(CustomAction):
           - 该格子的“赠送”按钮已经不可赠（变灰）。
         """
         for _ in range(self.CLICK_VERIFY_RETRY):
-            time.sleep(0.4)
+            if stop_requested(context):
+                return False
+            if not interruptible_sleep(context, 0.4):
+                return False
             image = self._screencap(context)
             quota = self._quota_of(context, image)
             if before is not None and quota is not None and quota[0] > before[0]:
@@ -1053,21 +1088,27 @@ class FriendReturnGift(CustomAction):
     def _reset_list_top(self, context: Context) -> None:
         """切到“添加好友”再切回“好友列表”，让列表瞬间回到顶部。"""
         self._run_node(context, "add_friend_node")
-        time.sleep(self.TAB_SWITCH_DELAY)
+        if not interruptible_sleep(context, self.TAB_SWITCH_DELAY):
+            return
         self._run_node(context, "friend_list_node")
-        time.sleep(self.TAB_SWITCH_DELAY)
+        if not interruptible_sleep(context, self.TAB_SWITCH_DELAY):
+            return
         log_message("[Friend_ReturnGift] 已把好友列表切回顶部")
 
     def _ensure_friend_list(self, context: Context) -> bool:
         """确保当前停留在好友列表。"""
         for _ in range(self.FRIEND_LIST_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             if self._hit(context, "friend_list_selected_node", image):
                 return True
-            time.sleep(self._settle_interval)
+            if not interruptible_sleep(context, self._settle_interval):
+                return False
         # 最后一招：点一下“好友列表”页签
         self._run_node(context, "friend_list_node")
-        time.sleep(self.TAB_SWITCH_DELAY)
+        if not interruptible_sleep(context, self.TAB_SWITCH_DELAY):
+            return False
         image = self._screencap(context)
         return self._hit(context, "friend_list_selected_node", image)
 

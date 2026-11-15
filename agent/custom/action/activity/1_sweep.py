@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import re
-import time
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
+from ..general import interruptible_sleep, stop_requested
 from ..sweep import AutoSweepManager
 
 
@@ -36,8 +36,12 @@ class AutoSweepActivity1Manager(AutoSweepManager):
     def _run(
         self, context: Context, argv: CustomAction.RunArg
     ) -> CustomAction.RunResult:
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         # ── 0. 等待关卡详情界面加载完成 + 解锁检查（复用 AutoSweepManager）──
         if not self._wait_stage_ready(context):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             if self._check_unlock(context):
                 context.run_task("AutoSweepFailed_lock")
             return CustomAction.RunResult(success=False)
@@ -47,6 +51,8 @@ class AutoSweepActivity1Manager(AutoSweepManager):
 
         # ── 1. 检查剩余挑战次数；次数为 0 直接结束（交给跳板节点处理）──
         current, total = self._read_count(context)
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         if current is None:
             print("[AutoSweep_Activity_1_Manager] 未能识别剩余挑战次数，任务失败")
             return CustomAction.RunResult(success=False)
@@ -61,18 +67,26 @@ class AutoSweepActivity1Manager(AutoSweepManager):
             return CustomAction.RunResult(success=False)
 
         # ── 3. 次数直接设为最大（本关不消耗体力，无需考虑体力）──
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         context.run_task("AutoSweep_Click_Sweep_max")
         context.run_task("AutoSweep_Click_Sweep_max")
 
         # ── 4. 点击开始扫荡后结束；不走 AutoSweep_Click_Start2 的 next（活动关特殊逻辑），
         #    结算/领取/回地图由 AutoSweep_Activity_1_StageLoop 自动处理 ──
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         context.run_task("AutoSweep_Click_Start")
         self._click_node(context, "AutoSweep_Click_Start2")
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
         return CustomAction.RunResult(success=True)
 
     def _read_count(self, context: Context) -> tuple[int | None, int | None]:
         """OCR 读取剩余挑战次数，返回 (current, total)；识别不到返回 (None, None)"""
         for _ in range(self.COUNT_RETRY):
+            if stop_requested(context):
+                return None, None
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
@@ -85,7 +99,8 @@ class AutoSweepActivity1Manager(AutoSweepManager):
                     m = self.COUNT_PATTERN.search(text)
                     if m:
                         return int(m.group(1)), int(m.group(2))
-            time.sleep(self.COUNT_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.COUNT_RETRY_INTERVAL):
+                return None, None
         return None, None
 
     def _click_node(
@@ -97,6 +112,8 @@ class AutoSweepActivity1Manager(AutoSweepManager):
     ) -> bool:
         """识别指定节点并点击其中心，返回是否成功点击"""
         for _ in range(attempts):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition(node_name, image)
             if detail and detail.hit and detail.box:
@@ -107,5 +124,6 @@ class AutoSweepActivity1Manager(AutoSweepManager):
                     "",
                 )
                 return True
-            time.sleep(interval)
+            if not interruptible_sleep(context, interval):
+                return False
         return False

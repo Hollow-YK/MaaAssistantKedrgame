@@ -12,6 +12,17 @@ from .general import log_message, parse_params
 # agent 进程由 MaaFW 按任务逐次启动，进程内仅存在单一 tasker；
 # 此模块级变量天然限定在单次任务生命周期内，无跨任务干扰风险。
 _remaining: int | None = None
+# 记录初始化次数的任务 id：tasker sink 只在对应任务结束时清理，避免误伤其它任务。
+_task_id: int | None = None
+
+
+def reset_remaining(task_id: int) -> None:
+    """任务结束/被停止时清掉本任务留下的剩余次数（对齐 MaaEnd 的 state reset sink）。"""
+    global _remaining, _task_id
+    if _task_id is None or _task_id != task_id:
+        return
+    _remaining = None
+    _task_id = None
 
 
 def _to_int(value: Any) -> int | None:
@@ -51,8 +62,9 @@ class InitPVPBattleCount(CustomAction):
             log_message(f"[PVP] InitPVPBattleCount: target_count 必须是整数，得到: {params.get('target_count')!r}")
             return CustomAction.RunResult(success=False)
 
-        global _remaining
+        global _remaining, _task_id
         _remaining = target
+        _task_id = int(getattr(argv.task_detail, "task_id", 0) or 0) or None
         log_message(f"[PVP] 剩余战斗次数: {target}")
         return CustomAction.RunResult(success=True)
 
@@ -68,7 +80,7 @@ class CheckPVPBattleCount(CustomAction):
             return CustomAction.RunResult(success=False)
 
     def _run(self, context: Context, argv: CustomAction.RunArg) -> CustomAction.RunResult:
-        global _remaining
+        global _remaining, _task_id
         if _remaining is None:
             log_message("[PVP] CheckPVPBattleCount: remaining 未初始化，请先调用 InitPVPBattleCount")
             return CustomAction.RunResult(success=False)
@@ -78,6 +90,7 @@ class CheckPVPBattleCount(CustomAction):
         if _remaining <= 0:
             log_message("[PVP] 战斗次数已用完，返回主界面")
             _remaining = None
+            _task_id = None
             context.override_pipeline(
                 {
                     # 用完：回主页结束任务（提示走 agent 日志，不弹窗）

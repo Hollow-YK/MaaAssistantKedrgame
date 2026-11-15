@@ -35,7 +35,7 @@ Pipeline 入口文件：`assets/resource/pipeline/PVP.json`
 
 ### 战斗
 
-- `PVP_Click:StartBattle`：点击开始战斗（复用通用模板 `UI/Combat/Start2.png`，编队界面「开始战斗」按钮，与自动战斗/扫荡共用）。
+- `PVP_Click:StartBattle`：点击开始战斗（复用通用模板 `UI/Combat/Start2.png`，编队界面「开始战斗」按钮，与自动战斗/扫荡共用）；点击后由 `ClickAndSleep` 可中断等待 7 秒（替代不可中断的 `post_delay`，停止时立即退出）。
 - `PVP_Click:BeginCombat`：点击作战开始（复用通用模板 `UI/Combat/Start3.png`）。`timeout: 30000ms` 覆盖长加载场景（loading 画面持续动画，无法 `post_wait_freezes`）；`next` 中自身重试直到 `PVP_Check:InBattle` 命中。
 - `PVP_Check:InBattle`：检测是否在战斗中（并列候选），命中后进入 `PVP_Click:Speed2x`。
 - `PVP_Click:Speed2x`：点击 2 倍速。
@@ -44,7 +44,8 @@ Pipeline 入口文件：`assets/resource/pipeline/PVP.json`
 ### 结算
 
 - `PVP_Check:BattleEnd`：OCR 识别「跳过」（`only_rec` 直接识别 ROI 并点击）。
-- `PVP_Wait:Settlement`：等待结算动画播放完毕。
+- `PVP_Wait:Settlement`：等待结算动画播放完毕；`PVP_Wait:Settlement_End` 用 `InterruptibleSleep` 可中断等待 5 秒（替代不可中断的 `post_delay`）。
+- `PVP_Wait:ReadResult`：`InterruptibleSleep` 可中断等待 5 秒，替代 `PVP_Read:Result` 原来的 `pre_delay`。
 - `PVP_Read:Result`：Custom 识别 `ReadPVPResult`，读取结果、当前积分/排名及变化值（OCR 使用 `PVP_TextFilter` 颜色遮罩）；结果详情通过 `log_message` 输出到 agent 日志（每次识别成功即打印，无残留），focus 仅保留通用提示（「PVP 战斗结束」）。高级账号失败保护判定：**分数变化区域 OCR 为空 且 结果文字为失败** 才视为保护（本场不扣分）；若结果非失败，则以「变化值未识别」文案区分，避免 OCR/遮罩问题被误判为保护。
 - **提示说明**：PVP 不使用弹窗（toast），所有提示均为日志形式 —— 关键事件由 `log_message`（stderr + `info:` 前缀，MFAAvalonia/MXU/VSC 插件均可见）与部分 focus 日志（`Node.PipelineNode.Starting`，仅常规事件如顺序进度/任务完成）输出，避免同一条提示多通道重复。
 - `PVP_Click:ExitResult`：点击退出结果界面，循环关闭获得物品弹窗（`[JumpBack]SceneDo_GetItem`）后回到对战界面。

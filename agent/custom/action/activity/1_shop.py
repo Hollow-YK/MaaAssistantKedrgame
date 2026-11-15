@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 import traceback
 from typing import Any
 
@@ -12,7 +11,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick, JOCR, JRecognitionType
 
-from ..general import parse_params
+from ..general import interruptible_sleep, parse_params, stop_requested
 
 
 @AgentServer.custom_action("Shop_Activity_1_Manager")
@@ -129,6 +128,9 @@ class ShopActivity1Manager(CustomAction):
             params.get("max_purchase_rounds", self.MAX_PURCHASE_ROUNDS)
         )
 
+        if stop_requested(context):
+            return CustomAction.RunResult(success=False)
+
         # ── 二、购买当前展示的全部商品 ──
         success, should_continue = self._buy_all(context)
         if not success:
@@ -141,9 +143,12 @@ class ShopActivity1Manager(CustomAction):
 
         # ── 三、右划使后面的商品出现，再进行一轮购买 ──
         for i in range(swipe_times):
+            if stop_requested(context):
+                return CustomAction.RunResult(success=False)
             print(f"[Shop_Activity_1_Manager] 第 {i + 1} 次右划，使后面的商品出现")
             context.run_task("Shop_Activity_1_Swipe")
-            time.sleep(self.LOAD_DELAY)
+            if not interruptible_sleep(context, self.LOAD_DELAY):
+                return CustomAction.RunResult(success=False)
             success, should_continue = self._buy_all(context)
             if not success:
                 print("[Shop_Activity_1_Manager] 右划后购买商品失败")
@@ -159,6 +164,8 @@ class ShopActivity1Manager(CustomAction):
     def _buy_all(self, context: Context) -> tuple[bool, bool]:
         """步骤一、二：识别并购买当前展示的全部未售罄商品。"""
         for _ in range(self._max_purchase_rounds):
+            if stop_requested(context):
+                return (False, False)
             # 1. 获取当前屏幕上的所有格子
             cells = self._find_cells_with_retry(context)
             if not cells:
@@ -212,10 +219,13 @@ class ShopActivity1Manager(CustomAction):
 
     def _find_cells_with_retry(self, context: Context) -> list[list[int]]:
         for _ in range(self.CELL_FIND_RETRY):
+            if stop_requested(context):
+                return []
             cells = self._find_cells(context)
             if cells:
                 return cells
-            time.sleep(self.CELL_FIND_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.CELL_FIND_RETRY_INTERVAL):
+                return []
         return []
 
     def _find_cells(self, context: Context) -> list[list[int]]:
@@ -392,8 +402,11 @@ class ShopActivity1Manager(CustomAction):
             None  ：代币不足（已关闭弹窗），任务应结束并视为成功
         """
         # 1. 点击商品格子，进入详情界面
+        if stop_requested(context):
+            return False
         self._click_box(context, cell)
-        time.sleep(self.LOAD_DELAY)
+        if not interruptible_sleep(context, self.LOAD_DELAY):
+            return False
 
         # 2. 设置最大购买数量
         if not self._set_max_quantity(context):
@@ -412,20 +425,26 @@ class ShopActivity1Manager(CustomAction):
             return False
 
         # 4. 领取物品并回到商品页
+        if stop_requested(context):
+            return False
         context.run_task("SceneDo_GetItem")
-        time.sleep(self.LOAD_DELAY)
+        if not interruptible_sleep(context, self.LOAD_DELAY):
+            return False
         print(f"[Shop_Activity_1_Manager] 已购买: {cell}")
         return True
 
     def _set_max_quantity(self, context: Context) -> bool:
         """OCR 详情页数量排布，未达最大时点击 MAX 并做硬延迟。返回是否已确保数量最大。"""
         for _ in range(self.OCR_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR, JOCR(roi=self.QTY_ROI), image
             )
             if not (detail and detail.hit):
-                time.sleep(self.OCR_RETRY_INTERVAL)
+                if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                    return False
                 continue
 
             # 解析数量排布：找出 MAX 按钮位置与当前/最大数量
@@ -451,12 +470,14 @@ class ShopActivity1Manager(CustomAction):
             # 未达最大且能定位到 MAX 按钮 → 点击并做硬延迟
             if max_box is not None:
                 self._click_box(context, max_box)
-                time.sleep(self.SET_QTY_DELAY)  # 设置数量硬延迟
+                if not interruptible_sleep(context, self.SET_QTY_DELAY):
+                    return False
                 print(f"[Shop_Activity_1_Manager] 已点击 MAX (数量 {current}/{total})")
                 return True
 
             # 未识别到 MAX 也没法确认数量 → 重试
-            time.sleep(self.OCR_RETRY_INTERVAL)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return False
 
         print("[Shop_Activity_1_Manager] 数量 OCR 解析失败")
         return False
@@ -477,6 +498,8 @@ class ShopActivity1Manager(CustomAction):
     def _click_confirm(self, context: Context) -> bool:
         """OCR "确认购买" 并点击其中心"""
         for _ in range(self.OCR_RETRY):
+            if stop_requested(context):
+                return False
             image = self._screencap(context)
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
@@ -486,9 +509,9 @@ class ShopActivity1Manager(CustomAction):
             if detail and detail.hit:
                 for box, _score in self._boxes_and_scores_from(detail):
                     self._click_box(context, box)
-                    time.sleep(0.5)
-                    return True
-            time.sleep(self.OCR_RETRY_INTERVAL)
+                    return interruptible_sleep(context, 0.5)
+            if not interruptible_sleep(context, self.OCR_RETRY_INTERVAL):
+                return False
         return False
 
     # ---------- 工具 ----------
