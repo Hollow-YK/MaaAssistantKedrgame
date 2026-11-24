@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import heapq
 import json
+import random
 import time
 import traceback
 from pathlib import Path
@@ -107,8 +108,9 @@ class SceneJump(CustomAction):
     容错行为：
       - 未知界面、或当前场景没有通往其它界面的路径时，会进行等待（场景可能自行变化）；
         最多等待 wait_timeout 秒，超时按失败处理。
-      - 因游戏 bug 点击/事件可能丢失：执行 jump 后若仍停留在 from，等待 retry_interval 秒后
-        再次执行 jump（最多 max_attempts 次）。
+      - 因游戏 bug 点击/事件可能丢失：执行 jump 后先等待转场（最多 transition_timeout 秒），
+        观察窗口内仍停留在 from 才判定点击丢失，间隔 retry_interval 后再执行 jump
+        （最多 max_attempts 次）。
       - 同一时刻可能有多个场景同时满足识别（如出击页与其子 Tab）：这些场景都可作起点，
         自动选择“到目标总成本最小”的那一个。
 
@@ -116,8 +118,10 @@ class SceneJump(CustomAction):
       - target: 目标场景名（必填），如 "Status_In_MainMenu"、"Status_In_Combat_MaterialQuests"；
                 也可直接把 custom_action_param 写成目标场景名字符串
       - max_attempts: 单条边内 jump 重试次数，默认 3
-      - settle_interval: 轮询检测间隔（秒），默认 1.0
-      - retry_interval: jump 后仍停留在 from 时的重试间隔（秒），默认 10
+      - settle_interval: 轮询检测间隔（秒），默认 0.5
+      - transition_timeout: jump 后等待画面离开 from 的上限（秒），默认 5；
+                窗口内仍停留在 from 视为“转场尚未完成”，不据此重试点击
+      - retry_interval: 确认点击丢失后、重试 jump 前的最短间隔（秒），默认 0.5
       - wait_timeout: 未知界面/无路径/等待自然跳转的最大等待（秒），默认 300
       - max_total_edges: 整个流程最多执行的跳转边数（防循环），默认 30
       - strict: true 时遇到未记录的意外场景直接失败（默认 false，自动重新规划）
@@ -129,10 +133,14 @@ class SceneJump(CustomAction):
     """
 
     DEFAULT_MAX_ATTEMPTS = 3
-    DEFAULT_SETTLE_INTERVAL = 1.0
-    DEFAULT_RETRY_INTERVAL = 10.0
+    DEFAULT_SETTLE_INTERVAL = 0.5
+    DEFAULT_RETRY_INTERVAL = 0.5
+    DEFAULT_TRANSITION_TIMEOUT = 5.0
     DEFAULT_WAIT_TIMEOUT = 300.0
     DEFAULT_MAX_TOTAL_EDGES = 30
+    # 同一条边（from + to 组合）在一次 SceneJump 调用内允许执行的次数。
+    # 超过即判定循环："回到枢纽换另一条边走" 不受影响，只有重复执行同一步才会终止。
+    MAX_EDGE_REPEAT = 1
 
     def __init__(self) -> None:
         super().__init__()  # 初始化基类 _handle（AgentServer 注册时需要 c_handle）
@@ -189,6 +197,9 @@ class SceneJump(CustomAction):
         retry_interval = float(
             params.get("retry_interval", self.DEFAULT_RETRY_INTERVAL)
         )
+        transition_timeout = float(
+            params.get("transition_timeout", self.DEFAULT_TRANSITION_TIMEOUT)
+        )
         wait_timeout = float(params.get("wait_timeout", self.DEFAULT_WAIT_TIMEOUT))
         max_total_edges = int(
             params.get("max_total_edges", self.DEFAULT_MAX_TOTAL_EDGES)
@@ -216,9 +227,8 @@ class SceneJump(CustomAction):
 
         # 总等待预算：未知界面/无路径/等待自然跳转/点击丢失重试 共用，超时按失败处理
         deadline = time.time() + wait_timeout
-        visited: set[str] = set()
-        if current is not None:
-            visited.add(current)
+        # 边级尝试计数：同一条边被反复规划出来才是循环；回到枢纽换另一条边走属正常路径
+        edge_attempts: dict[tuple[str, tuple[str, ...]], int] = {}
         edges_done = 0
 
         while True:
@@ -232,19 +242,17 @@ class SceneJump(CustomAction):
             if current is None:
                 # 未知界面：等待场景出现（场景可能自行变化）
                 print("[SceneJump] 当前为未知界面，等待场景出现……")
-                scene = self._wait_for_change(
+                landed = self._wait_for_change(
                     context, None, target, deadline, settle_interval
                 )
-                if scene is None:
+                if not landed:
                     print("[SceneJump] 等待场景出现超时")
                     return CustomAction.RunResult(success=False)
-                current = self._pick_best_start(context, target, scene)
-                if current is None:
-                    current = scene
+                chosen, _ = self._best_start(landed, target)
+                current = chosen if chosen is not None else landed[0]
                 if self._satisfies(current, target):
                     print(f"[SceneJump] 已到达目标场景: {target}")
                     return CustomAction.RunResult(success=True)
-                visited.add(current)
                 continue
 
             if self._satisfies(current, target):
@@ -262,22 +270,17 @@ class SceneJump(CustomAction):
                     f"[SceneJump] 当前 {current} 无通往 {target} 的路径，"
                     "等待场景变化……"
                 )
-                current = self._wait_for_change(
+                landed = self._wait_for_change(
                     context, current, target, deadline, settle_interval
                 )
-                if current is None:
+                if not landed:
                     print("[SceneJump] 等待场景变化超时")
                     return CustomAction.RunResult(success=False)
-                current = self._pick_best_start(context, target, current)
-                if current is None:
-                    continue
+                chosen, _ = self._best_start(landed, target)
+                current = chosen if chosen is not None else landed[0]
                 if self._satisfies(current, target):
                     print(f"[SceneJump] 已到达目标场景: {target}")
                     return CustomAction.RunResult(success=True)
-                if current in visited:
-                    print(f"[SceneJump] 回到已访问场景 {current}，疑似循环，终止")
-                    return CustomAction.RunResult(success=False)
-                visited.add(current)
                 continue
 
             print(
@@ -286,42 +289,60 @@ class SceneJump(CustomAction):
                 + f" -> {target}"
             )
             edge = path[0]
+            edge_key = (edge["from"], tuple(edge["to"]))
+            edge_attempts[edge_key] = edge_attempts.get(edge_key, 0) + 1
+            if edge_attempts[edge_key] > self.MAX_EDGE_REPEAT:
+                print(
+                    f"[SceneJump] 边 {edge['from']} -> {edge['to']} 已执行 "
+                    f"{edge_attempts[edge_key] - 1} 次仍未到达，判定循环，终止"
+                )
+                return CustomAction.RunResult(success=False)
+
             print(
                 f"[SceneJump] 执行跳转: {edge['from']} -> {edge['to']}"
                 f"（节点: {edge.get('jump')}，中间: {edge.get('via') or []}）"
             )
-            reached, actual = self._execute_edge(
-                context, edge, max_attempts, settle_interval, retry_interval, deadline
+            reached, landed = self._execute_edge(
+                context,
+                edge,
+                max_attempts,
+                settle_interval,
+                retry_interval,
+                transition_timeout,
+                deadline,
             )
             edges_done += 1
 
             if reached:
-                current = actual if actual is not None else edge["to"][0]
-                visited.add(current)
+                current = landed[0] if landed else edge["to"][0]
                 continue
 
             # 未到达该边目标场景
             if strict:
                 print(
-                    f"[SceneJump] 跳转至 {edge['to']} 失败（实际: {actual}），"
+                    f"[SceneJump] 跳转至 {edge['to']} 失败（落点: {landed}），"
                     "strict 模式终止"
                 )
                 return CustomAction.RunResult(success=False)
-            if actual is None:
+            if not landed:
                 print(f"[SceneJump] 跳转至 {edge['to']} 等待超时/无法识别场景，终止")
                 return CustomAction.RunResult(success=False)
-            if actual in visited:
-                print(f"[SceneJump] 跳转后回到已访问场景 {actual}，疑似循环，终止")
-                return CustomAction.RunResult(success=False)
 
-            print(f"[SceneJump] 实际落在 {actual}，重新规划路径……")
-            current = self._pick_best_start(context, target, actual)
-            if current is None:
-                current = actual
-            if current in visited:
-                print(f"[SceneJump] 回到已访问场景 {current}，疑似循环，终止")
-                return CustomAction.RunResult(success=False)
-            visited.add(current)
+            print(f"[SceneJump] 实际落在 {landed}，重新规划路径……")
+            chosen, _ = self._best_start(landed, target)
+            if chosen is None:
+                # 没有任何可达目标的可信落点：等待画面自行变化
+                landed = self._wait_for_change(
+                    context, None, target, deadline, settle_interval
+                )
+                if not landed:
+                    print("[SceneJump] 等待场景变化超时")
+                    return CustomAction.RunResult(success=False)
+                chosen, _ = self._best_start(landed, target)
+            current = chosen if chosen is not None else landed[0]
+            if self._satisfies(current, target):
+                print(f"[SceneJump] 已到达目标场景: {target}")
+                return CustomAction.RunResult(success=True)
 
         print(f"[SceneJump] 已到达目标场景: {target}（{self._desc(target)}）")
         return CustomAction.RunResult(success=True)
@@ -619,36 +640,42 @@ class SceneJump(CustomAction):
     def _best_start(
         self, matches: list[str], target: str
     ) -> tuple[str | None, list[dict[str, Any]] | None]:
-        """从多个同时匹配的场景中，选“到目标总成本最小”的起点。
+        """从同帧命中的一组场景中，选“到目标总成本最小”的起点。
+
+        对整组逐个做 Dijkstra（_plan），取总成本最小者；成本并列时随机选一个，
+        避免结果退化成依赖 scenes 的声明顺序。
 
         返回 (起点场景名, 起点到目标的最短路径)；起点已满足目标时路径为空列表；
         所有候选都无法到达目标时返回 (None, None)。
         """
-        best_scene: str | None = None
-        best_path: list[dict[str, Any]] | None = None
-        best_cost = float("inf")
+        if not matches:
+            return None, None
+
         for m in matches:
             if self._satisfies(m, target):
                 return m, []
+
+        candidates: list[tuple[float, str, list[dict[str, Any]]]] = []
+        for m in matches:
             path = self._plan(m, target)
             if not path:
                 continue
-            cost = sum(self._edge_cost(e) for e in path)
-            if cost < best_cost:
-                best_cost = cost
-                best_scene = m
-                best_path = path
-        return best_scene, best_path
+            candidates.append((sum(self._edge_cost(e) for e in path), m, path))
 
-    def _pick_best_start(
-        self, context: Context, target: str, fallback: str | None
-    ) -> str | None:
-        """重新检测所有匹配场景，选最短路径起点；无匹配时返回 fallback。"""
-        matches = self._detect_scenes(context)
-        if not matches:
-            return fallback
-        best, _ = self._best_start(matches, target)
-        return best if best is not None else fallback
+        if not candidates:
+            print(f"[SceneJump] 命中 {matches}，但均无法到达 {target}")
+            return None, None
+
+        best_cost = min(c[0] for c in candidates)
+        pool = [(m, path) for cost, m, path in candidates if cost == best_cost]
+        chosen, path = random.choice(pool)
+        print(
+            "[SceneJump] 候选起点: "
+            + ", ".join(f"{m}({cost:g})" for cost, m, _ in candidates)
+            + f" → 选中 {chosen}"
+            + ("（并列随机）" if len(pool) > 1 else "")
+        )
+        return chosen, path
 
     # ------------------------------------------------------------------
     # 场景检测
@@ -713,8 +740,12 @@ class SceneJump(CustomAction):
         不会级联执行 next 里的后续节点（如 Award_DailyAward_Click:Get 不再顺带
         执行 Award_DailyAward_MonthlyPlan / AnySceneEnter_MainMenu）。
         覆盖仅对本次调用生效，不影响 context 中其它流程。
+
+        同时把该节点的 timeout 压到 3000ms：entry 节点识别失败时，框架会按 rate_limit
+        反复重试同一节点直到 timeout（默认 20000ms），不加限制时一次“点击”调用可能
+        阻塞 20 秒。
         """
-        context.run_task(node, {node: {"next": []}})
+        context.run_task(node, {node: {"next": [], "timeout": 3000}})
 
     def _execute_edge(
         self,
@@ -723,22 +754,25 @@ class SceneJump(CustomAction):
         max_attempts: int,
         settle_interval: float,
         retry_interval: float,
+        transition_timeout: float,
         deadline: float,
-    ) -> tuple[bool, str | None]:
+    ) -> tuple[bool, list[str]]:
         """执行一条边（一步跳转），直到到达该边目标场景或超时。
 
-        返回 (是否到达该边目标场景, 最终检测到的场景名)。
-        未到达时：落在非预期已知场景返回 (False, 该场景名)；等待超时返回 (False, None)。
+        返回 (是否到达该边目标场景, 本帧命中的场景名列表)。
+        到达时列表为命中的具体场景；未到达时列表为落点候选（可能为空 = 无法识别）。
 
         规则：
           - jump 可为空（[]）：表示 from 场景无需任何操作，等待后必然自然进入 to；
-          - 执行 jump 后若仍停留在 from（游戏点击可能丢失），等待 retry_interval 后重试
-            jump（最多 max_attempts 次）；
-          - via 表示“可能经过”的中间场景（也可能略过），处于 via 时继续等待其结束；
+          - 判定顺序固定为 target → via → from → 其它，via 优先于 from：
+            同一帧里既命中 from 又命中 via 时，说明点击已生效、只是还在过渡；
+          - 处于 via（过渡中）时只等待：既不判“点击丢失”，也不把画面当成“意外场景”，
+            直到 via 消失才重新进入状态机（此时才判断是否又出现了非预期场景）；
+          - 过渡结束后开始观察窗口（transition_timeout）：窗口内仍停在 from 属正常，
+            窗口用尽才判定点击丢失，间隔 retry_interval 后重试 jump（最多 max_attempts 次）；
           - 未知界面（无法识别）时继续等待；
           - 全程受 deadline（wait_timeout）约束，超时返回失败。
-        优化：使用定向探测（_detect_scenes_subset）替代全量扫描，
-        仅识别与当前边相关的候选场景及其后代，大幅减少模板匹配次数。
+        优化：使用定向探测替代全量扫描，仅识别与当前边相关的候选场景及其后代，
         仅在定向探测未命中或命中意外场景时回退全量识别。"""
         targets = edge["to"]  # 可能为多个候选场景（to 列表）
         from_scene = edge["from"]
@@ -772,67 +806,85 @@ class SceneJump(CustomAction):
         # 1) 首次执行 jump（若有；空 jump 表示无需操作，仅等待自然跳转）
         for node in jumps:
             if time.time() >= deadline:
-                return False, None
+                return False, []
             self._run_jump_node(context, str(node))
 
         # 2) 轮询等待场景变化（定向探测候选场景及其后代）
         retries = 1 if jumps else 0  # 已执行 jump 的次数
+        observed_since = time.time()  # 本轮“等待转场”观察窗口的起点
+        in_transition = False  # 当前是否处于 via 过渡中（状态，不是历史标记）
+
         while time.time() < deadline:
             if stop_requested(context):
-                return False, None
+                return False, []
             # 每轮只截一次屏；image 与 memo 在同一轮内共享，
             # 使「定向未命中 → 回退全量」不再重复截屏与重复识别
             image = self._screencap(context)
             memo: dict[str, bool] = {}
 
-            # 定向探测：仅识别候选场景
             matched = self._detect_scenes_with(context, image, memo, probe_candidates)
 
             if not matched:
                 # 定向未命中任何候选 -> 可能进入了完全意外的场景，回退全量识别
-                # （复用同一 image/memo，已识别过的节点不会重复识别）
                 full_matches = self._detect_scenes_with(context, image, memo)
                 if not full_matches:
                     # 未知界面：等待（可能处于过渡中）
                     if not _nap(settle_interval):
-                        return False, None
+                        return False, []
                     continue
                 # 返回意外场景，由主循环重新规划
-                return False, full_matches[0]
+                return False, full_matches
 
-            # 命中目标：任意匹配场景满足任一 to → 返回最具体的那个
+            # ① 命中目标：任意匹配场景满足任一 to → 成功
             hit = next((s for s in matched if self._satisfies_any(s, targets)), None)
             if hit is not None:
-                return True, hit
+                return True, [hit]
 
+            # ② 过渡中：只等待。不判点击丢失，也不判意外场景
+            if any(s in vias for s in matched):
+                in_transition = True
+                if not _nap(settle_interval):
+                    return False, []
+                continue
+
+            # ③ 过渡刚结束：重置观察窗口，状态机重新接管
+            if in_transition:
+                in_transition = False
+                observed_since = time.time()
+
+            # ④ 仍停留在 from：先按“转场尚未完成”处理，继续观察
             if from_scene in matched and jumps:
-                # jump 后仍停留在 from：可能点击丢失 → 等待后重试 jump
+                quiet_left = transition_timeout - (time.time() - observed_since)
+                if quiet_left > 0:
+                    if not _nap(min(settle_interval, quiet_left)):
+                        return False, []
+                    continue
+                # 观察窗口用尽仍停在 from：判定点击确实丢失 → 重试 jump
                 if retries < max_attempts:
-                    if not _nap(retry_interval):
-                        return False, None
+                    if retry_interval > 0 and not _nap(retry_interval):
+                        return False, []
                     for node in jumps:
                         self._run_jump_node(context, str(node))
                     retries += 1
+                    observed_since = time.time()  # 重新开始观察
                     continue
                 # 重试次数用尽，继续等待到超时
                 if not _nap(settle_interval):
-                    return False, None
+                    return False, []
                 continue
 
-            if any(s in vias or s == from_scene for s in matched):
-                # 中间场景（via 可能经过也可能略过）或空 jump 的自然过渡等待
+            # ⑤ 空 jump 的自然过渡等待（from 命中但没有 jump 可执行）
+            if any(s == from_scene for s in matched):
                 if not _nap(settle_interval):
-                    return False, None
+                    return False, []
                 continue
 
-            # 命中了某个场景，但不是目标、不是 via、也不是 from
+            # ⑥ 命中了某个场景，但不是目标、不是 via、也不是 from
             # 回退全量识别以获取准确场景名并重新规划（复用同一 image/memo）
             full_matches = self._detect_scenes_with(context, image, memo)
-            if not full_matches:
-                return False, matched[0]  # 以定向结果为准
-            return False, full_matches[0]
+            return False, (full_matches or matched)
 
-        return False, None  # 等待超时
+        return False, []  # 等待超时
 
     def _wait_for_change(
         self,
@@ -841,10 +893,11 @@ class SceneJump(CustomAction):
         target: str,
         deadline: float,
         interval: float,
-    ) -> str | None:
+    ) -> list[str]:
         """在未知界面或“无路径”的死胡同等待场景自行变化。
 
-        返回新的已知场景（期间若已满足 target 也返回该场景）；超时返回 None。
+        返回当前帧命中的场景列表（期间若已满足 target 也包含该场景）；
+        超时或不可识别时返回空列表。
 
         优化：定向探测 target 及其后代，而非全量扫描。
         """
@@ -856,7 +909,7 @@ class SceneJump(CustomAction):
 
         while time.time() < deadline:
             if stop_requested(context):
-                return None
+                return []
             # 每轮只截一次屏，image/memo 在轮内共享
             image = self._screencap(context)
             # 定向探测目标及相关场景
@@ -867,19 +920,19 @@ class SceneJump(CustomAction):
                 if not interruptible_sleep(
                     context, min(interval, max(0.0, deadline - time.time()))
                 ):
-                    return None
+                    return []
                 continue
 
-            # 如果命中了目标（或其后代）
+            # 如果命中了目标（或其后代），返回整组命中
             if any(self._satisfies(s, target) for s in matched):
-                return matched[0]  # 返回命中的具体场景
+                return matched
 
-            # 如果离开 stuck_scene 到了其他已知场景（但不是目标），返回它
+            # 如果离开 stuck_scene 到了其他已知场景（但不是目标），返回整组命中
             if stuck_scene and stuck_scene not in matched:
-                return matched[0]
+                return matched
 
             if not interruptible_sleep(
                 context, min(interval, max(0.0, deadline - time.time()))
             ):
-                return None
-        return None
+                return []
+        return []
